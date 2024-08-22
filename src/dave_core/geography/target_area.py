@@ -34,9 +34,7 @@ def _target_by_postalcode(grid_data, postalcode):
         # in this case all postalcode areas will be choosen
         target = postal
     else:
-        target = postal[postal.postalcode.isin(postalcode)].reset_index(
-            drop=True
-        )
+        target = postal[postal.postalcode.isin(postalcode)].reset_index(drop=True)
         # sort postalcodes
         postalcode.sort()
     return target
@@ -74,9 +72,7 @@ def _target_by_own_area(grid_data, own_area):
     if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     # filter postal code areas which are within the target area
-    postal_intersection = intersection_with_area(
-        postal, target, remove_columns=False
-    )
+    postal_intersection = intersection_with_area(postal, target, remove_columns=False)
     # filter duplicated postal codes
     own_postal = postal_intersection["postalcode"].unique().tolist()
     return target, own_postal
@@ -122,16 +118,11 @@ def _target_by_federal_state(grid_data, federal_state):
     else:
         # bring federal state names in right format and filter data
         federal_state = [
-            "-".join([part.capitalize() for part in state.split("-")])
-            for state in federal_state
+            "-".join([part.capitalize() for part in state.split("-")]) for state in federal_state
         ]
-        target = states[states["name"].isin(federal_state)].reset_index(
-            drop=True
-        )
+        target = states[states["name"].isin(federal_state)].reset_index(drop=True)
         if len(target) != len(federal_state):
-            raise ValueError(
-                "federal state name wasn`t found. Please check your input"
-            )
+            raise ValueError("federal state name wasn`t found. Please check your input")
         # sort federal state names
         federal_state.sort()
     # convert federal states into postal code areas for target_input
@@ -140,9 +131,7 @@ def _target_by_federal_state(grid_data, federal_state):
     if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     # filter postal code areas which are within the target area
-    postal_intersection = intersection_with_area(
-        postal, target, remove_columns=False
-    )
+    postal_intersection = intersection_with_area(postal, target, remove_columns=False)
     # filter duplicated postal codes
     federal_state_postal = postal_intersection["postalcode"].unique().tolist()
     return target, federal_state, federal_state_postal
@@ -167,27 +156,16 @@ def _target_by_nuts_region(grid_data, nuts_region):
     else:
         # bring NUTS ID in right format
         nuts_regions = [
-            "".join(
-                [
-                    letter.upper() if letter.isalpha() else letter
-                    for letter in list(nuts)
-                ]
-            )
+            "".join([letter.upper() if letter.isalpha() else letter for letter in list(nuts)])
             for nuts in nuts_region[0]
         ]
         nuts_region = (nuts_regions, nuts_region[1])
         for i, region in enumerate(nuts_region[0]):
             # get area for nuts region
             nuts_contains = nuts_3[nuts_3["NUTS_ID"].str.contains(region)]
-            target = (
-                nuts_contains
-                if i == 0
-                else concat([target, nuts_contains], ignore_index=True)
-            )
+            target = nuts_contains if i == 0 else concat([target, nuts_contains], ignore_index=True)
             if nuts_contains.empty:
-                raise ValueError(
-                    "nuts region name wasn`t found. Please check your input"
-                )
+                raise ValueError("nuts region name wasn`t found. Please check your input")
     # filter duplicates
     target.drop_duplicates(inplace=True)
     # convert nuts regions into postal code areas for target_input
@@ -196,9 +174,7 @@ def _target_by_nuts_region(grid_data, nuts_region):
     if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     # filter postal code areas which are within the target area
-    postal_intersection = intersection_with_area(
-        postal, target, remove_columns=False
-    )
+    postal_intersection = intersection_with_area(postal, target, remove_columns=False)
     # filter duplicated postal codes
     nuts_region_postal = postal_intersection["postalcode"].unique().tolist()
     return target, nuts_region_postal
@@ -314,9 +290,7 @@ def target_area(
         )
         grid_data.target_input = target_input
     elif nuts_region:
-        target, nuts_region_postal = _target_by_nuts_region(
-            grid_data, nuts_region
-        )
+        target, nuts_region_postal = _target_by_nuts_region(grid_data, nuts_region)
         target_input = DataFrame(
             {
                 "typ": "nuts region",
@@ -361,17 +335,12 @@ def target_area(
             progress_step = 80 / len(diff_targets)
             for diff_target in diff_targets:
                 town = target[target.town == diff_target]
-                target_geom = (
-                    town.geometry.unary_union
-                    if len(town) > 1
-                    else town.iloc[0].geometry
-                )
+                target_geom = town.geometry.unary_union if len(town) > 1 else town.iloc[0].geometry
                 # Obtain data from OSM
                 from_osm(
                     grid_data,
                     pbar,
                     roads,
-                    roads_plot,
                     buildings,
                     landuse,
                     railways,
@@ -389,7 +358,6 @@ def target_area(
                     grid_data,
                     pbar,
                     roads,
-                    roads_plot,
                     buildings,
                     landuse,
                     railways,
@@ -399,7 +367,6 @@ def target_area(
                 )
         # reset index for all osm data
         grid_data.roads.roads.reset_index(drop=True, inplace=True)
-        grid_data.roads.roads_plot.reset_index(drop=True, inplace=True)
         grid_data.landuse.reset_index(drop=True, inplace=True)
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)

@@ -52,12 +52,6 @@ def set_dave_settings():
                 ["geometry", "name", "highway", "surface"],
                 "id",
             ),
-            "road_plot": (
-                "highway",
-                ["motorway", "trunk", "primary"],
-                ["way"],
-                ["geometry", "name", "id", "surface"],
-            ),
             "landuse": (
                 "landuse",
                 True,

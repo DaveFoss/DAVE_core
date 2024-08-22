@@ -5,10 +5,12 @@
 from xml.etree.ElementTree import parse
 
 from geopandas import GeoDataFrame
-from pandas import DataFrame, read_json, Series
-from shapely.geometry import LineString, Point
+from pandas import DataFrame
+from pandas import Series
+from pandas import read_json
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
-from dave_core.client.dave_request import from_database
 from dave_core.dave_structure import create_empty_dataset
 from dave_core.settings import dave_settings
 
@@ -194,46 +196,6 @@ def read_simone_file(topology_path, scenario_path=None, result_path=None, crs="e
     return data
 
 
-def read_simone_db(network, scenario=None):
-    """
-    This function reads simone data from dave database
-
-    INPUT:
-        **network** (str) - simone network name \n
-
-    OPTIONAL:
-        **scenario** (str, default None) - simone scenario name \n
-        **crs** (str, default "epsg:4326") - coordinate system of the data \n
-
-    OUTPUT:
-        **data** (dict) - dict which contains all data as GeoDataFrames \n
-    """
-    # request topology from database for given network
-    data = {}
-    data["node"] = from_database(database="tub", collection=f"{network}_net_node")
-    data["pipe"] = from_database(database="tub", collection=f"{network}_net_pipe")
-    data["valve"] = from_database(database="tub", collection=f"{network}_net_valve")
-    data["compressor station"] = from_database(
-        database="tub", collection=f"{network}_net_compressor station"
-    )
-    if scenario:
-        # add parameter and result data
-        data["node_parameter"] = from_database(
-            database="tub", collection=f"{network}_{scenario}_parameters_nodes"
-        )
-        data["element_parameter"] = from_database(
-            database="tub", collection=f"{network}_{scenario}_parameters_elements"
-        )
-        data["node_results"] = from_database(
-            database="tub", collection=f"{network}_{scenario}_results_nodes"
-        )
-        data["element_results"] = from_database(
-            database="tub", collection=f"{network}_{scenario}_results_elements"
-        )
-
-    return data
-
-
 def read_json(filepath):
     # read scenario and result data
     n_df = read_json(f"{filepath}_nodes.json", orient="records", lines=True)
@@ -264,7 +226,14 @@ def simone_to_dave(data_simone):
     grid_data.hp_data.hp_junctions.insert(
         0,
         "dave_name",
-        Series(list(map(lambda x: f"junction_1_{x}", grid_data.hp_data.hp_junctions.index))),
+        Series(
+            list(
+                map(
+                    lambda x: f"junction_1_{x}",
+                    grid_data.hp_data.hp_junctions.index,
+                )
+            )
+        ),
     )
     grid_data.hp_data.hp_pipes = grid_data.hp_data.hp_pipes.reset_index(drop=True)
     grid_data.hp_data.hp_pipes.insert(

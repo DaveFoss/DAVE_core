@@ -1,108 +1,201 @@
-Change Log
-=============
+=======================
+What's new in DAVE_core
+=======================
 
+These are new features and improvements of note in each release.
 
-[1.2.0] - (2023-11-20)
-----------------------
-- [MOVED]   dave structure functions to DAVE client
-- [MOVED]   read simone function to DAVE client
-- [MOVED]   read gaslib function to DAVE client
-- [MOVED]   model module to DAVE client
-- [MOVED]   io module to DAVE client
-- [CHANGED] archiv i/o function in seperated file
-- [MOVED]   plotting module to DAVE client
-- [ADDED]   building height based on raster data
-- [ADDED]   extend api with functions for database managment
-- [ADDED]   environment files for the possibility to install DAVE via mamba
-- [ADDED]   converter for the multiphysical network simulator MYNTS
-- [ADDED]   population data from census and the possibility to request the raster data
-- [ADDED]   importer for data from the gassimulation softwaretool SIMONE
-- [ADDED]   api restriction by user role
-- [ADDED]   option to choose year for nuts regions (2013, 2016, 2021)
-- [ADDED]   geopackage as possible output format
-- [ADDED]   extend geographical data with more landuse information and data for waterways
-- [CHANGED] input parameters for geographical objects reduced to one parameter "geodata"
+Unreleased
+==========
 
+Changed
+-------
 
-[1.1.0] - 2022-11-03
-----------------------
-- [EVENT]   first open accessible "software as a service" platform version
-- [ADDED]   algorithm for automated deployment
-- [ADDED]   api authentication
-- [ADDED]   own database for DAVE (mongo db) and restructured data requests
-- [ADDED]   algorithm for regular automated database updates
-- [ADDED]   algorithm for regular automated database dump
-- [EVENT]   DAVE licensed under a three clause bsd license
-- [ADDED]   geography module and separated geographical data from grid model generation
-- [ADDED]   restructured target area functions
-- [FIXED]   osm gateway timeout
-- [FIXED]   stack overflow error
-- [ADDED]   different years as option for nuts regions
-- [CHANGED] renamed building category from "for_living" to "residential"
-- [ADDED]   function for intersection with considering mixed geometries
-- [FIXED]   duplicate naming
-- [ADDED]   topology cleanup for power and gas models
-- [CHANGED] power components script splitted to separate scripts according to the components
-- [CHANGED] bus naming in ehv and hv models from "bus0/bus1" to "from/to_bus"
-- [ADDED]   gaslib converter
-- [CHANGED] channel for required packages to only "conda forge" because of anaconda terms changes
-- [ADDED]   gas component: source, sink, compressor
-- [ADDED]   pandapipes converter
-- [ADDED]   function to transform address into coordinates
+* Changelog style
 
+Event
+-----
 
-[1.0.6] - 2021-10-20
-----------------------
-- [ADDED]   option for output folder path
-- [FIXED]   wrong/missing types at pandapower converter
-- [FIXED]   missing crs definitions
-- [ADDED]   application programming interface (api) module
-- [CHANGED] build seperated io modul, changed structure and moved existing io functions to that
-- [CHANGED] rebuild from/to hdf functions and merged with from/to archiv
-- [ADDED]   functions for serialization
-- [ADDED]   automated build of docker images from ci (with kaniko)
-- [ADDED]   basic test structure
-- [ADDED]   setup file
-- [ADDED]   uniform code style (with black) via pre-commit hooks
-- [ADDED]   uniform import order (with isort) via pre-commit hooks
-- [CHANGED] moved dave dir paths to settings file
-- [ADDED]   interface to api, for reach own database (mongo db)
+* Switched name from DAVE to DAVE_core as part of the open source publication and restructuring
 
-[1.0.5] - 2021-03-21
-----------------------
-- [ADDED]   substations for other voltage levels
-- [CHANGED] move ehv substations to components power
-- [FIXED]   missing line and trafo data within pandapower converting
+1.2.0 (November 20, 2023)
+=========================
 
-[1.0.4] - 2021-03-18
-----------------------
-- [CHANGED] pandapower converter function restructured
-- [CHANGED] condition deleted that more than one bus must exist for transformers
+Added
+-----
 
-[1.0.3] - 2021-03-04
-----------------------
-- [ADDED]   description in install tutorial for using DaVe in PyCharm
-- [ADDED]   runtime count
+* Building height based on raster data
+* Extend api with functions for database managment
+* Environment files for the possibility to install DAVE via mamba
+* Converter for the multiphysical network simulator MYNTS
+* Population data from census and the possibility to request the raster data
+* Importer for data from the gassimulation softwaretool SIMONE
+* Api restriction by user role
+* Option to choose year for nuts regions (2013, 2016, 2021)
+* Geopackage as possible output format
+* Extend geographical data with more landuse information and data for waterways
 
-[1.0.2] - 2021-02-10
-----------------------
-- [ADDED]   progress bars
-- [FIXED]   overwriting points in voronoi calculation
+Changed
+-------
 
-[1.0.1] - 2021-01-26
-----------------------
-- [FIXED]   replaced deprecated shapely "cascaded union" function with "unary_union" function
-- [CHANGED] voronoi function expanded with dynamic corner points
-- [ADDED]   json to pp converting function with considering geometries
-- [ADDED]   pp to json converting function with considering geometries
-- [ADDED]   nuts regions as input option for grid area
-- [ADDED]   possibility to choose components individually
-- [CHANGED] use scigridgas igginl dataset instead of lkd_eu dataset for high pressure gas level
+* Archiv i/o function in seperated file
+* Input parameters for geographical objects reduced to one parameter "geodata"
 
-[1.0.0] - 2020-12-21
-----------------------
-- [EVENT]   first usable DaVe version
+Removed
+-------
 
-[0.0.0] - 2020-02-05
-----------------------
-- [EVENT]   started DaVe development
+* Moved dave structure functions to DAVE client
+* Moved read simone function to DAVE client
+* Moved read gaslib function to DAVE client
+* Moved io module to DAVE client
+* Moved plotting module to DAVE client
+
+1.1.0 (November 03, 2022)
+=========================
+
+Added
+-----
+
+* Algorithm for automated deployment
+* Geography module and separated geographical data from grid model generation
+* Restructured target area functions
+* Different years as option for nuts regions
+* Function for intersection with considering mixed geometries
+* Topology cleanup for power and gas models
+* Gaslib converter
+* Gas component: source, sink, compressor
+* Pandapipes converter
+* Function to transform address into coordinates
+
+Changed
+-------
+
+* Renamed building category from "for_living" to "residential"
+* Power components script splitted to separate scripts according to the components
+* Bus naming in ehv and hv models from "bus0/bus1" to "from/to_bus"
+* Channel for required packages to only "conda forge" because of anaconda terms changes
+
+Fixed
+-------
+
+* Osm gateway timeout
+* Stack overflow error
+* Duplicate naming
+
+Event
+-----
+
+* First open accessible "software as a service" platform version
+* DAVE licensed under a three clause bsd license 
+
+1.0.6 (October 20, 2021)
+========================
+
+Added
+-----
+
+* Option for output folder path
+* Functions for serialization
+* Basic test structure
+* setup file
+* Uniform code style (with black) via pre-commit hooks
+* Uniform import order (with isort) via pre-commit hooks
+
+Changed
+-------
+
+* Build seperated io modul, changed structure and moved existing io functions to that
+* Rebuild from/to hdf functions and merged with from/to archiv
+* Moved dave dir paths to settings file
+
+Fixed
+-------
+
+* Wrong/missing types at pandapower converter
+* Missing crs definitions
+
+1.0.5 (March 21, 2021)
+======================
+
+Added
+-----
+
+* Substations for other voltage levels
+
+Changed
+-------
+
+* Move ehv substations to components power
+
+Fixed
+-------
+
+* Missing line and trafo data within pandapower converting
+
+1.0.4 (March 18, 2021)
+======================
+
+Changed
+-------
+
+* Pandapower converter function restructured
+* Condition deleted that more than one bus must exist for transformers
+
+1.0.3 (March 04, 2021)
+======================
+
+Added
+-----
+
+* Description in install tutorial for using DaVe in PyCharm
+* Runtime count
+
+1.0.2 (February 10, 2021)
+======================
+
+Added
+-----
+
+* Progress bars
+
+Fixed
+-------
+
+* Overwriting points in voronoi calculation
+
+1.0.1 (January 26, 2021)
+======================
+
+Added
+-----
+
+* Json to pp converting function with considering geometries
+* pp to json converting function with considering geometries
+* Nuts regions as input option for grid area
+* Possibility to choose components individually
+
+Changed
+-------
+
+* Voronoi function expanded with dynamic corner points
+* Use scigridgas igginl dataset instead of lkd_eu dataset for high pressure gas level
+
+Fixed
+-------
+
+* Replaced deprecated shapely "cascaded union" function with "unary_union" function
+
+1.0.0 (December 21, 2020)
+======================
+
+Event
+-----
+
+* First usable DaVe version
+
+0.0.0 (February 05, 2020)
+======================
+
+Event
+-----
+
+* Started DaVe development

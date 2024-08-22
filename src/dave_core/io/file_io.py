@@ -5,27 +5,36 @@
 from functools import partial
 from json import dumps as json_dumps
 from json import loads as json_loads
-from os.path import exists, isfile
+from os.path import exists
+from os.path import isfile
 
-from geopandas import GeoDataFrame, GeoSeries
+from geopandas import GeoDataFrame
+from geopandas import GeoSeries
 from pandapipes.io.file_io import from_json as from_json_ppi
 from pandapipes.io.file_io import to_json as to_json_ppi
 from pandapower.file_io import from_json as from_json_pp
 from pandapower.file_io import to_json as to_json_pp
-from pandapower.io_utils import (
-    PPJSONDecoder,
-    PPJSONEncoder,
-    decrypt_string,
-    encrypt_string,
-    pp_hook,
-)
-from pandas import DataFrame, HDFStore
-from shapely.geometry import LineString, MultiLineString, Point, Polygon
-from shapely.wkb import dumps, loads
+from pandas import DataFrame
+from pandas import HDFStore
+from shapely.geometry import LineString
+from shapely.geometry import MultiLineString
+from shapely.geometry import Point
+from shapely.geometry import Polygon
+from shapely.wkb import dumps
+from shapely.wkb import loads
 
-from dave_core.dave_structure import create_empty_dataset, davestructure
-from dave_core.io.convert_format import change_empty_gpd, wkb_to_wkt, wkt_to_wkb
-from dave_core.io.io_utils import FromSerializableRegistryDaVe, isinstance_partial
+from dave_core.dave_structure import create_empty_dataset
+from dave_core.dave_structure import davestructure
+from dave_core.io.convert_format import change_empty_gpd
+from dave_core.io.convert_format import wkb_to_wkt
+from dave_core.io.convert_format import wkt_to_wkb
+from dave_core.io.io_utils import DAVEJSONDecoder
+from dave_core.io.io_utils import DAVEJSONEncoder
+from dave_core.io.io_utils import FromSerializableRegistry
+from dave_core.io.io_utils import dave_hook
+from dave_core.io.io_utils import decrypt_string
+from dave_core.io.io_utils import encrypt_string
+from dave_core.io.io_utils import isinstance_partial
 from dave_core.settings import dave_settings
 
 
@@ -33,7 +42,7 @@ from dave_core.settings import dave_settings
 def from_json(file_path, encryption_key=None):
     """
     Load a dave dataset from a JSON file.
-    
+
     INPUT:
         **file_path** (str ) - absoulut path where the JSON file will be stored. If None is given \
             the function returns only a JSON string
@@ -46,7 +55,7 @@ def from_json(file_path, encryption_key=None):
     if hasattr(file_path, "read"):
         json_string = file_path.read()
     elif not isfile(file_path):
-        raise UserWarning("File {} does not exist!!".format(file_path))
+        raise UserWarning(f"File {file_path} does not exist!!")
     else:
         with open(file_path) as file:
             json_string = file.read()
@@ -67,7 +76,7 @@ def from_json(file_path, encryption_key=None):
 def from_json_string(json_string, encryption_key=None):
     """
     Load a dave dataset from a JSON string.
-    
+
     INPUT:
         **json_string** (str ) - json string
         **encrytion_key** (string, None) - If given, the DAVE dataset is stored as an encrypted \
@@ -80,8 +89,8 @@ def from_json_string(json_string, encryption_key=None):
 
     dataset = json_loads(
         json_string,
-        cls=PPJSONDecoder,
-        object_hook=partial(pp_hook, registry_class=FromSerializableRegistryDaVe),
+        cls=DAVEJSONDecoder,
+        object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),
     )
     return dataset
 
@@ -89,9 +98,9 @@ def from_json_string(json_string, encryption_key=None):
 def to_json(grid_data, file_path=None, encryption_key=None):
     """
     This function saves a DAVE dataset in JSON format.
-    
+
     INPUT:
-        **grid_data** (attr Dict) - DAVE Dataset 
+        **grid_data** (attr Dict) - DAVE Dataset
         **file_path** (str , None) - absoulut path where the JSON file will be stored. If None is \
             given the function returns only a JSON string
         **encrytion_key** (string, None) - If given, the DaVe dataset is stored as an encrypted \
@@ -104,7 +113,10 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     grid_data = change_empty_gpd(grid_data)
     # convert DaVe dataset into a json string with custom encoder
     json_string = json_dumps(
-        grid_data, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial
+        grid_data,
+        cls=DAVEJSONEncoder,
+        indent=2,
+        isinstance_func=isinstance_partial,
     )
     # encrypt json string
     if encryption_key is not None:
@@ -194,7 +206,10 @@ def to_hdf(grid_data, file_path):
                                 wkt_to_wkb(grid_data[key][key_sec][key_trd]),
                             )
                 elif isinstance(grid_data[key][key_sec], GeoDataFrame):
-                    file.put(f"/{key}/{key_sec}", wkt_to_wkb(grid_data[key][key_sec]))
+                    file.put(
+                        f"/{key}/{key_sec}",
+                        wkt_to_wkb(grid_data[key][key_sec]),
+                    )
                 elif (
                     isinstance(grid_data[key][key_sec], GeoSeries)
                     and not grid_data[key][key_sec].empty
@@ -256,7 +271,9 @@ def to_gpkg(grid_data, file_path):
                         ):
                             data = df_lists_to_str(grid_data[key][key_sec][key_trd])
                             data.to_file(
-                                file_path, layer=f"{key}/{key_sec}/{key_trd}", driver="GPKG"
+                                file_path,
+                                layer=f"{key}/{key_sec}/{key_trd}",
+                                driver="GPKG",
                             )
                 # case GeoDataFrame
                 elif (
@@ -283,7 +300,7 @@ def pp_to_json(net, file_path):
     """
     This functions converts a pandapower model into a json file in consideration of converting \
     geometry objects to strings
-    
+
     INPUT:
         **net** (attr Dict) - pandapower network
         **file_path** (str) - absoulut path where the pandapower file will be stored in json format
@@ -292,7 +309,12 @@ def pp_to_json(net, file_path):
     if not net.bus.empty and all(list(map(lambda x: isinstance(x, Point), net.bus.geometry))):
         net.bus["geometry"] = net.bus.geometry.apply(lambda x: dumps(x, hex=True))
     if not net.line.empty and all(
-        list(map(lambda x: isinstance(x, (LineString, MultiLineString)), net.line.geometry))
+        list(
+            map(
+                lambda x: isinstance(x, (LineString, MultiLineString)),
+                net.line.geometry,
+            )
+        )
     ):
         net.line["geometry"] = net.line.geometry.apply(lambda x: dumps(x, hex=True))
     if not net.trafo.empty and all(list(map(lambda x: isinstance(x, Point), net.trafo.geometry))):
@@ -313,10 +335,10 @@ def json_to_pp(file_path):
     """
     This functions converts a json file into a pandapower model in consideration of converting \
     geometry as strings to geometry objects
-    
+
     INPUT:
         **file_path** (str) - absoulut path where the pandapower file is stored in json format
-    
+
     OUTPUT:
         **net** (attr Dict) - pandapower network
     """
@@ -341,7 +363,7 @@ def ppi_to_json(net, file_path=None):
     """
     This functions converts a pandapipes model into a json file in consideration of converting \
     geometry objects to strings
-    
+
     INPUT:
         **net** (attr Dict) - pandapipes network
         **file_path** (str) - absoulut path where the pandapipes file will be stored in json format
@@ -352,7 +374,12 @@ def ppi_to_json(net, file_path=None):
     ):
         net.junction["geometry"] = net.junction.geometry.apply(lambda x: dumps(x, hex=True))
     if not net.pipe.empty and all(
-        list(map(lambda x: isinstance(x, (LineString, MultiLineString)), net.pipe.geometry))
+        list(
+            map(
+                lambda x: isinstance(x, (LineString, MultiLineString)),
+                net.pipe.geometry,
+            )
+        )
     ):
         net.pipe["geometry"] = net.pipe.geometry.apply(lambda x: dumps(x, hex=True))
     # convert ppi model to json and save the file
@@ -367,10 +394,10 @@ def json_to_ppi(file_path):
     """
     This functions converts a json file into a pandapipes model in consideration of converting \
     geometry as strings to geometry objects
-    
+
     INPUT:
         **file_path** (str) - absoulut path where the pandapipes file is stored in json format
-    
+
     OUTPUT:
         **net** (attr Dict) - pandapipes network
     """

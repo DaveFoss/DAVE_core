@@ -4,7 +4,8 @@
 
 from tqdm import tqdm
 
-from dave_core.converter.converter import Converter, Strategy
+from dave_core.converter.converter import Converter
+from dave_core.converter.converter import Strategy
 from dave_core.converter.elements import Elements
 from dave_core.settings import dave_settings
 
@@ -320,11 +321,11 @@ class DaVe2Mynts(Strategy):
 def create_mynts(grid_data, output_folder, idx_ref="dave_name"):
     """
     This function creates a network in MYNTS format based of an DAVE dataset
-    
+
     INPUT:
         **grid_data** (attrdict) - calculated grid data from DAVE
         **output_folder** (str) - patht to the location where the results will be saved
-        
+
     OPTIONAL:
         **idx_ref** (str, default='dave_name') - defines parameter which should use as referenz \
             for setting the indices

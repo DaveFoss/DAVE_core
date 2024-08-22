@@ -2,17 +2,18 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapipes import (
-    create_compressor,
-    create_empty_network,
-    create_ext_grids,
-    create_junctions,
-    create_pipes_from_parameters,
-    create_sinks,
-    create_sources,
-    create_valves,
-)
-from pandas import DataFrame, Series, concat, isna
+from pandapipes import create_compressor
+from pandapipes import create_empty_network
+from pandapipes import create_ext_grids
+from pandapipes import create_junctions
+from pandapipes import create_pipes_from_parameters
+from pandapipes import create_sinks
+from pandapipes import create_sources
+from pandapipes import create_valves
+from pandas import DataFrame
+from pandas import Series
+from pandas import concat
+from pandas import isna
 from shapely.geometry import MultiLineString
 from tqdm import tqdm
 
@@ -27,8 +28,8 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
 
     INPUT:
         **grid_data** (attrdict) - calculated grid data from dave \n
-        
-    
+
+
     OPTIONAL:
         **output_folder** (str, default=None) - patht to the location where the results will be saved \n
         **idx_ref** (str, default='dave_name') - defines parameter which should use as referenz \
@@ -69,7 +70,9 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
             all_junctions.rename(columns={"dave_name": "name"}, inplace=True)
         else:
             all_junctions.insert(
-                0, "name", Series(list(map(lambda x: f"junction_{x}", all_junctions.index)))
+                0,
+                "name",
+                Series(list(map(lambda x: f"junction_{x}", all_junctions.index))),
             )  # TODO: hier fehlt noch das pressure level
         # !!! set nominal pressure to the lowest maximal pressure of the pipelines (has to be changed for multiple pressure levles)
         all_junctions["pn_bar"] = grid_data.hp_data.hp_pipes.max_pressure_bar.min()
@@ -89,9 +92,9 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
             height_m=all_junctions["height_m"],
             name=all_junctions["name"],
             in_service=(
-                bool(True)
+                True
                 if "in_service" not in all_junctions.keys() or all(all_junctions.in_service.isna())
-                else all_junctions.in_service.apply(lambda x: bool(True) if isna(x) else x)
+                else all_junctions.in_service.apply(lambda x: True if isna(x) else x)
             ),
             type=(
                 "junction"
@@ -141,7 +144,11 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
         if "dave_name" in all_pipes.keys():
             all_pipes.rename(columns={"dave_name": "name"}, inplace=True)
         else:
-            all_pipes.insert(0, "name", Series(list(map(lambda x: f"pipe_{x}", all_pipes.index))))
+            all_pipes.insert(
+                0,
+                "name",
+                Series(list(map(lambda x: f"pipe_{x}", all_pipes.index))),
+            )
         # check for circle pipes and drop them
         circle_pipe = all_pipes.loc[all_pipes["from_junction"] == all_pipes["to_junction"]]
         if not circle_pipe.empty:
@@ -196,9 +203,9 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
             else all_pipes.loss_coefficient.apply(lambda x: float(0) if isna(x) else x)
         ),
         sections=(
-            int(1)
+            1
             if "sections" not in all_pipes.keys() or all(all_pipes.sections.isna())
-            else all_pipes.sections.apply(lambda x: int(1) if isna(x) else x)
+            else all_pipes.sections.apply(lambda x: 1 if isna(x) else x)
         ),
         alpha_w_per_m2k=(
             float(0)
@@ -218,9 +225,9 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
         name=all_pipes["name"],
         geodata=all_pipes_coords.coords,
         in_service=(
-            bool(True)
+            True
             if "in_service" not in all_pipes.keys() or all(all_pipes.in_service.isna())
-            else all_pipes.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else all_pipes.in_service.apply(lambda x: True if isna(x) else x)
         ),
         type=(
             "pipe"
@@ -257,14 +264,18 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
         if "dave_name" in sinks.keys():
             sinks.rename(columns={"dave_name": "name"}, inplace=True)
         else:
-            sinks.insert(0, "name", Series(list(map(lambda x: f"sink_{x}", sinks.index))))
+            sinks.insert(
+                0,
+                "name",
+                Series(list(map(lambda x: f"sink_{x}", sinks.index))),
+            )
         # create sinks
         create_sinks(
             net,
             junctions=sinks["junction"],
             mdot_kg_per_s=sinks["mdot_kg_per_s"]
             if "mdot_kg_per_s" in sinks.keys()
-            else float(0.1),  # !!! dummy value has to change
+            else 0.1,  # !!! dummy value has to change
             scaling=float(1),
             name=sinks["name"],
             in_service=True,
@@ -288,14 +299,18 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
         if "dave_name" in sources.keys():
             sources.rename(columns={"dave_name": "name"}, inplace=True)
         else:
-            sources.insert(0, "name", Series(list(map(lambda x: f"source_{x}", sources.index))))
+            sources.insert(
+                0,
+                "name",
+                Series(list(map(lambda x: f"source_{x}", sources.index))),
+            )
         # create sinks
         create_sources(
             net,
             junctions=sources["junction"],
             mdot_kg_per_s=sources["mdot_kg_per_s"]
             if "mdot_kg_per_s" in sources.keys()
-            else float(0.1),  # !!! dummy value has to change
+            else 0.1,  # !!! dummy value has to change
             scaling=float(1),
             name=sources["name"],
             in_service=True,
@@ -326,7 +341,12 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
                 pressure_ratio=compressor.get("pressure_ratio", float(1)),
                 in_service=compressor.get("in_service", True),
                 **compressor.drop(
-                    ["from_junction", "to_junction", "pressure_ratio", "in_service"],
+                    [
+                        "from_junction",
+                        "to_junction",
+                        "pressure_ratio",
+                        "in_service",
+                    ],
                     errors="ignore",
                 ),  # ignore if pressure_ratio is not found
             )
@@ -373,7 +393,10 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
             to_junctions=valves["to_junction"],
             diameter_m=valves["diameter_m"],
             opened=valves["opened"] if "opened" in valves.keys() else True,
-            **valves.drop(["from_junction", "to_junction", "diameter_m", "opened"], axis=1),
+            **valves.drop(
+                ["from_junction", "to_junction", "diameter_m", "opened"],
+                axis=1,
+            ),
         )
         # net.valve = valves
         # check necessary parameters and add pandapipes standard if needed
@@ -395,7 +418,10 @@ def create_pandapipes(grid_data, output_folder=None, fluid=None, idx_ref="dave_n
         ext_grids = grid_data.hp_data.hp_junctions.head(1)
         ext_grids["Pset_barg"] = 50  # dummy value need to be changed
     create_ext_grids(
-        net, junctions=ext_grids.index, t_k=float(283.15), p_bar=ext_grids["Pset_barg"]
+        net,
+        junctions=ext_grids.index,
+        t_k=283.15,
+        p_bar=ext_grids["Pset_barg"],
     )
     # update progress
     pbar.update(10)

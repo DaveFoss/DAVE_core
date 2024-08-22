@@ -56,7 +56,15 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     if where:
         request = get(
             "".join(
-                [oep_url, "/api/v0/schema/", schema, "/tables/", table, "/rows/?where=", where]
+                [
+                    oep_url,
+                    "/api/v0/schema/",
+                    schema,
+                    "/tables/",
+                    table,
+                    "/rows/?where=",
+                    where,
+                ]
             )
         )
     elif dave_settings["oep_tables"][table][2] is not None:
@@ -75,7 +83,16 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
         )
     else:
         request = get(
-            "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/rows/"])
+            "".join(
+                [
+                    oep_url,
+                    "/api/v0/schema/",
+                    schema,
+                    "/tables/",
+                    table,
+                    "/rows/",
+                ]
+            )
         )
     # convert data to dataframe
     request_data = request_to_df(request)
@@ -88,7 +105,9 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
         request_data["geometry"] = request_data[geometry].apply(lambda x: loads(x, hex=True))
         # create geoDataFrame
         request_data = GeoDataFrame(
-            request_data, crs=dave_settings["crs_main"], geometry=request_data.geometry
+            request_data,
+            crs=dave_settings["crs_main"],
+            geometry=request_data.geometry,
         )
     # fix some mistakes in the oep data
     if table == "ego_pf_hv_transformer":

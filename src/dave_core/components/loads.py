@@ -3,19 +3,27 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from math import acos, sin
+from math import acos
+from math import sin
 
 from geopandas import GeoDataFrame
-from numpy import array, random
+from numpy import array
+from numpy import random
 from pandas import concat
-from shapely.geometry import LineString, MultiLineString, Polygon
-from shapely.ops import polygonize, unary_union
+from shapely.geometry import LineString
+from shapely.geometry import MultiLineString
+from shapely.geometry import Polygon
+from shapely.ops import polygonize
+from shapely.ops import unary_union
 from tqdm import tqdm
 
 from dave_core.datapool.osm_request import query_osm
-from dave_core.datapool.read_data import read_federal_states, read_household_consumption, read_postal
+from dave_core.datapool.read_data import read_federal_states
+from dave_core.datapool.read_data import read_household_consumption
+from dave_core.datapool.read_data import read_postal
 from dave_core.settings import dave_settings
-from dave_core.toolbox import intersection_with_area, voronoi
+from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import voronoi
 
 
 def get_household_power(consumption_data, household_size):
@@ -78,10 +86,13 @@ def create_loads(grid_data):
         federal_states.rename(columns={"name": "federal state"}, inplace=True)
         # intersect residential buildings with federal state areas to get the suitable federal state
         buildings_feds = intersection_with_area(
-            grid_data.buildings.residential, federal_states, remove_columns=False
+            grid_data.buildings.residential,
+            federal_states,
+            remove_columns=False,
         )
         buildings_feds.drop(
-            columns=federal_states.keys().drop("federal state").drop("geometry"), inplace=True
+            columns=federal_states.keys().drop("federal state").drop("geometry"),
+            inplace=True,
         )
         # read consumption data
         consumption_data, meta_data = read_household_consumption()
@@ -91,7 +102,11 @@ def create_loads(grid_data):
         if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
             grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         # get population for the diffrent areas
-        if grid_data.target_input.iloc[0].typ in ["postalcode", "town name", "federal state"]:
+        if grid_data.target_input.iloc[0].typ in [
+            "postalcode",
+            "town name",
+            "federal state",
+        ]:
             population_area = grid_data.area
         else:
             # --- Case for own shape as input data
@@ -109,7 +124,9 @@ def create_loads(grid_data):
             )
             # filter landuses which are within postal code areas
             postal_own_landuse = intersection_with_area(
-                grid_data.landuse, postal_own_intersection, remove_columns=False
+                grid_data.landuse,
+                postal_own_intersection,
+                remove_columns=False,
             )
             for i, postal in postal_own_intersection.iterrows():
                 # --- calculate full plz residential area
@@ -118,7 +135,10 @@ def create_loads(grid_data):
                 )
                 # Obtain data from OSM
                 plz_residential, meta_data = query_osm(
-                    "way", border, recurse="down", tags=['landuse~"residential"']
+                    "way",
+                    border,
+                    recurse="down",
+                    tags=['landuse~"residential"'],
                 )
                 # add meta data
                 if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
@@ -167,7 +187,9 @@ def create_loads(grid_data):
                     if pop_distribute > 5:
                         # select houshold size, weighted randomly
                         household_size = rng.choice(
-                            [1, 2, 3, 4, 5], 1, p=[w_1p, w_2p, w_3p, w_4p, w_5p]
+                            [1, 2, 3, 4, 5],
+                            1,
+                            p=[w_1p, w_2p, w_3p, w_4p, w_5p],
                         )[0]
                     else:
                         # selcet  the rest of population
@@ -217,7 +239,8 @@ def create_loads(grid_data):
                         }
                     )
                     grid_data.components_power.loads = concat(
-                        [grid_data.components_power.loads, load_df], ignore_index=True
+                        [grid_data.components_power.loads, load_df],
+                        ignore_index=True,
                     )
             # update progress
             pbar.update(40 / len(population_area))
@@ -251,7 +274,8 @@ def create_loads(grid_data):
                         }
                     )
                     grid_data.components_power.loads = concat(
-                        [grid_data.components_power.loads, load_df], ignore_index=True
+                        [grid_data.components_power.loads, load_df],
+                        ignore_index=True,
                     )
             # update progress
             pbar.update(20 / len(industrial_buildings))
@@ -285,7 +309,8 @@ def create_loads(grid_data):
                         }
                     )
                     grid_data.components_power.loads = concat(
-                        [grid_data.components_power.loads, load_df], ignore_index=True
+                        [grid_data.components_power.loads, load_df],
+                        ignore_index=True,
                     )
             # update progress
             pbar.update(19.8 / len(commercial_buildings))
@@ -376,7 +401,8 @@ def create_loads(grid_data):
                         }
                     )
                     grid_data.components_power.loads = concat(
-                        [grid_data.components_power.loads, load_df], ignore_index=True
+                        [grid_data.components_power.loads, load_df],
+                        ignore_index=True,
                     )
             # update progress
             pbar.update(79.8 / len(trafo_names))

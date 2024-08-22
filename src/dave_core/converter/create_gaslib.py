@@ -111,7 +111,9 @@ def create_gaslib(grid_data, output_folder):
             etree.SubElement(innode, "height", {"unit": "m", "value": str(node.height_m)})
             etree.SubElement(innode, "presssureMin", {"unit": "bar", "value": "1.0"})  # !!! Annahme
             etree.SubElement(
-                innode, "presssureMax", {"unit": "bar", "value": str(node_max_pressure)}
+                innode,
+                "presssureMax",
+                {"unit": "bar", "value": str(node_max_pressure)},
             )
             nodes.append(innode)
 
@@ -127,10 +129,14 @@ def create_gaslib(grid_data, output_folder):
             etree.SubElement(source, "height", {"unit": "m", "value": str(node.height_m)})
             etree.SubElement(source, "presssureMin", {"unit": "bar", "value": "1.0"})  # !!! Annahme
             etree.SubElement(
-                source, "presssureMax", {"unit": "bar", "value": str(node_max_pressure)}
+                source,
+                "presssureMax",
+                {"unit": "bar", "value": str(node_max_pressure)},
             )
             etree.SubElement(
-                source, "flowMin", {"unit": "1000m_cube_per_hour", "value": "0"}
+                source,
+                "flowMin",
+                {"unit": "1000m_cube_per_hour", "value": "0"},
             )  # !!! annahme
             # get flow max value from soure data or calculate from pipes for external nodes
             if node.is_export is False and node.is_import is True:
@@ -143,34 +149,48 @@ def create_gaslib(grid_data, output_folder):
                 ]
                 flow_max_source = str(source_pipes["max_cap_M_m3_per_d"].sum() * 1000 / 24)
             etree.SubElement(
-                source, "flowMax", {"unit": "1000m_cube_per_hour", "value": flow_max_source}
+                source,
+                "flowMax",
+                {"unit": "1000m_cube_per_hour", "value": flow_max_source},
             )
             etree.SubElement(
                 source, "gasTemperature", {"unit": "Celsius", "value": "15"}
             )  # !!! annahme
             etree.SubElement(
-                source, "calorificValue", {"unit": "MJ_per_m_cube", "value": "41.342270292"}
+                source,
+                "calorificValue",
+                {"unit": "MJ_per_m_cube", "value": "41.342270292"},
             )  # !!! annahme
             etree.SubElement(
-                source, "normDensity", {"unit": "kg_per_m_cube", "value": "0.82"}
+                source,
+                "normDensity",
+                {"unit": "kg_per_m_cube", "value": "0.82"},
             )  # !!! annahme
             etree.SubElement(
                 source, "coefficient-A-heatCapacity", {"value": "31.61010551"}
             )  # !!! annahme
             etree.SubElement(
-                source, "coefficient-B-heatCapacity", {"value": "-0.004284754861"}
+                source,
+                "coefficient-B-heatCapacity",
+                {"value": "-0.004284754861"},
             )  # !!! annahme
             etree.SubElement(
                 source, "coefficient-C-heatCapacity", {"value": "8.019089e-05"}
             )  # !!! annahme
             etree.SubElement(
-                source, "molarMass", {"unit": "kg_per_kmol", "value": "18.0488790169"}
+                source,
+                "molarMass",
+                {"unit": "kg_per_kmol", "value": "18.0488790169"},
             )  # !!! annahme
             etree.SubElement(
-                source, "pseudocticticalPressure", {"unit": "bar", "value": "46.7020607"}
+                source,
+                "pseudocticticalPressure",
+                {"unit": "bar", "value": "46.7020607"},
             )  # !!! annahme
             etree.SubElement(
-                source, "pseudocticticalTemperature", {"unit": "K", "value": "202.4395142"}
+                source,
+                "pseudocticticalTemperature",
+                {"unit": "K", "value": "202.4395142"},
             )  # !!! annahme
             nodes.append(source)
 
@@ -187,7 +207,11 @@ def create_gaslib(grid_data, output_folder):
             etree.SubElement(
                 sink, "presssureMin", {"unit": "bar", "value": "1.0"}
             )  # !!! Todos Robert schaut in Gaslib nach
-            etree.SubElement(sink, "presssureMax", {"unit": "bar", "value": str(node_max_pressure)})
+            etree.SubElement(
+                sink,
+                "presssureMax",
+                {"unit": "bar", "value": str(node_max_pressure)},
+            )
             etree.SubElement(
                 sink, "flowMin", {"unit": "1000m_cube_per_hour", "value": "0"}
             )  # !!! annahme
@@ -203,7 +227,9 @@ def create_gaslib(grid_data, output_folder):
                 ]
                 flow_max_sink = str(sinks_pipes["max_cap_M_m3_per_d"].sum() * 1000 / 24)
             etree.SubElement(
-                sink, "flowMax", {"unit": "1000m_cube_per_hour", "value": flow_max_sink}
+                sink,
+                "flowMax",
+                {"unit": "1000m_cube_per_hour", "value": flow_max_sink},
             )  # assumption but will overwritten at the sinks
             height = etree.Element("height")
             height.attrib["unit"] = "m"
@@ -283,9 +309,15 @@ def create_gaslib(grid_data, output_folder):
             "id"
         ] = f"pipe_{mapping[pipe_dave.from_junction]}_{mapping[pipe_dave.to_junction]}"
         etree.SubElement(pipe, "length", {"unit": "km", "value": str(pipe_dave.length_km)})
-        etree.SubElement(pipe, "diameter", {"unit": "mm", "value": str(pipe_dave.diameter_mm)})
         etree.SubElement(
-            pipe, "pressureMax", {"unit": "bar", "value": str(pipe_dave.max_pressure_bar)}
+            pipe,
+            "diameter",
+            {"unit": "mm", "value": str(pipe_dave.diameter_mm)},
+        )
+        etree.SubElement(
+            pipe,
+            "pressureMax",
+            {"unit": "bar", "value": str(pipe_dave.max_pressure_bar)},
         )
         etree.SubElement(
             pipe,
@@ -298,11 +330,20 @@ def create_gaslib(grid_data, output_folder):
         etree.SubElement(
             pipe,
             "flowMax",
-            {"unit": "1000m_cube_per_hour", "value": str(pipe_dave.max_cap_M_m3_per_d * 1000 / 24)},
+            {
+                "unit": "1000m_cube_per_hour",
+                "value": str(pipe_dave.max_cap_M_m3_per_d * 1000 / 24),
+            },
         )
-        etree.SubElement(pipe, "roughness", {"unit": "mm", "value": str(pipe_dave.roughness)})
         etree.SubElement(
-            pipe, "heatTransferCoefficient", {"unit": "W_per_m_square_per_K", "value": "2"}
+            pipe,
+            "roughness",
+            {"unit": "mm", "value": str(pipe_dave.roughness)},
+        )
+        etree.SubElement(
+            pipe,
+            "heatTransferCoefficient",
+            {"unit": "W_per_m_square_per_K", "value": "2"},
         )  # !!! annahme
         connections.append(pipe)
     # create compressor station
@@ -347,7 +388,9 @@ def create_gaslib(grid_data, output_folder):
             comp, "pressureInMin", {"unit": "bar", "value": "21.0"}
         )  # !!! Todo. aus gaslib nehmen
         etree.SubElement(
-            comp, "pressureOutMax", {"unit": "bar", "value": str(compressor.max_pressure_bar)}
+            comp,
+            "pressureOutMax",
+            {"unit": "bar", "value": str(compressor.max_pressure_bar)},
         )
 
         connections.append(comp)

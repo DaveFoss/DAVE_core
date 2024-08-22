@@ -2,9 +2,13 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from geopandas import GeoDataFrame, GeoSeries
-from pandas import Series, concat
-from shapely.geometry import LineString, MultiLineString, Point
+from geopandas import GeoDataFrame
+from geopandas import GeoSeries
+from pandas import Series
+from pandas import concat
+from shapely.geometry import LineString
+from shapely.geometry import MultiLineString
+from shapely.geometry import Point
 from shapely.ops import linemerge
 from shapely.wkb import loads
 from tqdm import tqdm
@@ -47,13 +51,23 @@ def create_hv_mv_substations(grid_data):
             hvmv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_4_{x}", hvmv_substations.index))),
+                Series(
+                    list(
+                        map(
+                            lambda x: f"substation_4_{x}",
+                            hvmv_substations.index,
+                        )
+                    )
+                ),
             )
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
             grid_data.components_power.substations.hv_mv = concat(
-                [grid_data.components_power.substations.hv_mv, hvmv_substations]
+                [
+                    grid_data.components_power.substations.hv_mv,
+                    hvmv_substations,
+                ]
             )
     else:
         hvmv_substations = grid_data.components_power.substations.hv_mv.copy()
@@ -73,7 +87,8 @@ def create_mv_lv_substations(grid_data):
     # change wrong crs from oep
     mvlv_substations.crs = dave_settings["crs_main"]
     mvlv_substations.rename(
-        columns={"version": "ego_version", "mvlv_subst_id": "ego_subst_id"}, inplace=True
+        columns={"version": "ego_version", "mvlv_subst_id": "ego_subst_id"},
+        inplace=True,
     )
 
     # filter trafos which are within the grid area
@@ -90,7 +105,8 @@ def create_mv_lv_substations(grid_data):
         )
         # add ehv substations to grid data
         grid_data.components_power.substations.mv_lv = concat(
-            [grid_data.components_power.substations.mv_lv, mvlv_substations], ignore_index=True
+            [grid_data.components_power.substations.mv_lv, mvlv_substations],
+            ignore_index=True,
         )
     else:
         mvlv_substations = grid_data.components_power.substations.mv_lv.copy()
@@ -140,7 +156,15 @@ def create_mv_topology(grid_data):
     # nodes for mv/lv traofs hv side
     mvlv_buses.drop(
         columns=(
-            ["dave_name", "la_id", "subst_id", "geom", "is_dummy", "subst_cnt", "voltage_level"]
+            [
+                "dave_name",
+                "la_id",
+                "subst_id",
+                "geom",
+                "is_dummy",
+                "subst_cnt",
+                "voltage_level",
+            ]
         ),
         inplace=True,
     )
@@ -207,7 +231,11 @@ def create_mv_topology(grid_data):
         mv_buses["source"] = "OEP"
         # add dave name
         mv_buses.reset_index(drop=True, inplace=True)
-        mv_buses.insert(0, "dave_name", Series(list(map(lambda x: f"node_5_{x}", mv_buses.index))))
+        mv_buses.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"node_5_{x}", mv_buses.index))),
+        )
         # set crs
         mv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -326,7 +354,11 @@ def create_mv_topology(grid_data):
         # calculate length in km
         mv_lines["length_km"] = mv_lines_3035.geometry.length / 100
         # line dave name
-        mv_lines.insert(0, "dave_name", Series(list(map(lambda x: f"line_5_{x}", mv_lines.index))))
+        mv_lines.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"line_5_{x}", mv_lines.index))),
+        )
         # additional informations
         mv_lines["voltage_kv"] = dave_settings["mv_voltage"]
         mv_lines["voltage_level"] = 5

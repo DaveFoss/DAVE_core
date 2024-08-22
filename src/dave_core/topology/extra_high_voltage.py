@@ -5,12 +5,14 @@
 from math import pi
 
 from geopandas import GeoDataFrame
-from pandas import Series, concat
+from pandas import Series
+from pandas import concat
 from tqdm import tqdm
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
-from dave_core.toolbox import intersection_with_area, related_sub
+from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import related_sub
 
 
 def create_ehv_topology(grid_data):
@@ -38,7 +40,11 @@ def create_ehv_topology(grid_data):
     if bool(meta_data) and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     ehv_substations.rename(
-        columns={"version": "ego_version", "subst_id": "ego_subst_id", "voltage": "voltage_kv"},
+        columns={
+            "version": "ego_version",
+            "subst_id": "ego_subst_id",
+            "voltage": "voltage_kv",
+        },
         inplace=True,
     )
     # filter substations which are within the grid area
@@ -58,7 +64,8 @@ def create_ehv_topology(grid_data):
         ehv_substations.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv substations to grid data
         grid_data.components_power.substations.ehv_hv = concat(
-            [grid_data.components_power.substations.ehv_hv, ehv_substations], ignore_index=True
+            [grid_data.components_power.substations.ehv_hv, ehv_substations],
+            ignore_index=True,
         )
     # update progress
     pbar.update(10)
@@ -140,7 +147,9 @@ def create_ehv_topology(grid_data):
         # add dave name
         ehv_buses.reset_index(drop=True, inplace=True)
         ehv_buses.insert(
-            0, "dave_name", Series(list(map(lambda x: f"node_1_{x}", ehv_buses.index)))
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"node_1_{x}", ehv_buses.index))),
         )
         # set crs
         ehv_buses.set_crs(dave_settings["crs_main"], inplace=True)
@@ -199,7 +208,9 @@ def create_ehv_topology(grid_data):
         # add dave name
         ehv_lines.reset_index(drop=True, inplace=True)
         ehv_lines.insert(
-            0, "dave_name", Series(list(map(lambda x: f"line_1_{x}", ehv_lines.index)))
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"line_1_{x}", ehv_lines.index))),
         )
         # set crs
         ehv_lines.set_crs(dave_settings["crs_main"], inplace=True)

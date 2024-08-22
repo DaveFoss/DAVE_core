@@ -13,7 +13,15 @@ This is a example file for testing dave
 ########## Examples for grid area definition #########################
 # test target by plz
 _postalcode_1 = ["34225"]  # Baunatal
-_postalcode_2 = ["37085", "37075", "37083", "37079", "37081", "37073", "37077"]  # Göttingen
+_postalcode_2 = [
+    "37085",
+    "37075",
+    "37083",
+    "37079",
+    "37081",
+    "37073",
+    "37077",
+]  # Göttingen
 _postalcode_3 = ["ALL"]  # all postal code areas in germany
 
 # test target by town_name
@@ -34,7 +42,9 @@ _nuts_3 = ["DEF", "DE60"]  # example for diffrent nuts level combined(1 and 2)
 
 # test own shape
 # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-_own_area = os.path.dirname(os.path.realpath(__file__)) + "\\hertingshausen.geojson"
+_own_area = (
+    os.path.dirname(os.path.realpath(__file__)) + "\\hertingshausen.geojson"
+)
 
 
 ##################### test main function ##########################

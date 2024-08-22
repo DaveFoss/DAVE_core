@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import matplotlib.pyplot as plt
-from contextily import add_basemap, providers
+from contextily import add_basemap
+from contextily import providers
 from geopandas import GeoSeries
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -16,7 +17,7 @@ def plot_land(area, only_area=False):
 
     INPUT:
     **area** (GeoDataFrame) - polygon of the target area
-    
+
     OPTIONAL:
     **only_area** (boolean, False) - If this parameter is True only the polygon fopr the area will \
         be plotted
@@ -477,4 +478,3 @@ def plot_generator():
     """
     # hier eine Plotting funktion die nur die Erzeuger im Zielgebiet aufzeigt und
     # verschiedene Farben für die verschiedenen Energieträger
-    pass

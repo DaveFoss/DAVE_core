@@ -2,7 +2,8 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
 from dave_core.io.file_io import from_json
 

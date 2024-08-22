@@ -5,13 +5,16 @@
 from math import pi
 
 from geopandas import GeoDataFrame
-from pandas import Series, concat
-from shapely.geometry import LineString, Point
+from pandas import Series
+from pandas import concat
+from shapely.geometry import LineString
+from shapely.geometry import Point
 from tqdm import tqdm
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
-from dave_core.toolbox import intersection_with_area, related_sub
+from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import related_sub
 
 
 def create_hv_topology(grid_data):
@@ -44,12 +47,23 @@ def create_hv_topology(grid_data):
         ):
             grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         ehvhv_substations.rename(
-            columns={"version": "ego_version", "subst_id": "ego_subst_id", "voltage": "voltage_kv"},
+            columns={
+                "version": "ego_version",
+                "subst_id": "ego_subst_id",
+                "voltage": "voltage_kv",
+            },
             inplace=True,
         )
         # filter ehv/hv substations
         ehvhv_substations = ehvhv_substations[
-            Series(list(map(lambda x: bool("110000" in x), ehvhv_substations.voltage_kv)))
+            Series(
+                list(
+                    map(
+                        lambda x: bool("110000" in x),
+                        ehvhv_substations.voltage_kv,
+                    )
+                )
+            )
         ]
         # filter substations which are within the grid area
         ehvhv_substations = intersection_with_area(ehvhv_substations, grid_data.area)
@@ -60,13 +74,23 @@ def create_hv_topology(grid_data):
             ehvhv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_2_{x}", ehvhv_substations.index))),
+                Series(
+                    list(
+                        map(
+                            lambda x: f"substation_2_{x}",
+                            ehvhv_substations.index,
+                        )
+                    )
+                ),
             )
             # set crs
             ehvhv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
             grid_data.components_power.substations.ehv_hv = concat(
-                [grid_data.components_power.substations.ehv_hv, ehvhv_substations],
+                [
+                    grid_data.components_power.substations.ehv_hv,
+                    ehvhv_substations,
+                ],
                 ignore_index=True,
             )
     else:
@@ -109,13 +133,24 @@ def create_hv_topology(grid_data):
             hvmv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_4_{x}", hvmv_substations.index))),
+                Series(
+                    list(
+                        map(
+                            lambda x: f"substation_4_{x}",
+                            hvmv_substations.index,
+                        )
+                    )
+                ),
             )
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
             grid_data.components_power.substations.hv_mv = concat(
-                [grid_data.components_power.substations.hv_mv, hvmv_substations], ignore_index=True
+                [
+                    grid_data.components_power.substations.hv_mv,
+                    hvmv_substations,
+                ],
+                ignore_index=True,
             )
     else:
         hvmv_substations = grid_data.components_power.substations.hv_mv.copy()
@@ -199,7 +234,11 @@ def create_hv_topology(grid_data):
         hv_buses["source"] = "OEP"
         # add dave name
         hv_buses.reset_index(drop=True, inplace=True)
-        hv_buses.insert(0, "dave_name", Series(list(map(lambda x: f"node_3_{x}", hv_buses.index))))
+        hv_buses.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"node_3_{x}", hv_buses.index))),
+        )
         # set crs
         hv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add hv nodes to grid data
@@ -229,7 +268,9 @@ def create_hv_topology(grid_data):
         c_nf = hv_lines.b_s.astype("float") / (2 * pi * hv_lines.frequency.astype("float")) * 1e09
         hv_lines.insert(hv_lines.columns.get_loc("b_s") + 1, "c_nf", c_nf)
         hv_lines.insert(
-            hv_lines.columns.get_loc("c_nf") + 1, "c_nf_per_km", c_nf / hv_lines.length_km
+            hv_lines.columns.get_loc("c_nf") + 1,
+            "c_nf_per_km",
+            c_nf / hv_lines.length_km,
         )
         hv_lines["voltage_kv"] = 110
         hv_lines["max_i_ka"] = (

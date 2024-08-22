@@ -71,7 +71,9 @@ def wkt_to_wkb_dataset(grid_data):
             for key_sec in dataset[key].keys():
                 if isinstance(dataset[key][key_sec], davestructure):
                     for key_trd in dataset[key][key_sec].keys():
-                        if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
+                        if isinstance(
+                            dataset[key][key_sec][key_trd], GeoDataFrame
+                        ):
                             dataset[key][key_sec][key_trd] = wkt_to_wkb(
                                 dataset[key][key_sec][key_trd]
                             )
@@ -98,12 +100,18 @@ def change_empty_gpd(grid_data):
             for key_sec in dataset[key].keys():
                 if isinstance(dataset[key][key_sec], davestructure):
                     for key_trd in dataset[key][key_sec].keys():
-                        if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
+                        if isinstance(
+                            dataset[key][key_sec][key_trd], GeoDataFrame
+                        ):
                             if dataset[key][key_sec][key_trd].empty:
                                 dataset[key][key_sec][key_trd] = DataFrame([])
-                        elif isinstance(dataset[key][key_sec][key_trd], GeoSeries):
+                        elif isinstance(
+                            dataset[key][key_sec][key_trd], GeoSeries
+                        ):
                             if dataset[key][key_sec][key_trd].empty:
-                                dataset[key][key_sec][key_trd] = Series([], dtype="object")
+                                dataset[key][key_sec][key_trd] = Series(
+                                    [], dtype="object"
+                                )
                 elif isinstance(dataset[key][key_sec], GeoDataFrame):
                     if dataset[key][key_sec].empty:
                         dataset[key][key_sec] = DataFrame([])

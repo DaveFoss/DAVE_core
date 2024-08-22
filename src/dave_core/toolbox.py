@@ -3,14 +3,20 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from os import path
-from geopandas import GeoDataFrame, overlay
+
+from geopandas import GeoDataFrame
+from geopandas import overlay
 from geopy.geocoders import ArcGIS
-from numpy import append, array
+from numpy import append
+from numpy import array
 from pandas import concat
-from requests import ConnectionError, get
 from scipy.spatial import Voronoi
-from shapely.geometry import LineString, MultiPoint, MultiLineString
-from shapely.ops import cascaded_union, polygonize, linemerge
+from shapely.geometry import LineString
+from shapely.geometry import MultiLineString
+from shapely.geometry import MultiPoint
+from shapely.ops import cascaded_union
+from shapely.ops import linemerge
+from shapely.ops import polygonize
 
 from dave_core.settings import dave_settings
 
@@ -69,7 +75,10 @@ def create_interim_area(areas):
                 difference = difference.difference(geom2)
                 # add difference area to areas
                 areas = concat(
-                    [areas, GeoDataFrame({"name": "interim area", "geometry": [difference]})],
+                    [
+                        areas,
+                        GeoDataFrame({"name": "interim area", "geometry": [difference]}),
+                    ],
                     ignore_index=True,
                 )
     return areas
@@ -114,7 +123,7 @@ def voronoi(points):
         for _, point in points.iterrows():
             if polygon.geometry.contains(point.geometry):
                 voronoi_polygons.at[polygon.name, "centroid"] = point.geometry
-                if not point.dave_name is None:
+                if point.dave_name is not None:
                     voronoi_polygons.at[polygon.name, "dave_name"] = point.dave_name
                 break
     return voronoi_polygons

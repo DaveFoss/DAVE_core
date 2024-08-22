@@ -2,15 +2,20 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from geopandas import GeoDataFrame, GeoSeries
-from pandas import Series, concat
-from shapely.geometry import LineString, MultiPoint, Point
+from geopandas import GeoDataFrame
+from geopandas import GeoSeries
+from pandas import Series
+from pandas import concat
+from shapely.geometry import LineString
+from shapely.geometry import MultiPoint
+from shapely.geometry import Point
 from shapely.ops import nearest_points
 from tqdm import tqdm
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
-from dave_core.toolbox import intersection_with_area, related_sub
+from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import related_sub
 
 
 def nearest_road(building_centroids, roads):
@@ -30,7 +35,12 @@ def nearest_road(building_centroids, roads):
     multiline_roads = roads.geometry.unary_union
     # finding nearest connection between the building centroids and the roads
     near_points = GeoSeries(
-        list(map(lambda x: nearest_points(x, multiline_roads)[1], building_centroids)),
+        list(
+            map(
+                lambda x: nearest_points(x, multiline_roads)[1],
+                building_centroids,
+            )
+        ),
         crs="EPSG:4326",
     )
     building_connections = concat([building_centroids, near_points], axis=1)
@@ -93,7 +103,7 @@ def search_line_connections(road_geometry, all_nodes):
                 start_node=grid_nodes_sort[j],
                 end_node=grid_nodes_sort[j + 1],
             )
-            for j in range(0, len(grid_nodes_sort) - 1)
+            for j in range(len(grid_nodes_sort) - 1)
         ]
     else:
         return []
@@ -166,7 +176,11 @@ def create_lv_topology(grid_data):
         ):
             grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         mvlv_substations.rename(
-            columns={"version": "ego_version", "mvlv_subst_id": "ego_subst_id"}, inplace=True
+            columns={
+                "version": "ego_version",
+                "mvlv_subst_id": "ego_subst_id",
+            },
+            inplace=True,
         )
         # change wrong crs from oep
         mvlv_substations.crs = dave_settings["crs_main"]
@@ -179,11 +193,22 @@ def create_lv_topology(grid_data):
             mvlv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_6_{x}", mvlv_substations.index))),
+                Series(
+                    list(
+                        map(
+                            lambda x: f"substation_6_{x}",
+                            mvlv_substations.index,
+                        )
+                    )
+                ),
             )
             # add ehv substations to grid data
             grid_data.components_power.substations.mv_lv = concat(
-                [grid_data.components_power.substations.mv_lv, mvlv_substations], ignore_index=True
+                [
+                    grid_data.components_power.substations.mv_lv,
+                    mvlv_substations,
+                ],
+                ignore_index=True,
             )
     else:
         mvlv_substations = grid_data.components_power.substations.mv_lv.copy()
@@ -192,7 +217,8 @@ def create_lv_topology(grid_data):
     # --- create lv nodes
     # shortest way between building centroid and road for relevant buildings (building connections)
     buildings_rel = concat(
-        [grid_data.buildings.residential, grid_data.buildings.commercial], ignore_index=True
+        [grid_data.buildings.residential, grid_data.buildings.commercial],
+        ignore_index=True,
     )
     buildings_rel_3035 = buildings_rel.to_crs(dave_settings["crs_meter"])
     centroids = buildings_rel_3035.reset_index(drop=True).centroid
@@ -236,7 +262,9 @@ def create_lv_topology(grid_data):
     # add dave name
     building_nodes_df.reset_index(drop=True, inplace=True)
     building_nodes_df.insert(
-        0, "dave_name", Series(list(map(lambda x: f"node_7_{x}", building_nodes_df.index)))
+        0,
+        "dave_name",
+        Series(list(map(lambda x: f"node_7_{x}", building_nodes_df.index))),
     )
     # add lv nodes to grid data
     grid_data.lv_data.lv_nodes = concat(
@@ -334,7 +362,8 @@ def create_lv_topology(grid_data):
                         }
                     )
                     grid_data.lv_data.lv_nodes = concat(
-                        [grid_data.lv_data.lv_nodes, junction_point_gdf], ignore_index=True
+                        [grid_data.lv_data.lv_nodes, junction_point_gdf],
+                        ignore_index=True,
                     )
             grid_data.lv_data.lv_lines.at[line.name, "from_bus"] = dave_name
         grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)
@@ -374,7 +403,8 @@ def create_lv_topology(grid_data):
                         }
                     )
                     grid_data.lv_data.lv_nodes = concat(
-                        [grid_data.lv_data.lv_nodes, junction_point_gdf], ignore_index=True
+                        [grid_data.lv_data.lv_nodes, junction_point_gdf],
+                        ignore_index=True,
                     )
             grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = dave_name
         grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)

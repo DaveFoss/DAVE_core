@@ -2,8 +2,12 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from geopandas import GeoDataFrame, points_from_xy
-from pandas import HDFStore, Series, read_excel, read_hdf
+from geopandas import GeoDataFrame
+from geopandas import points_from_xy
+from pandas import HDFStore
+from pandas import Series
+from pandas import read_excel
+from pandas import read_hdf
 from shapely.geometry import LineString
 from shapely.wkb import loads
 from xmlschema import XMLSchema
@@ -113,7 +117,8 @@ def read_household_consumption():
     }
     # read meta data
     meta_data = read_excel(
-        get_data_path("household_power_consumption_meta.xlsx", "data"), sheet_name=None
+        get_data_path("household_power_consumption_meta.xlsx", "data"),
+        sheet_name=None,
     )
     return consumption_data, meta_data
 
@@ -158,7 +163,9 @@ def read_scigridgas_iggielgn():
     # lngss
     lngs = iggielgn_data.get("/scigridgas_iggielgn_lngs")
     lngs = GeoDataFrame(
-        lngs, geometry=points_from_xy(lngs.long, lngs.lat), crs=dave_settings["crs_main"]
+        lngs,
+        geometry=points_from_xy(lngs.long, lngs.lat),
+        crs=dave_settings["crs_main"],
     )
     # nodes
     nodes = iggielgn_data.get("/scigridgas_iggielgn_nodes")

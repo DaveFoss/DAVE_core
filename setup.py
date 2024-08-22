@@ -10,10 +10,9 @@ from setuptools import setup
 
 
 def read(*names, **kwargs):
-    with Path(__file__).parent.joinpath(*names).open(
-        encoding=kwargs.get("encoding", "utf8")
-    ) as fh:
+    with Path(__file__).parent.joinpath(*names).open(encoding=kwargs.get("encoding", "utf8")) as fh:
         return fh.read()
+
 
 setup(
     name="dave_core",
@@ -21,9 +20,7 @@ setup(
     license="BSD 3-cluase",
     description="DAVE is a tool for automatic energy grid generation",
     long_description="{}\n{}".format(
-        re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub(
-            "", read("README.rst")
-        ),
+        re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub("", read("README.rst")),
         re.sub(":[a-z]+:`~?(.*?)`", r"``\1``", read("CHANGELOG.rst")),
     ),
     long_description_content_type="text/x-rst",
@@ -59,11 +56,9 @@ setup(
     ],
     project_urls={
         "Documentation": "https://dave-core.readthedocs.io",
-        "Changelog": (
-            "https://dave-core.readthedocs.io/en/latest/changelog.html"
-        ),
+        "Changelog": ("https://dave-core.readthedocs.io/en/latest/changelog.html"),
         "Issue Tracker": "https://github.com/DaveFoss/DAVE_core/issues",
-        "Homepage": "http://databutler.energy/"
+        "Homepage": "http://databutler.energy/",
     },
     keywords=[
         # eg: "keyword1", "keyword2", "keyword3",
@@ -88,7 +83,7 @@ setup(
         "tqdm",
         "pandapower",
         "pandapipes",
-        ],
+    ],
     extras_require={
         "dev": ["black", "isort", "pre-commit"]
         #   "rst": ["docutils>=0.11"],

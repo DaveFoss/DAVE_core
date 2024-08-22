@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from geopandas import overlay
-from pandas import Series, concat
+from pandas import Series
+from pandas import concat
 from tqdm import tqdm
 
 from dave_core.datapool.read_data import read_scigridgas_iggielgn
@@ -54,7 +55,11 @@ def create_sources(grid_data, scigrid_productions):
         pbar.update(40)
         # add dave name
         sources.reset_index(drop=True, inplace=True)
-        sources.insert(0, "dave_name", Series(list(map(lambda x: f"source_1_{x}", sources.index))))
+        sources.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"source_1_{x}", sources.index))),
+        )
         # set crs
         sources.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data
@@ -112,13 +117,16 @@ def create_compressors(grid_data, scigrid_compressors):
         # add dave name
         compressors.reset_index(drop=True, inplace=True)
         compressors.insert(
-            0, "dave_name", Series(list(map(lambda x: f"compressor_1_{x}", compressors.index)))
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"compressor_1_{x}", compressors.index))),
         )
         # set crs
         compressors.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data
         grid_data.components_gas.compressors = concat(
-            [grid_data.components_gas.compressors, compressors], ignore_index=True
+            [grid_data.components_gas.compressors, compressors],
+            ignore_index=True,
         )
         # update progress
         pbar.update(20)
@@ -173,7 +181,11 @@ def create_sinks(grid_data, scigrid_consumers):
         pbar.update(40)
         # add dave name
         sinks.reset_index(drop=True, inplace=True)
-        sinks.insert(0, "dave_name", Series(list(map(lambda x: f"sink_1_{x}", sinks.index))))
+        sinks.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"sink_1_{x}", sinks.index))),
+        )
         # set crs
         sinks.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data

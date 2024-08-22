@@ -2,23 +2,24 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapower import (
-    available_std_types,
-    create_buses,
-    create_empty_network,
-    create_ext_grid,
-    create_gens,
-    create_lines,
-    create_loads,
-    create_replacement_switch_for_branch,
-    create_sgens,
-    diagnostic,
-    drop_buses,
-    drop_lines,
-    runopp,
-    runpp,
-)
-from pandas import DataFrame, Series, concat, isna
+from pandapower import available_std_types
+from pandapower import create_buses
+from pandapower import create_empty_network
+from pandapower import create_ext_grid
+from pandapower import create_gens
+from pandapower import create_lines
+from pandapower import create_loads
+from pandapower import create_replacement_switch_for_branch
+from pandapower import create_sgens
+from pandapower import diagnostic
+from pandapower import drop_buses
+from pandapower import drop_lines
+from pandapower import runopp
+from pandapower import runpp
+from pandas import DataFrame
+from pandas import Series
+from pandas import concat
+from pandas import isna
 from shapely.geometry import MultiLineString
 from tqdm import tqdm
 
@@ -49,9 +50,9 @@ def create_pp_buses(net, buses):
         ),
         geodata=buses.geometry.apply(lambda x: (x.coords[:][0][0], x.coords[:][0][1])).to_list(),
         in_service=(
-            bool(True)
+            True
             if "in_service" not in buses.keys() or all(buses.in_service.isna())
-            else buses.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else buses.in_service.apply(lambda x: True if isna(x) else x)
         ),
     )
 
@@ -81,9 +82,9 @@ def create_pp_ehvhv_lines(
     net.line_geodata = concat([net.line_geodata, coords_ehvhv], ignore_index=True)
     # check necessary parameters and add pandapower standard if needed  #TODO Der Teil kann raus, wenn die ehvhv lines auch über create lines gemacht werden
     net.line["in_service"] = (
-        bool(True)
+        True
         if all(net.line.in_service.isna())
-        else net.line.in_service.apply(lambda x: bool(True) if isna(x) else x)
+        else net.line.in_service.apply(lambda x: True if isna(x) else x)
     )
     net.line["df"] = (
         float(1)
@@ -91,9 +92,9 @@ def create_pp_ehvhv_lines(
         else net.line.df.apply(lambda x: float(1) if isna(x) else x)
     )
     net.line["parallel"] = (
-        int(1)
+        1
         if all(net.line.parallel.isna())
-        else net.line.parallel.apply(lambda x: int(1) if isna(x) else x)
+        else net.line.parallel.apply(lambda x: 1 if isna(x) else x)
     )
     net.line["std_type"] = (
         None
@@ -135,14 +136,14 @@ def create_pp_mvlv_lines(net, lines):
             else lines.df.apply(lambda x: float(1) if isna(x) else x)
         ),
         parallel=(
-            int(1)
+            1
             if "parallel" not in lines.keys() or all(lines.parallel.isna())
-            else lines.parallel.apply(lambda x: int(1) if isna(x) else x)
+            else lines.parallel.apply(lambda x: 1 if isna(x) else x)
         ),
         in_service=(
-            bool(True)
+            True
             if "in_service" not in lines.keys() or all(lines.in_service.isna())
-            else lines.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else lines.in_service.apply(lambda x: True if isna(x) else x)
         ),
     )
 
@@ -245,9 +246,9 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
     net.trafo = concat([net.trafo, trafos_ehvhv, trafos_mvlv], ignore_index=True)
     # check necessary parameters and add pandapower standart if needed
     net.trafo["in_service"] = (
-        bool(True)
+        True
         if all(net.trafo.in_service.isna())
-        else net.trafo.in_service.apply(lambda x: bool(True) if isna(x) else x)
+        else net.trafo.in_service.apply(lambda x: True if isna(x) else x)
     )
     net.trafo["df"] = (
         float(1)
@@ -255,9 +256,9 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
         else net.trafo.df.apply(lambda x: float(1) if isna(x) else x)
     )
     net.trafo["parallel"] = (
-        int(1)
+        1
         if all(net.trafo.parallel.isna())
-        else net.trafo.parallel.apply(lambda x: int(1) if isna(x) else x)
+        else net.trafo.parallel.apply(lambda x: 1 if isna(x) else x)
     )
     net.trafo["shift_degree"] = (
         float(0)
@@ -265,9 +266,9 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
         else net.trafo.shift_degree.apply(lambda x: float(0) if isna(x) else x)
     )
     net.trafo["tap_phase_shifter"] = (
-        bool(False)
+        False
         if all(net.trafo.tap_phase_shifter.isna())
-        else net.trafo.tap_phase_shifter.apply(lambda x: bool(False) if isna(x) else x)
+        else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
     )
     net.trafo["std_type"] = (
         None
@@ -283,7 +284,9 @@ def create_pp_sgens(net, sgens):
         sgens.rename(columns={"dave_name": "name"}, inplace=True)
     else:
         sgens.insert(
-            0, "name", Series(list(map(lambda x: f"ren_powerplants_{x}", sgens.index)))
+            0,
+            "name",
+            Series(list(map(lambda x: f"ren_powerplants_{x}", sgens.index))),
         )  # TODO: hier fehlt noch das voltage level
     if "generation_type" in sgens.keys():
         sgens.rename(columns={"generation_type": "type"}, inplace=True)
@@ -309,14 +312,14 @@ def create_pp_sgens(net, sgens):
             else sgens.type.apply(lambda x: "wye" if isna(x) else x)
         ),
         in_service=(
-            bool(True)
+            True
             if "in_service" not in sgens.keys() or all(sgens.in_service.isna())
-            else sgens.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else sgens.in_service.apply(lambda x: True if isna(x) else x)
         ),
         current_source=(
-            bool(True)
+            True
             if "current_source" not in sgens.keys() or all(sgens.current_source.isna())
-            else sgens.current_source.apply(lambda x: bool(True) if isna(x) else x)
+            else sgens.current_source.apply(lambda x: True if isna(x) else x)
         ),
     )
 
@@ -355,14 +358,14 @@ def create_pp_gens(net, gens):
             else gens.scaling.apply(lambda x: float(1) if isna(x) else x)
         ),
         slack=(
-            bool(False)
+            False
             if "slack" not in gens.keys() or all(gens.slack.isna())
-            else gens.slack.apply(lambda x: bool(False) if isna(x) else x)
+            else gens.slack.apply(lambda x: False if isna(x) else x)
         ),
         in_service=(
-            bool(True)
+            True
             if "in_service" not in gens.keys() or all(gens.in_service.isna())
-            else gens.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else gens.in_service.apply(lambda x: True if isna(x) else x)
         ),
     )
 
@@ -395,9 +398,9 @@ def create_pp_loads(net, loads):
             else loads.scaling.apply(lambda x: float(1) if isna(x) else x)
         ),
         in_service=(
-            bool(True)
+            True
             if "in_service" not in loads.keys() or all(loads.in_service.isna())
-            else loads.in_service.apply(lambda x: bool(True) if isna(x) else x)
+            else loads.in_service.apply(lambda x: True if isna(x) else x)
         ),
         type=(
             "wye"
@@ -417,29 +420,46 @@ def create_pp_ext_grid(net, grid_data):
         else:
             # create a ext grid on the first ehv grid bus
             ext_id = create_ext_grid(
-                net, bus=grid_data.ehv_data.ehv_nodes.iloc[0].name, name="ext_grid_1_0"
+                net,
+                bus=grid_data.ehv_data.ehv_nodes.iloc[0].name,
+                name="ext_grid_1_0",
             )
             # additional Informations
             net.ext_grid.at[ext_id, "voltage_level"] = 1
     elif "hv" in grid_data.target_input.power_levels[0]:
         # !!! Todo: Solution for Case if there are no trafo in the data
-        for i, trafo in grid_data.components_power.transformers.ehv_hv.iterrows():
+        for (
+            i,
+            trafo,
+        ) in grid_data.components_power.transformers.ehv_hv.iterrows():
             ext_id = create_ext_grid(
-                net, bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0], name=f"ext_grid_2_{i}"
+                net,
+                bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0],
+                name=f"ext_grid_2_{i}",
             )
             # additional Informations
             net.ext_grid.at[ext_id, "voltage_level"] = 2
     elif "mv" in grid_data.target_input.power_levels[0]:
-        for i, trafo in grid_data.components_power.transformers.hv_mv.iterrows():
+        for (
+            i,
+            trafo,
+        ) in grid_data.components_power.transformers.hv_mv.iterrows():
             ext_id = create_ext_grid(
-                net, bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0], name=f"ext_grid_4_{i}"
+                net,
+                bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0],
+                name=f"ext_grid_4_{i}",
             )
             # additional Informations
             net.ext_grid.at[ext_id, "voltage_level"] = 4
     elif "lv" in grid_data.target_input.power_levels[0]:
-        for i, trafo in grid_data.components_power.transformers.mv_lv.iterrows():
+        for (
+            i,
+            trafo,
+        ) in grid_data.components_power.transformers.mv_lv.iterrows():
             ext_id = create_ext_grid(
-                net, bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0], name=f"ext_grid_6_{i}"
+                net,
+                bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0],
+                name=f"ext_grid_6_{i}",
             )
             # additional Informations
             net.ext_grid.at[ext_id, "voltage_level"] = 6
@@ -542,7 +562,11 @@ def create_pandapower(grid_data, opt_model, output_folder):
     # --- create loads
     if not grid_data.components_power.loads.empty:
         loads = grid_data.components_power.loads.rename(
-            columns={"dave_name": "name", "landuse": "type", "electrical_capacity_mw": "p_mw"}
+            columns={
+                "dave_name": "name",
+                "landuse": "type",
+                "electrical_capacity_mw": "p_mw",
+            }
         )
         loads.reset_index(drop=True, inplace=True)
         create_pp_loads(net, loads)
@@ -554,7 +578,11 @@ def create_pandapower(grid_data, opt_model, output_folder):
 
     # --- add geodata as aditional informations
     net["buildings"] = concat(
-        [grid_data.buildings.residential, grid_data.buildings.commercial, grid_data.buildings.other]
+        [
+            grid_data.buildings.residential,
+            grid_data.buildings.commercial,
+            grid_data.buildings.other,
+        ]
     )
     net["roads"] = grid_data.roads.roads
     net["railways"] = grid_data.railways
@@ -594,7 +622,7 @@ def power_processing(
         **max_vm_pu** (float, default 1.05) - maximum permissible node voltage in p.u. \n
         **max_line_loading** (int, default 100) - maximum permissible line loading in % \n
         **max_trafo_loading** (int, default 100) - maximum permissible transformer loading in % \n
-    
+
     OUTPUT:
         **net** (attrdict) - A cleaned up and if necessary optimized pandapower attrdict
     """

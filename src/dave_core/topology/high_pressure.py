@@ -3,10 +3,12 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from pandas import Series, concat
+from pandas import Series
+from pandas import concat
 from tqdm import tqdm
 
-from dave_core.datapool.read_data import read_gaslib, read_scigridgas_iggielgn
+from dave_core.datapool.read_data import read_gaslib
+from dave_core.datapool.read_data import read_scigridgas_iggielgn
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 
@@ -172,7 +174,9 @@ def create_hp_topology(grid_data):
         # add junctions to grid data
         hp_junctions.reset_index(drop=True, inplace=True)
         hp_junctions.insert(
-            0, "dave_name", Series(list(map(lambda x: f"junction_1_{x}", hp_junctions.index)))
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"junction_1_{x}", hp_junctions.index))),
         )
         hp_junctions.set_crs(dave_settings["crs_main"], inplace=True)
         grid_data.hp_data.hp_junctions = concat(
@@ -197,7 +201,11 @@ def create_hp_topology(grid_data):
         )
         # add pipes to grid data
         hp_pipes.reset_index(drop=True, inplace=True)
-        hp_pipes.insert(0, "dave_name", Series(list(map(lambda x: f"pipe_1_{x}", hp_pipes.index))))
+        hp_pipes.insert(
+            0,
+            "dave_name",
+            Series(list(map(lambda x: f"pipe_1_{x}", hp_pipes.index))),
+        )
         hp_pipes.set_crs(dave_settings["crs_main"], inplace=True)
         grid_data.hp_data.hp_pipes = concat(
             [grid_data.hp_data.hp_pipes, hp_pipes], ignore_index=True

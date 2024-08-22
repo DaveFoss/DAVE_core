@@ -157,7 +157,7 @@ def create_grid(
     valves=True,
     output_folder=dave_settings["dave_output_dir"],
     output_format="json",
-    api_use=True,
+    api_use=False,
 ):
     """
     This is the main function of dave. This function generates automaticly grid models for power
@@ -176,9 +176,10 @@ def create_grid(
             for all nuts regions in europe. The second tuple parameter defines the nuts \
             year as string. The year options are 2013, 2016 and 2021. \n
         **own_area** (string / Polygon) - First Option for this parameter is to hand over a string \
-            which could be the absolute path to a shape file which includes own target area \
-            (e.g. "C:/Users/name/test/test.shp") or a JSON string with the area information. The \
-            second option is to hand over a shapely Polygon which defines the area \n
+            which could be the absolute path to a geographical file (.shp or .geojson) which \
+            includes own target area (e.g. "C:/Users/name/test/test.shp") or a JSON string with \
+            the area information. The second option is to hand over a shapely Polygon which defines \
+            the area \n
 
     OPTIONAL:
         **geodata** (list, default []) - this parameter defines which geodata should be considered.\
@@ -394,9 +395,9 @@ def create_grid(
     if not api_use:
         # print output folder
         print(f"\nSave DaVe output data at the following path: {output_folder}")
-        # return runtime
-        _stop_time = default_timer()
-        print("runtime = " + str(round((_stop_time - _start_time) / 60, 2)) + " min")
+    # return runtime
+    _stop_time = default_timer()
+    print("runtime = " + str(round((_stop_time - _start_time) / 60, 2)) + " min")
 
     # return data
     if net_power and net_gas:

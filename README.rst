@@ -51,7 +51,7 @@ DAVE_core
     :target: https://github.com/DaveFoss/DAVE_core/compare/v1.2.0...main
 
 .. |licence| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
-   :target: https://github.com/DaveFoss/DAVE_core?tab=License-1-ov-file#readme
+   :target: https://github.com/DaveFoss/DAVE_core/blob/main/LICENSE
    :alt: BSD
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -70,7 +70,7 @@ This code ist based on and explained in the following publicationat :
 
 - `Banze, T., Kneiske, T.M. Open data for energy networks: introducing DAVE—a data fusion tool for automated network generation. Sci Rep 14, 1938 (2024). <https://doi.org/10.1038/s41598-024-52199-w>`_
 
-More on DAVE is published on the webside http://databulter.energy
+More on DAVE is published on the webside http://databutler.energy
 
 
 Installation

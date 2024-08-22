@@ -2,8 +2,10 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from networkx import Graph, connected_components
-from pandas import concat, isnull
+from networkx import Graph
+from networkx import connected_components
+from pandas import concat
+from pandas import isnull
 from tqdm import tqdm
 
 from dave_core.settings import dave_settings
@@ -97,7 +99,8 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
                     components = grid_data.components_power[f"{component_typ}"]
                     # delet needless power components
                     grid_data.components_power[f"{component_typ}"].drop(
-                        components[components.bus.isin(nodes_dis)].index.to_list(), inplace=True
+                        components[components.bus.isin(nodes_dis)].index.to_list(),
+                        inplace=True,
                     )
                     grid_data.components_power[f"{component_typ}"].reset_index(
                         drop=True, inplace=True
@@ -156,7 +159,8 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
 
             # delet needless nodes and lines
             grid_data[f"{level}_data"][f"{level}_nodes"].drop(
-                nodes[nodes.dave_name.isin(nodes_dis)].index.to_list(), inplace=True
+                nodes[nodes.dave_name.isin(nodes_dis)].index.to_list(),
+                inplace=True,
             )
             grid_data[f"{level}_data"][f"{level}_nodes"].reset_index(drop=True, inplace=True)
             grid_data[f"{level}_data"][f"{level}_lines"].drop(
@@ -179,11 +183,16 @@ def clean_disconnected_elements_gas(grid_data, min_number_nodes):
         ignore_index=True,
     )
     pipelines_all = concat(
-        [grid_data.hp_data.hp_pipes, grid_data.mp_data.mp_pipes, grid_data.lp_data.lp_pipes],
+        [
+            grid_data.hp_data.hp_pipes,
+            grid_data.mp_data.mp_pipes,
+            grid_data.lp_data.lp_pipes,
+        ],
         ignore_index=True,
     )  # !!! Todo: Verbindung der Netzebenen mit einbeziehen z.B. Trafos
     pipelines_all.rename(
-        columns={"from_junction": "from_node", "to_junction": "to_node"}, inplace=True
+        columns={"from_junction": "from_node", "to_junction": "to_node"},
+        inplace=True,
     )
     if not junctions_all.empty:
         junctions_dis = list(
@@ -214,7 +223,8 @@ def clean_disconnected_elements_gas(grid_data, min_number_nodes):
                     )
             # delet needless junctions and pipelines
             grid_data[f"{level}_data"][f"{level}_junctions"].drop(
-                junctions[junctions.dave_name.isin(junctions_dis)].index.to_list(), inplace=True
+                junctions[junctions.dave_name.isin(junctions_dis)].index.to_list(),
+                inplace=True,
             )
             grid_data[f"{level}_data"][f"{level}_junctions"].reset_index(drop=True, inplace=True)
             grid_data[f"{level}_data"][f"{level}_pipes"].drop(

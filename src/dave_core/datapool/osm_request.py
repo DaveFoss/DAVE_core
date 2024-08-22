@@ -9,8 +9,12 @@ from urllib.request import urlopen
 from xml.etree.ElementTree import fromstring
 
 from geopandas import GeoDataFrame
-from pandas import DataFrame, concat, read_excel, to_datetime
-from shapely.geometry import LineString, Point
+from pandas import DataFrame
+from pandas import concat
+from pandas import read_excel
+from pandas import to_datetime
+from shapely.geometry import LineString
+from shapely.geometry import Point
 from six import string_types
 
 from dave_core.datapool.read_data import get_data_path
@@ -189,7 +193,7 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
     # Allow tags to be a single string
     if isinstance(tags, string_types) and tags:
         tags = [tags]
-    queries = "".join("[{}]".format(t) for t in tags)
+    queries = "".join(f"[{t}]" for t in tags)
 
     # Overpass QL takes the bounding box as
     # (min latitude, min longitude, max latitude, max longitude)
@@ -198,17 +202,18 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
     else:
         # bboxstr = "({})".format(
         #','.join(str(b) for b in (bbox[1], bbox[0], bbox[3], bbox[2])))
-        bboxstr = '(poly:"{}")'.format(
-            " ".join("{c[1]} {c[0]}".format(c=c) for c in bbox.exterior.coords)
-        )
+        bboxstr = '(poly:"{}")'.format(" ".join(f"{c[1]} {c[0]}" for c in bbox.exterior.coords))
 
     metastr = "meta" if meta else ""
 
-    query = "({typ}{bbox}{queries};{recurse};);out {meta};".format(
-        typ=typ, bbox=bboxstr, queries=queries, recurse=recursestr, meta=metastr
-    )
+    query = f"({typ}{bboxstr}{queries};{recursestr};);out {metastr};"
 
-    url = "".join(["http://www.overpass-api.de/api/interpreter?", urlencode({"data": query})])
+    url = "".join(
+        [
+            "http://www.overpass-api.de/api/interpreter?",
+            urlencode({"data": query}),
+        ]
+    )
 
     return url
 

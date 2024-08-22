@@ -2,7 +2,9 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os.path import dirname, join, realpath
+from os.path import dirname
+from os.path import join
+from os.path import realpath
 
 from xmlschema import XMLSchema
 

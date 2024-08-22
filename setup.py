@@ -4,7 +4,7 @@
 
 from setuptools import find_packages, setup
 
-from dave import __version__
+from dave_core import __version__
 
 # read information files
 with open("README.rst", "rb") as f:
@@ -17,7 +17,7 @@ long_description = "\n\n".join((readme, changelog))
 
 # define setup
 setup(
-    name="dave",
+    name="dave_core",
     version=__version__,
     author="Tobias Banze",
     author_email="tobias.banze@iee.fraunhofer.de",

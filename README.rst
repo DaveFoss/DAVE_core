@@ -14,44 +14,44 @@ DAVE_core
     * - package
       - |version| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
 
-.. |version| image:: https://img.shields.io/pypi/v/dave_data.svg
+.. |version| image:: https://img.shields.io/pypi/v/dave_core.svg
     :alt: PyPI Package latest release
-    :target: https://pypi.org/project/dave_data
+    :target: https://pypi.org/project/dave_core
 
-.. |wheel| image:: https://img.shields.io/pypi/wheel/dave_data.svg
+.. |wheel| image:: https://img.shields.io/pypi/wheel/dave_core.svg
     :alt: PyPI Wheel
-    :target: https://pypi.org/project/dave_data
+    :target: https://pypi.org/project/dave_core
 
-.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/dave_data.svg
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/dave_core.svg
     :alt: Supported versions
-    :target: https://pypi.org/project/dave_data
+    :target: https://pypi.org/project/dave_core
 
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/dave_data.svg
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/dave_core.svg
     :alt: Supported implementations
-    :target: https://pypi.org/project/dave_data
+    :target: https://pypi.org/project/dave_core
 
-.. |docs| image:: https://readthedocs.org/projects/dave_data/badge/?version=latest
-    :target: https://dave-data.readthedocs.io/en/latest/?badge=latest
+.. |docs| image:: https://readthedocs.org/projects/dave_core/badge/?version=latest
+    :target: https://dave-core.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. |github-actions| image:: https://github.com/DaveFoss/DAVE_data/actions/workflows/github-actions.yml/badge.svg
+.. |github-actions| image:: https://github.com/DaveFoss/DAVE_core/actions/workflows/github-actions.yml/badge.svg
     :alt: GitHub Actions Build Status
-    :target: https://github.com/DaveFoss/DAVE_data/actions
+    :target: https://github.com/DaveFoss/DAVE_core/actions
 
-.. |coveralls| image:: https://coveralls.io/repos/github/DaveFoss/DAVE_data/badge.svg?branch=main
+.. |coveralls| image:: https://coveralls.io/repos/github/DaveFoss/DAVE_core/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://coveralls.io/github/DaveFoss/DAVE_data?branch=main
+    :target: https://coveralls.io/github/DaveFoss/DAVE_core?branch=main
 
-.. |codecov| image:: https://codecov.io/gh/DaveFoss/DAVE_data/branch/main/graphs/badge.svg?branch=main
+.. |codecov| image:: https://codecov.io/gh/DaveFoss/DAVE_core/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://app.codecov.io/github/DaveFoss/DAVE_data
+    :target: https://app.codecov.io/github/DaveFoss/DAVE_core
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_data/v0.0.1.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.2.0.svg
     :alt: Commits since latest release
-    :target: https://github.com/DaveFoss/DAVE_data/compare/v0.0.1...main
+    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.2.0...main
 
 .. |licence| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
-   :target: https://github.com/OpenDaveTeam/OpenDave/blob/main/LICENSE
+   :target: https://github.com/DaveFoss/DAVE_core?tab=License-1-ov-file#readme
    :alt: BSD
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg

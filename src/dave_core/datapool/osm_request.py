@@ -139,7 +139,7 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
 
     Returns
     -------
-    df - GeoDataFrame
+    GeoDataFrame
     Note that there's probably a bit more filtering required to get the
     exact desired data. For example if you only want ways, you may want
     to grab only the linestrings like:

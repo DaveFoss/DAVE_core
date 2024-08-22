@@ -75,7 +75,7 @@ Changed
 * Channel for required packages to only "conda forge" because of anaconda terms changes
 
 Fixed
--------
+-----
 
 * Osm gateway timeout
 * Stack overflow error
@@ -108,7 +108,7 @@ Changed
 * Moved dave dir paths to settings file
 
 Fixed
--------
+-----
 
 * Wrong/missing types at pandapower converter
 * Missing crs definitions
@@ -127,7 +127,7 @@ Changed
 * Move ehv substations to components power
 
 Fixed
--------
+-----
 
 * Missing line and trafo data within pandapower converting
 
@@ -158,12 +158,12 @@ Added
 * Progress bars
 
 Fixed
--------
+-----
 
 * Overwriting points in voronoi calculation
 
 1.0.1 (January 26, 2021)
-======================
+========================
 
 Added
 -----
@@ -180,12 +180,12 @@ Changed
 * Use scigridgas igginl dataset instead of lkd_eu dataset for high pressure gas level
 
 Fixed
--------
+-----
 
 * Replaced deprecated shapely "cascaded union" function with "unary_union" function
 
 1.0.0 (December 21, 2020)
-======================
+=========================
 
 Event
 -----
@@ -193,7 +193,7 @@ Event
 * First usable DaVe version
 
 0.0.0 (February 05, 2020)
-======================
+=========================
 
 Event
 -----

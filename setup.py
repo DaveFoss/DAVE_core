@@ -69,6 +69,7 @@ setup(
         "geopandas",
         "matplotlib",
         "geopy",
+        "fiona",
         "contextily",
         "pytest",
         "pytest-cov",

@@ -2,14 +2,14 @@ Change Log
 =============
 
 
-[1.2.0] - (2023-11-20) 
+[1.2.0] - (2023-11-20)
 ----------------------
 - [MOVED]   dave structure functions to DAVE client
 - [MOVED]   read simone function to DAVE client
 - [MOVED]   read gaslib function to DAVE client
 - [MOVED]   model module to DAVE client
 - [MOVED]   io module to DAVE client
-- [CHANGED] archiv i/o function in seperated file 
+- [CHANGED] archiv i/o function in seperated file
 - [MOVED]   plotting module to DAVE client
 - [ADDED]   building height based on raster data
 - [ADDED]   extend api with functions for database managment
@@ -21,7 +21,7 @@ Change Log
 - [ADDED]   option to choose year for nuts regions (2013, 2016, 2021)
 - [ADDED]   geopackage as possible output format
 - [ADDED]   extend geographical data with more landuse information and data for waterways
-- [CHANGED] input parameters for geographical objects reduced to one parameter "geodata" 
+- [CHANGED] input parameters for geographical objects reduced to one parameter "geodata"
 
 
 [1.1.0] - 2022-11-03
@@ -32,18 +32,18 @@ Change Log
 - [ADDED]   own database for DAVE (mongo db) and restructured data requests
 - [ADDED]   algorithm for regular automated database updates
 - [ADDED]   algorithm for regular automated database dump
-- [EVENT]   DAVE licensed under a three clause bsd license 
+- [EVENT]   DAVE licensed under a three clause bsd license
 - [ADDED]   geography module and separated geographical data from grid model generation
 - [ADDED]   restructured target area functions
 - [FIXED]   osm gateway timeout
 - [FIXED]   stack overflow error
-- [ADDED]   different years as option for nuts regions 
-- [CHANGED] renamed building category from "for_living" to "residential" 
-- [ADDED]   function for intersection with considering mixed geometries 
+- [ADDED]   different years as option for nuts regions
+- [CHANGED] renamed building category from "for_living" to "residential"
+- [ADDED]   function for intersection with considering mixed geometries
 - [FIXED]   duplicate naming
-- [ADDED]   topology cleanup for power and gas models 
+- [ADDED]   topology cleanup for power and gas models
 - [CHANGED] power components script splitted to separate scripts according to the components
-- [CHANGED] bus naming in ehv and hv models from "bus0/bus1" to "from/to_bus" 
+- [CHANGED] bus naming in ehv and hv models from "bus0/bus1" to "from/to_bus"
 - [ADDED]   gaslib converter
 - [CHANGED] channel for required packages to only "conda forge" because of anaconda terms changes
 - [ADDED]   gas component: source, sink, compressor
@@ -58,7 +58,7 @@ Change Log
 - [FIXED]   missing crs definitions
 - [ADDED]   application programming interface (api) module
 - [CHANGED] build seperated io modul, changed structure and moved existing io functions to that
-- [CHANGED] rebuild from/to hdf functions and merged with from/to archiv 
+- [CHANGED] rebuild from/to hdf functions and merged with from/to archiv
 - [ADDED]   functions for serialization
 - [ADDED]   automated build of docker images from ci (with kaniko)
 - [ADDED]   basic test structure
@@ -81,13 +81,13 @@ Change Log
 
 [1.0.3] - 2021-03-04
 ----------------------
-- [ADDED]   description in install tutorial for using DaVe in PyCharm  
+- [ADDED]   description in install tutorial for using DaVe in PyCharm
 - [ADDED]   runtime count
 
 [1.0.2] - 2021-02-10
 ----------------------
 - [ADDED]   progress bars
-- [FIXED]   overwriting points in voronoi calculation 
+- [FIXED]   overwriting points in voronoi calculation
 
 [1.0.1] - 2021-01-26
 ----------------------

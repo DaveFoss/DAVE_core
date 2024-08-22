@@ -1,4 +1,4 @@
-name: dave
+name: dave_core
 channels:
   - conda-forge
 dependencies:

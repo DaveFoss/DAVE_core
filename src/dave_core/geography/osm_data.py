@@ -46,7 +46,6 @@ def from_osm(
     grid_data,
     pbar,
     roads,
-    roads_plot,
     buildings,
     landuse,
     railways,
@@ -61,7 +60,7 @@ def from_osm(
     target = geometry of the considerd target
     """
     # count object types to consider for progress bar
-    objects_list = [roads, roads_plot, buildings, landuse, railways, waterways]
+    objects_list = [roads, buildings, landuse, railways, waterways]
     objects_con = len([x for x in objects_list if x is True])
     if objects_con == 0:
         # update progress
@@ -72,14 +71,6 @@ def from_osm(
     if roads:
         roads = get_osm_data(grid_data, "road", border, target_geom)
         grid_data.roads.roads = concat([grid_data.roads.roads, roads], ignore_index=True)
-        # update progress
-        pbar.update(progress_step / objects_con)
-    # search irrelevant road informations in the target area for a better overview
-    if roads_plot:
-        roads_plot = get_osm_data(grid_data, "road_plot", border, target_geom)
-        grid_data.roads.roads_plot = concat(
-            [grid_data.roads.roads_plot, roads_plot], ignore_index=True
-        )
         # update progress
         pbar.update(progress_step / objects_con)
     # search landuse informations in the target area

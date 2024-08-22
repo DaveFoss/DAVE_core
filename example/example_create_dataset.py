@@ -51,14 +51,14 @@ grid_data = create_grid(
     federal_state=None,
     nuts_region=None,
     own_area=_own_area,
+    # geographical parameters
+    geodata=["roads", "railways"],
     # grid level parameters
     power_levels=[],
     gas_levels=[],
     # --- optional parameters
     opt_model=False,
     combine_areas=[],
-    # geographical parameters
-    geodata=["roads", "railways"],
     # converting parameters
     convert_power=[],  # if True a second return variable must be defined
     convert_gas=[],  # if True a second return variable must be defined

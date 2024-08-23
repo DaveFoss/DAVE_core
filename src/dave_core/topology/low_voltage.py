@@ -11,6 +11,7 @@ from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 from shapely.ops import nearest_points
 from tqdm import tqdm
+from warnings import catch_warnings
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
@@ -359,7 +360,8 @@ def create_lv_topology(grid_data):
                             "voltage_level": 7,
                             "voltage_kv": 0.4,
                             "source": "dave internal",
-                        }
+                        },
+                        crs=dave_settings["crs_main"],
                     )
                     grid_data.lv_data.lv_nodes = concat(
                         [grid_data.lv_data.lv_nodes, junction_point_gdf],
@@ -400,7 +402,8 @@ def create_lv_topology(grid_data):
                             "voltage_level": 7,
                             "voltage_kv": 0.4,
                             "source": "dave internal",
-                        }
+                        },
+                        crs=dave_settings["crs_main"],
                     )
                     grid_data.lv_data.lv_nodes = concat(
                         [grid_data.lv_data.lv_nodes, junction_point_gdf],

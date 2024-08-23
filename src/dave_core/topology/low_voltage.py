@@ -10,10 +10,9 @@ from shapely.geometry import LineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 from shapely.ops import nearest_points
-from tqdm import tqdm
-from warnings import catch_warnings
 
 from dave_core.datapool.oep_request import oep_request
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
@@ -63,14 +62,20 @@ def connect_grid_nodes(road_course, road_points, start_node, end_node):
     start_index = road_course.index((start_nearest.x, start_nearest.y))
     end_index = road_course.index((end_nearest.x, end_nearest.y))
     # check if start_nearest between start and end point
-    if abs(end_point.distance(start_nearest)) > abs(end_point.distance(start_point)):
+    if abs(end_point.distance(start_nearest)) > abs(
+        end_point.distance(start_point)
+    ):
         start_index += 1
     # check if end_nearest is between start and end point
-    if abs(start_point.distance(end_nearest)) > abs(start_point.distance(end_point)):
+    if abs(start_point.distance(end_nearest)) > abs(
+        start_point.distance(end_point)
+    ):
         end_index -= 1
     # add points [start_point, points to follow the road course, end point]
     line_points = (
-        [start_node] + [road_course[k] for k in range(start_index, end_index + 1)] + [end_node]
+        [start_node]
+        + [road_course[k] for k in range(start_index, end_index + 1)]
+        + [end_node]
     )
     # create a lineString and return them
     return LineString(line_points)
@@ -84,13 +89,19 @@ def search_line_connections(road_geometry, all_nodes):
     road_points = MultiPoint(road_course)
     # find nodes on the considered road and sort them by their longitude to find start point
     grid_nodes = sorted(
-        [node.coords[:][0] for node in all_nodes if road_geometry.distance(node) < 1e-10]
+        [
+            node.coords[:][0]
+            for node in all_nodes
+            if road_geometry.distance(node) < 1e-10
+        ]
     )
     if grid_nodes:  # check if their are grid nodes on the considered road
         # sort nodes by their nearest neighbor
         grid_nodes_sort = [grid_nodes[0]]  # start node
         node_index = 0
-        while len(grid_nodes) > 1:  # sort nodes by their sequenz along the road
+        while (
+            len(grid_nodes) > 1
+        ):  # sort nodes by their sequenz along the road
             start_node = Point(grid_nodes.pop(node_index))
             grid_nodes_points = MultiPoint(grid_nodes)
             next_node = nearest_points(start_node, grid_nodes_points)[1]
@@ -121,7 +132,9 @@ def line_connections(grid_data):
             grid_data.lv_data.lv_nodes.node_type == "grid_connection"
         ].geometry
     )
-    all_nodes = concat([nearest_building_point, grid_data.roads.road_junctions]).drop_duplicates()
+    all_nodes = concat(
+        [nearest_building_point, grid_data.roads.road_junctions]
+    ).drop_duplicates()
     # search line connections
     line_connect = GeoSeries(
         sum(
@@ -145,7 +158,9 @@ def line_connections(grid_data):
         },
         crs=dave_settings["crs_main"],
     )
-    grid_data.lv_data.lv_lines = concat([grid_data.lv_data.lv_lines, lines_gdf], ignore_index=True)
+    grid_data.lv_data.lv_lines = concat(
+        [grid_data.lv_data.lv_lines, lines_gdf], ignore_index=True
+    )
 
 
 def create_lv_topology(grid_data):
@@ -159,23 +174,23 @@ def create_lv_topology(grid_data):
     OUTPUT:
         Writes data in the DaVe dataset
     """
-    # set progress bar
-    pbar = tqdm(
-        total=100,
-        desc="create low voltage topology:       ",
-        position=0,
-        bar_format=dave_settings["bar_format"],
-    )
+    # set progress bar for lv topology
+    pbar = create_tqdm(desc="create low voltage topology")
     # --- create substations
     # create mv/lv substations
     if grid_data.components_power.substations.mv_lv.empty:
-        mvlv_substations, meta_data = oep_request(table="ego_dp_mvlv_substation")
+        mvlv_substations, meta_data = oep_request(
+            table="ego_dp_mvlv_substation"
+        )
         # add meta data
         if (
             bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
+            and f"{meta_data['Main'].Titel.loc[0]}"
+            not in grid_data.meta_data.keys()
         ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
+                meta_data
+            )
         mvlv_substations.rename(
             columns={
                 "version": "ego_version",
@@ -186,7 +201,9 @@ def create_lv_topology(grid_data):
         # change wrong crs from oep
         mvlv_substations.crs = dave_settings["crs_main"]
         # filter trafos which are within the grid area
-        mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)
+        mvlv_substations = intersection_with_area(
+            mvlv_substations, grid_data.area
+        )
         if not mvlv_substations.empty:
             mvlv_substations["voltage_level"] = 6
             # add dave name
@@ -224,7 +241,9 @@ def create_lv_topology(grid_data):
     buildings_rel_3035 = buildings_rel.to_crs(dave_settings["crs_meter"])
     centroids = buildings_rel_3035.reset_index(drop=True).centroid
     centroids = centroids.to_crs(dave_settings["crs_main"])
-    building_connections = nearest_road(building_centroids=centroids, roads=grid_data.roads.roads)
+    building_connections = nearest_road(
+        building_centroids=centroids, roads=grid_data.roads.roads
+    )
     # delet duplicates in nearest road points
     building_nearest = GeoSeries(building_connections.nearest_point)
     building_nearest.drop_duplicates(inplace=True)
@@ -254,7 +273,9 @@ def create_lv_topology(grid_data):
         ignore_index=True,
     )
     # search for the substations where the lv nodes are within
-    sub_infos = building_nodes_df.geometry.apply(lambda x: related_sub(x, mvlv_substations))
+    sub_infos = building_nodes_df.geometry.apply(
+        lambda x: related_sub(x, mvlv_substations)
+    )
     building_nodes_df["ego_subst_id"] = sub_infos.apply(lambda x: x[0])
     building_nodes_df["subst_dave_name"] = sub_infos.apply(lambda x: x[1])
     building_nodes_df["subst_name"] = sub_infos.apply(lambda x: x[2])
@@ -299,7 +320,9 @@ def create_lv_topology(grid_data):
         }
     )
     # write line informations into grid data
-    grid_data.lv_data.lv_lines = concat([grid_data.lv_data.lv_lines, line_gdf], ignore_index=True)
+    grid_data.lv_data.lv_lines = concat(
+        [grid_data.lv_data.lv_lines, line_gdf], ignore_index=True
+    )
     # set crs
     grid_data.lv_data.lv_lines.crs = dave_settings["crs_main"]
     # create line connections to connect lines for buildings and road junctions with each other
@@ -309,7 +332,11 @@ def create_lv_topology(grid_data):
     grid_data.lv_data.lv_lines.insert(
         0,
         "dave_name",
-        Series(list(map(lambda x: f"line_7_{x}", grid_data.lv_data.lv_lines.index))),
+        Series(
+            list(
+                map(lambda x: f"line_7_{x}", grid_data.lv_data.lv_lines.index)
+            )
+        ),
     )
     # update progress
     pbar.update(5)
@@ -323,7 +350,9 @@ def create_lv_topology(grid_data):
             grid_data.lv_data.lv_nodes.node_type == "road_junction"
         ]
         line_coords_from = line.geometry.coords[:][0]
-        line_coords_to = line.geometry.coords[:][len(line.geometry.coords[:]) - 1]
+        line_coords_to = line.geometry.coords[:][
+            len(line.geometry.coords[:]) - 1
+        ]
         from_bus = lv_nodes[lv_nodes.geometry.x == line_coords_from[0]]
         if len(from_bus) > 1:
             from_bus = from_bus[from_bus.geometry.y == line_coords_from[1]]
@@ -331,7 +360,9 @@ def create_lv_topology(grid_data):
         if len(to_bus) > 1:
             to_bus = to_bus[to_bus.geometry.y == line_coords_to[1]]
         if not from_bus.empty:
-            grid_data.lv_data.lv_lines.at[line.name, "from_bus"] = from_bus.iloc[0].dave_name
+            grid_data.lv_data.lv_lines.at[line.name, "from_bus"] = (
+                from_bus.iloc[0].dave_name
+            )
         else:
             # check if there is a suitable road junction in grid data
             distance = road_junctions_grid.geometry.apply(
@@ -339,17 +370,23 @@ def create_lv_topology(grid_data):
             )
             if not distance.empty and distance.min() < 1e-04:
                 # road junction node was found
-                dave_name = road_junctions_grid.loc[distance.idxmin()].dave_name
+                dave_name = road_junctions_grid.loc[
+                    distance.idxmin()
+                ].dave_name
             else:
                 # no road junction was found, create it from road junction data
                 distance = road_junctions_origin.geometry.apply(
                     lambda x: Point(line_coords_from).distance(x)
                 )
                 if distance.min() < 1e-04:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()]
+                    road_junction_geom = road_junctions_origin.loc[
+                        distance.idxmin()
+                    ]
                     # create lv_point for relevant road junction
                     dave_number = int(
-                        grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")
+                        grid_data.lv_data.lv_nodes.dave_name.tail(1)
+                        .iloc[0]
+                        .replace("node_7_", "")
                     )
                     dave_name = "node_7_" + str(dave_number + 1)
                     junction_point_gdf = GeoDataFrame(
@@ -373,7 +410,9 @@ def create_lv_topology(grid_data):
             grid_data.lv_data.lv_nodes.node_type == "road_junction"
         ]
         if not to_bus.empty:
-            grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = to_bus.iloc[0].dave_name
+            grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = to_bus.iloc[
+                0
+            ].dave_name
         else:
             # check if there is a suitable road junction in grid data
             distance = road_junctions_grid.geometry.apply(
@@ -381,17 +420,23 @@ def create_lv_topology(grid_data):
             )
             if distance.min() < 1e-04:
                 # road junction node was found
-                dave_name = road_junctions_grid.loc[distance.idxmin()].dave_name
+                dave_name = road_junctions_grid.loc[
+                    distance.idxmin()
+                ].dave_name
             else:
                 # no road junction was found, create it from road junction data
                 distance = road_junctions_origin.geometry.apply(
                     lambda x: Point(line_coords_to).distance(x)
                 )
                 if distance.min() < 1e-04:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()]
+                    road_junction_geom = road_junctions_origin.loc[
+                        distance.idxmin()
+                    ]
                     # create lv_point for relevant road junction
                     dave_number = int(
-                        grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")
+                        grid_data.lv_data.lv_nodes.dave_name.tail(1)
+                        .iloc[0]
+                        .replace("node_7_", "")
                     )
                     dave_name = "node_7_" + str(dave_number + 1)
                     junction_point_gdf = GeoDataFrame(
@@ -412,7 +457,9 @@ def create_lv_topology(grid_data):
             grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = dave_name
         grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)
         # set crs
-        grid_data.lv_data.lv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
+        grid_data.lv_data.lv_nodes.set_crs(
+            dave_settings["crs_main"], inplace=True
+        )
         # update progress
         pbar.update(80 / len(grid_data.lv_data.lv_lines))
     # close progress bar

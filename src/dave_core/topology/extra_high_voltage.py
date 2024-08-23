@@ -7,9 +7,9 @@ from math import pi
 from geopandas import GeoDataFrame
 from pandas import Series
 from pandas import concat
-from tqdm import tqdm
 
 from dave_core.datapool.oep_request import oep_request
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
@@ -27,17 +27,17 @@ def create_ehv_topology(grid_data):
         Writes data in the DaVe dataset
     """
     # set progress bar
-    pbar = tqdm(
-        total=100,
-        desc="create extra high voltage topology:",
-        position=0,
-        bar_format=dave_settings["bar_format"],
-    )
+    pbar = create_tqdm(desc="create extra high voltage topology")
+
     # --- create ehv/ehv and ehv/hv substations
     # read ehv substation data from OpenEnergyPlatform and adapt names
     ehv_substations, meta_data = oep_request(table="ego_dp_ehv_substation")
     # add meta data
-    if bool(meta_data) and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+    if (
+        bool(meta_data)
+        and f"{meta_data['Main'].Titel.loc[0]}"
+        not in grid_data.meta_data.keys()
+    ):
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     ehv_substations.rename(
         columns={
@@ -58,7 +58,9 @@ def create_ehv_topology(grid_data):
         ehv_substations.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"substation_2_{x}", ehv_substations.index))),
+            Series(
+                list(map(lambda x: f"substation_2_{x}", ehv_substations.index))
+            ),
         )
         # set crs
         ehv_substations.set_crs(dave_settings["crs_main"], inplace=True)
@@ -72,7 +74,11 @@ def create_ehv_topology(grid_data):
     # --- import ehv lines and reduce them to the target area
     ehvhv_lines, meta_data = oep_request(table="ego_pf_hv_line")
     # add meta data
-    if bool(meta_data) and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+    if (
+        bool(meta_data)
+        and f"{meta_data['Main'].Titel.loc[0]}"
+        not in grid_data.meta_data.keys()
+    ):
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
     ehvhv_lines.rename(
         columns={
@@ -94,7 +100,11 @@ def create_ehv_topology(grid_data):
     # filter lines which are currently availible
     ehvhv_lines = ehvhv_lines[
         (ehvhv_lines.ego_scn_name == "Status Quo")
-        & (ehvhv_lines.geometry.intersects(grid_data.area.geometry.unary_union))
+        & (
+            ehvhv_lines.geometry.intersects(
+                grid_data.area.geometry.unary_union
+            )
+        )
     ]
     # consider data only if there are minimum one line in the target area
     if not ehvhv_lines.empty:
@@ -104,9 +114,12 @@ def create_ehv_topology(grid_data):
         # add meta data
         if (
             bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
+            and f"{meta_data['Main'].Titel.loc[0]}"
+            not in grid_data.meta_data.keys()
         ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
+                meta_data
+            )
         ehvhv_buses.rename(
             columns={
                 "version": "ego_version",
@@ -119,7 +132,8 @@ def create_ehv_topology(grid_data):
         )
         # filter nodes which are on the ehv-level and current exsist
         ehv_buses = ehvhv_buses[
-            (ehvhv_buses.voltage_kv.isin([380, 220])) & (ehvhv_buses.ego_scn_name == "Status Quo")
+            (ehvhv_buses.voltage_kv.isin([380, 220]))
+            & (ehvhv_buses.ego_scn_name == "Status Quo")
         ]
         # filter nodes within the target area by checking their connection to a line
         line_buses_ids = concat(
@@ -134,7 +148,9 @@ def create_ehv_topology(grid_data):
     # consider data only if there are more than one ehv node in the target area
     if len(ehv_buses) > 1:
         # search for the substations where the ehv nodes are within
-        sub_infos = ehv_buses.geometry.apply(lambda x: related_sub(x, ehv_substations))
+        sub_infos = ehv_buses.geometry.apply(
+            lambda x: related_sub(x, ehv_substations)
+        )
         ehv_buses["ego_subst_id"] = sub_infos.apply(lambda x: x[0])
         ehv_buses["subst_dave_name"] = sub_infos.apply(lambda x: x[1])
         ehv_buses["subst_name"] = sub_infos.apply(lambda x: x[2])
@@ -162,12 +178,19 @@ def create_ehv_topology(grid_data):
         # filter lines which are on the ehv level by check if both endpoints are on the ehv level
         ehv_bus_ids = ehv_buses.ego_bus_id.tolist()
         ehv_lines = ehvhv_lines[
-            (ehvhv_lines.from_bus.isin(ehv_bus_ids)) & (ehvhv_lines.to_bus.isin(ehv_bus_ids))
+            (ehvhv_lines.from_bus.isin(ehv_bus_ids))
+            & (ehvhv_lines.to_bus.isin(ehv_bus_ids))
         ]
         # --- add additional line parameter and change bus names
-        ehv_lines.insert(ehv_lines.columns.get_loc("r_ohm") + 1, "r_ohm_per_km", None)
-        ehv_lines.insert(ehv_lines.columns.get_loc("x_ohm") + 1, "x_ohm_per_km", None)
-        ehv_lines.insert(ehv_lines.columns.get_loc("b_s") + 1, "c_nf_per_km", None)
+        ehv_lines.insert(
+            ehv_lines.columns.get_loc("r_ohm") + 1, "r_ohm_per_km", None
+        )
+        ehv_lines.insert(
+            ehv_lines.columns.get_loc("x_ohm") + 1, "x_ohm_per_km", None
+        )
+        ehv_lines.insert(
+            ehv_lines.columns.get_loc("b_s") + 1, "c_nf_per_km", None
+        )
         ehv_lines.insert(ehv_lines.columns.get_loc("b_s") + 1, "c_nf", None)
         # update progress
         pbar.update(10)
@@ -180,13 +203,23 @@ def create_ehv_topology(grid_data):
             ].voltage_kv
             ehv_lines.at[line.name, "voltage_kv"] = line_voltage
             # change line bus names from ego id to dave name
-            from_bus_new.append(ehv_buses[ehv_buses.ego_bus_id == line.from_bus].iloc[0].dave_name)
-            to_bus_new.append(ehv_buses[ehv_buses.ego_bus_id == line.to_bus].iloc[0].dave_name)
+            from_bus_new.append(
+                ehv_buses[ehv_buses.ego_bus_id == line.from_bus]
+                .iloc[0]
+                .dave_name
+            )
+            to_bus_new.append(
+                ehv_buses[ehv_buses.ego_bus_id == line.to_bus]
+                .iloc[0]
+                .dave_name
+            )
             # calculate and add r,x,c per km
             ehv_lines.at[line.name, "r_ohm_per_km"] = (
                 float(line.r_ohm) / line.length_km
             )  # Todo: Ersetzen durch apply function und aus for loop ziehen
-            ehv_lines.at[line.name, "x_ohm_per_km"] = float(line.x_ohm) / line.length_km
+            ehv_lines.at[line.name, "x_ohm_per_km"] = (
+                float(line.x_ohm) / line.length_km
+            )
             c_nf = float(line.b_s) / (2 * pi * float(line.frequency)) * 1e09
             ehv_lines.at[line.name, "c_nf"] = c_nf
             ehv_lines.at[line.name, "c_nf_per_km"] = c_nf / line.length_km

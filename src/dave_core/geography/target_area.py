@@ -8,7 +8,6 @@ from geopandas import read_file
 from pandas import DataFrame
 from pandas import concat
 from shapely.geometry import Polygon
-from tqdm import tqdm
 
 from dave_core.archiv_io import archiv_inventory
 from dave_core.datapool.read_data import read_federal_states
@@ -17,6 +16,7 @@ from dave_core.datapool.read_data import read_postal
 from dave_core.geography.osm_data import from_osm
 from dave_core.geography.osm_data import road_junctions
 from dave_core.io.file_io import from_json_string
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 
@@ -267,12 +267,8 @@ def target_area(
             target_area(town_name = ['Kassel'], buffer=0)
     """
     # set progress bar
-    pbar = tqdm(
-        total=100,
-        desc="collect geographical data:         ",
-        position=0,
-        bar_format=dave_settings["bar_format"],
-    )
+    pbar = create_tqdm(desc="collect geographical data")
+
     # check wich input parameter is given
     if postalcode:
         target = _target_by_postalcode(

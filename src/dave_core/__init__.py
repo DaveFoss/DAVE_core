@@ -6,5 +6,8 @@ __version__ = "1.2.0"
 
 from dave_core.archiv_io import *
 from dave_core.create import *
+from dave_core.dave_structure import *
+from dave_core.model_utils import *
+from dave_core.progressbar import *
 from dave_core.settings import *
 from dave_core.toolbox import *

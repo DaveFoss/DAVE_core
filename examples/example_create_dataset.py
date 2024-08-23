@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+import geopandas as gpd
 
 from dave_core.create import create_grid
 from dave_core.settings import dave_settings
@@ -42,9 +43,8 @@ _nuts_3 = ["DEF", "DE60"]  # example for diffrent nuts level combined(1 and 2)
 
 # test own shape
 # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-_own_area = (
-    os.path.dirname(os.path.realpath(__file__)) + "\\hertingshausen.geojson"
-)
+own_area_path = os.path.dirname(os.path.realpath(__file__)) + "\\hertingshausen.geojson"
+own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
 
 
 ##################### test main function ##########################
@@ -53,7 +53,7 @@ This is the main function for DaVe with all possible parameters.
 For testing you can use the pre defined variables on the top or own ones.
 """
 
-
+"""
 grid_data = create_grid(
     # grid area parameters (select on of the following five options)
     postalcode=None,
@@ -64,7 +64,7 @@ grid_data = create_grid(
     # geographical parameters
     geodata=["roads", "railways"],
     # grid level parameters
-    power_levels=[],
+    power_levels=["lv"],
     gas_levels=[],
     # --- optional parameters
     opt_model=False,
@@ -86,3 +86,6 @@ grid_data = create_grid(
     output_format="json",
     api_use=False,
 )
+"""
+
+grid_data = create_grid(own_area=own_area_polygon, power_levels=["LV"])

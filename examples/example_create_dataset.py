@@ -2,11 +2,12 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import os
+from pathlib import Path
+
 import geopandas as gpd
 
+from dave_core import dave_settings
 from dave_core.create import create_grid
-from dave_core.settings import dave_settings
 
 """
 This is a example file for testing dave
@@ -39,28 +40,28 @@ _federal_state_3 = ["ALL"]  # all federal states in germany
 _nuts_1 = ["DE"]  # nuts level 0
 _nuts_2 = ["DE11A", "DE11B"]  # nuts level 3
 _nuts_3 = ["DEF", "DE60"]  # example for diffrent nuts level combined(1 and 2)
-
+_nuts_4 = (["DE1"], "2021")  # nuts level 1 and other year
 
 # test own shape
 # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-own_area_path = os.path.dirname(os.path.realpath(__file__)) + "\\hertingshausen.geojson"
+own_area_path = f"{Path(__file__).parent}\\hertingshausen.geojson"
 own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
 
 
 ##################### test main function ##########################
 """
-This is the main function for DaVe with all possible parameters.
+This is the main function for DAVE with all possible parameters.
 For testing you can use the pre defined variables on the top or own ones.
 """
 
-"""
+
 grid_data = create_grid(
     # grid area parameters (select on of the following five options)
     postalcode=None,
     town_name=None,
     federal_state=None,
     nuts_region=None,
-    own_area=_own_area,
+    own_area=own_area_polygon,
     # geographical parameters
     geodata=["roads", "railways"],
     # grid level parameters
@@ -86,6 +87,3 @@ grid_data = create_grid(
     output_format="json",
     api_use=False,
 )
-"""
-
-grid_data = create_grid(own_area=own_area_polygon, power_levels=["LV"])

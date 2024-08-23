@@ -5,10 +5,10 @@
 
 from pandas import Series
 from pandas import concat
-from tqdm import tqdm
 
 from dave_core.datapool.read_data import read_gaslib
 from dave_core.datapool.read_data import read_scigridgas_iggielgn
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 
@@ -84,12 +84,8 @@ def create_hp_topology(grid_data):
         Writes data in the DaVe dataset
     """
     # set progress bar
-    pbar = tqdm(
-        total=100,
-        desc="create high pressure topology:     ",
-        position=0,
-        bar_format=dave_settings["bar_format"],
-    )
+    pbar = create_tqdm(desc="create high pressure topology")
+
     # read high pressure grid data from dave datapool (scigridgas igginl)
     scigrid_data, meta_data = read_scigridgas_iggielgn()
     # add meta data
@@ -100,11 +96,15 @@ def create_hp_topology(grid_data):
     # create hp junctions (nodes)
     scigrid_nodes = scigrid_data["nodes"]
     # change source names and add source
-    scigrid_nodes.rename(columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True)
+    scigrid_nodes.rename(
+        columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True
+    )
     scigrid_nodes["source"] = "scigridgas"
     # extract relevant scigrid parameters
     scigrid_nodes["entsog_key"] = scigrid_nodes.param.apply(
-        lambda x: None if "entsog_key" not in eval(x) else eval(x)["entsog_key"]
+        lambda x: None
+        if "entsog_key" not in eval(x)
+        else eval(x)["entsog_key"]
     )
     # set grid level number
     scigrid_nodes["pressure_level"] = 1
@@ -124,7 +124,9 @@ def create_hp_topology(grid_data):
         hp_pipes = scigrid_data["pipe_segments"]
         # filter relevant pipelines by checking if both endpoints are in the target area
         hp_junctions_ids = hp_junctions.scigrid_id.tolist()
-        hp_pipes["from_junction"] = hp_pipes.node_id.apply(lambda x: eval(x)[0])
+        hp_pipes["from_junction"] = hp_pipes.node_id.apply(
+            lambda x: eval(x)[0]
+        )
         hp_pipes["to_junction"] = hp_pipes.node_id.apply(lambda x: eval(x)[1])
         hp_pipes = hp_pipes[
             (hp_pipes.from_junction.isin(hp_junctions_ids))
@@ -134,11 +136,17 @@ def create_hp_topology(grid_data):
         # im- and export nodes
         junctions_extern = concat(
             [
-                hp_pipes[~hp_pipes.from_junction.isin(hp_junctions_ids)].from_junction,
-                hp_pipes[~hp_pipes.to_junction.isin(hp_junctions_ids)].to_junction,
+                hp_pipes[
+                    ~hp_pipes.from_junction.isin(hp_junctions_ids)
+                ].from_junction,
+                hp_pipes[
+                    ~hp_pipes.to_junction.isin(hp_junctions_ids)
+                ].to_junction,
             ]
         )
-        hp_junctions_ext = scigrid_nodes[scigrid_nodes.scigrid_id.isin(junctions_extern.unique())]
+        hp_junctions_ext = scigrid_nodes[
+            scigrid_nodes.scigrid_id.isin(junctions_extern.unique())
+        ]
         hp_junctions_ext["is_export"] = True
         hp_junctions_ext["is_import"] = True
         hp_junctions_ext["external"] = True
@@ -150,24 +158,34 @@ def create_hp_topology(grid_data):
         # update progress
         pbar.update(20)
         # prepare data
-        hp_pipes.rename(columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True)
+        hp_pipes.rename(
+            columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True
+        )
         hp_pipes["source"] = "scigridgas"
         hp_pipes["pressure_level"] = 1
         # extract relevant scigrid parameters
-        hp_pipes["diameter_mm"] = hp_pipes.param.apply(lambda x: eval(x)["diameter_mm"])
+        hp_pipes["diameter_mm"] = hp_pipes.param.apply(
+            lambda x: eval(x)["diameter_mm"]
+        )
         hp_pipes["is_H_gas"] = hp_pipes.param.apply(
             lambda x: True if eval(x)["is_H_gas"] == 1 else False
         )
         hp_pipes["is_bothDirection"] = hp_pipes.param.apply(
             lambda x: True if eval(x)["is_bothDirection"] == 1 else False
         )
-        hp_pipes["length_km"] = hp_pipes.param.apply(lambda x: eval(x)["length_km"])
+        hp_pipes["length_km"] = hp_pipes.param.apply(
+            lambda x: eval(x)["length_km"]
+        )
         hp_pipes["max_cap_M_m3_per_d"] = hp_pipes.param.apply(
             lambda x: eval(x)["max_cap_M_m3_per_d"]
         )
-        hp_pipes["max_pressure_bar"] = hp_pipes.param.apply(lambda x: eval(x)["max_pressure_bar"])
+        hp_pipes["max_pressure_bar"] = hp_pipes.param.apply(
+            lambda x: eval(x)["max_pressure_bar"]
+        )
         hp_pipes["operator_name"] = hp_pipes.param.apply(
-            lambda x: "" if "operator_name" not in eval(x) else eval(x)["operator_name"]
+            lambda x: ""
+            if "operator_name" not in eval(x)
+            else eval(x)["operator_name"]
         )
         # update progress
         pbar.update(20)
@@ -184,10 +202,14 @@ def create_hp_topology(grid_data):
         )
         # change pipeline junction names from scigrid id to dave name
         hp_pipes["from_junction"] = hp_pipes.from_junction.apply(
-            lambda x: hp_junctions[hp_junctions.scigrid_id == x].iloc[0].dave_name
+            lambda x: hp_junctions[hp_junctions.scigrid_id == x]
+            .iloc[0]
+            .dave_name
         )
         hp_pipes["to_junction"] = hp_pipes.to_junction.apply(
-            lambda x: hp_junctions[hp_junctions.scigrid_id == x].iloc[0].dave_name
+            lambda x: hp_junctions[hp_junctions.scigrid_id == x]
+            .iloc[0]
+            .dave_name
         )
         # get gaslib data clustered
         gaslib_pipe_data = gaslib_pipe_clustering()

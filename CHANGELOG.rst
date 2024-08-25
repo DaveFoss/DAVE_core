@@ -4,6 +4,9 @@ What's new in DAVE_core
 
 These are new features and improvements of note in each release.
 
+Unreleased
+=======================
+
 1.3.0 (August 23, 2024)
 =======================
 

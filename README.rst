@@ -30,8 +30,8 @@ DAVE_core
     :alt: Supported implementations
     :target: https://pypi.org/project/dave_core
 
-.. |docs| image:: https://readthedocs.org/projects/dave-core/badge/?version=latest
-    :target: https://dave-core.readthedocs.io/en/latest/?badge=latest
+.. |docs| image:: https://readthedocs.org/projects/dave-data/badge/?version=latest
+    :target: https://dave-data.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 .. |github-actions| image:: https://github.com/DaveFoss/DAVE_core/actions/workflows/github-actions.yml/badge.svg
@@ -89,7 +89,7 @@ Documentation
 =============
 
 
-https://dave-core.readthedocs.io
+https://dave-data.readthedocs.io
 
 
 Development

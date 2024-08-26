@@ -30,7 +30,7 @@ DAVE_core
     :alt: Supported implementations
     :target: https://pypi.org/project/dave_core
 
-.. |docs| image:: https://readthedocs.org/projects/dave_core/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/dave-core/badge/?version=latest
     :target: https://dave-core.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 

@@ -39,7 +39,9 @@ class Converter:
         text = self.strategy.execute(element_types)
         return text
 
-    def __init__(self, grid_data, infilename: str = "", basefilepath: str = ""):
+    def __init__(
+        self, grid_data, infilename: str = "", basefilepath: str = ""
+    ):
         if infilename:  # is not empty
             self.infilename = (
                 infilename.strip()

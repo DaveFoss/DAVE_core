@@ -724,12 +724,12 @@ def power_processing(
         # update progress
         pbar.update(25)
     # correct invalid values
-    if "invalid_values" in diagnostic.keys():
-        if "gen" in diagnostic["invalid_values"].keys():
-            for gen in diagnostic["invalid_values"]["gen"]:
+    if "invalid_values" in pp_diagnostic.keys():
+        if "gen" in pp_diagnostic["invalid_values"].keys():
+            for gen in pp_diagnostic["invalid_values"]["gen"]:
                 if (gen[1] == "p_mw") and (gen[2] == "nan"):
                     net.gen.at[gen[0], "p_mw"] = 0
-        if "line" in diagnostic["invalid_values"].keys():
+        if "line" in pp_diagnostic["invalid_values"].keys():
             drop_lines_diag = []
             for line in drop_lines_diag["invalid_values"]["line"]:
                 if (line[1] == "length_km") and (line[2] == 0):
@@ -755,7 +755,7 @@ def power_processing(
             for j in range(1, len(parallel_switches)):
                 net.switch = net.switch.drop([parallel_switches[j]])
             # update progress
-            pbar.update(10 / len(diagnostic["parallel_switches"]))
+            pbar.update(10 / len(pp_diagnostic["parallel_switches"]))
     else:
         # update progress
         pbar.update(10)
@@ -780,7 +780,7 @@ def power_processing(
                 net.sgen.scaling -= 0.1
                 # run diagnostic after scale down for a new report
                 pp_diagnostic = diagnostic(net, report_style="None")
-            elif (diagnostic["overload"]["load"]) and (
+            elif (pp_diagnostic["overload"]["load"]) and (
                 net.load.scaling.min() >= 0.1
             ):
                 # scale down sgens about 10%

@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # gas components
-from .components.gas_components import (
+from .gas_components import (
     create_sources,
     create_compressors,
     create_sinks,
@@ -11,10 +11,10 @@ from .components.gas_components import (
 )
 
 # power components - loads
-from .components.loads import get_household_power, create_loads
+from .loads import get_household_power, create_loads
 
 # power components - power plants
-from .components.power_plants import (
+from .power_plants import (
     aggregate_plants_ren,
     aggregate_plants_con,
     create_power_plant_lines,
@@ -26,7 +26,7 @@ from .components.power_plants import (
 )
 
 # power components - transformers
-from .components.transformers import create_transformers
+from .transformers import create_transformers
 
 
 __all__ = [

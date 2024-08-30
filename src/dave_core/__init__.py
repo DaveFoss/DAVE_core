@@ -83,7 +83,7 @@ from .io.file_io import (
 from .io.io_utils import *
 
 # plotting
-from dave_core.plotting.plot import (
+from .plotting.plot import (
     plot_land,
     plot_geographical_data,
     plot_grid_data,

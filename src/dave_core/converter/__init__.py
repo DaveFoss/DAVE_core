@@ -3,11 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # converter
-from .converter.converter import *
-from .converter.create_gaslib import create_gaslib
-from .converter.create_mynts import create_mynts
-from .converter.create_pandapipes import create_pandapipes
-from .converter.create_pandapower import (
+from .converter import *
+from .create_gaslib import create_gaslib
+from .create_mynts import create_mynts
+from .create_pandapipes import create_pandapipes
+from .create_pandapower import (
     create_pp_buses,
     create_pp_ehvhv_lines,
     create_pp_mvlv_lines,
@@ -19,9 +19,9 @@ from .converter.create_pandapower import (
     create_pandapower,
     power_processing,
 )
-from .converter.elements import *
-from .converter.read_gaslib import read_gaslib_cs
-from .converter.read_simone import read_simone_file, read_json, simone_to_dave
+from .elements import *
+from .read_gaslib import read_gaslib_cs
+from .read_simone import read_simone_file, read_json, simone_to_dave
 
 
 __all__ = [

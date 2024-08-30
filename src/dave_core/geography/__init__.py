@@ -2,7 +2,12 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from dave_core.geography.osm_data import *
+from .geography.osm_data import get_osm_data, from_osm, road_junctions
+from .geography.target_area import target_area
 
-# general informations for target area
-from dave_core.geography.target_area import *
+__all__ = [
+    # geography
+    "get_osm_data",
+    "from_osm",
+    "road_junctions",
+]

@@ -10,8 +10,7 @@ from pandas import concat
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge
 
-from dave_client.client.dave_request import create_dataset
-from dave_client.settings import check_server_availibility
+from dave_core.create import create_grid
 
 
 def get_grid_area(net, buffer=10, crs="epsg:4326", convex_hull=True):
@@ -66,9 +65,7 @@ def get_grid_area(net, buffer=10, crs="epsg:4326", convex_hull=True):
     return grid_area_buffer.iloc[0]
 
 
-def reduce_network(
-    net, area, cross_border=True, crs="epsg:4326"
-):  # !!! wird die funktion überhaupt benötigt??
+def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
     """
     Reduce a pandapower/pandapipes network to a smaller area of interest
 
@@ -140,15 +137,14 @@ def request_geo_data(
     OUTPUT:
          **request_geodata** (pandapower net) - geodata for the grid_area from DAVE
     """
-    # check dave availability
-    check_server_availibility()  # !!! das muss rausgenommen werden
-    # adjusted grid_area polygon to work with the DAVE api, projection to 4326
-    grid_area = GeoDataFrame({"name": ["own area"], "geometry": [grid_area]}, crs=crs)
     if crs != "epsg:4326":
+        # adjusted grid_area polygon to work with the DAVE main function, projection to 4326
+        grid_area = GeoDataFrame({"name": ["own area"], "geometry": [grid_area]}, crs=crs)
         grid_area.to_crs(crs="epsg:4326", inplace=True)
-    own_area = dumps(grid_area, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+        grid_area = grid_area.iloc[0].geometry
     # request geodata from DAVE
-    _, net = create_dataset(own_area=own_area, geodata=["ALL"], convert_power=["pandapower"])
+    _, net = create_grid(own_area=grid_area, geodata=["ALL"], convert_power=["pandapower"])
+    # TODO: convert pandapower oder pandapipes jenachdem was abgefragt wird
     return net
 
 

@@ -2,6 +2,10 @@ graft docs
 graft src
 graft ci
 graft tests
+graft examples
+
+prune examples/.ipynb_checkpoints
+exclude examples/create_grid_model_with_options.ipynb
 
 include .bumpversion.cfg
 include .cookiecutterrc
@@ -22,6 +26,7 @@ include README.rst
 include *.txt
 include *.yml
 recursive-include examples *.geojson
+recursive-include examples *.ipynb
 recursive-include examples *.py
 
 global-exclude *.py[cod] __pycache__/* *.so *.dylib

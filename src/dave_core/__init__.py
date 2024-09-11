@@ -45,6 +45,7 @@ from .converter.create_pandapower import (
     power_processing,
 )
 from .converter.elements import *
+from .converter.extend_panda import get_grid_area, reduce_network, request_geo_data, add_geodata
 from .converter.read_gaslib import read_gaslib_cs
 from .converter.read_simone import read_simone_file, read_json, simone_to_dave
 
@@ -162,11 +163,20 @@ __all__ = [
     "create_pp_ehvhv_lines",
     "create_pp_mvlv_lines",
     "create_pp_trafos",
-    "create_pp_sgens, " "create_pp_gens",
+    "create_pp_sgens",
+    "create_pp_gens",
     "create_pp_loads",
     "create_pp_ext_grid",
     "create_pandapower",
     "power_processing",
+    "get_grid_area",
+    "reduce_network",
+    "request_geo_data",
+    "add_geodata",
+    "read_gaslib_cs",
+    "read_simone_file",
+    "read_json",
+    "simone_to_dave",
     # datapool
     "request_to_df",
     "oep_request",
@@ -214,6 +224,10 @@ __all__ = [
     "search_line_connections",
     "line_connections",
     "create_lv_topology",
+    "create_hv_mv_substations",
+    "create_mv_lv_substations",
+    "search_connection_line",
+    "create_mv_topology",
     # modules
     "archiv_inventory",
     "from_archiv",

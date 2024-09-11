@@ -123,16 +123,14 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
     return net
 
 
-def request_geo_data(
-    grid_area, crs
-):  # !!! die ganze funktion muss geändert werden von server request zu abfrage
+def request_geo_data(grid_area, crs):
     """
     This function requests all available geodata for a given area from DAVE.
 
     Input:
-         **dave_user** (str) - User name of a DAVE Account \n
-         **dave_password** (str) - Password of a DAVE Account \n
          **grid_area** (Shapely polygon) - Polygon which defines the considered grid area \n
+         **crs** (str, default: 'epsg:4326') - Definition of the network \
+             coordinate reference system \n
 
     OUTPUT:
          **request_geodata** (pandapower net) - geodata for the grid_area from DAVE

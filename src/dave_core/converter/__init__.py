@@ -20,6 +20,7 @@ from .create_pandapower import (
     power_processing,
 )
 from .elements import *
+from .converter.extend_panda import get_grid_area, reduce_network, request_geo_data, add_geodata
 from .read_gaslib import read_gaslib_cs
 from .read_simone import read_simone_file, read_json, simone_to_dave
 
@@ -33,9 +34,18 @@ __all__ = [
     "create_pp_ehvhv_lines",
     "create_pp_mvlv_lines",
     "create_pp_trafos",
-    "create_pp_sgens, " "create_pp_gens",
+    "create_pp_sgens",
+    "create_pp_gens",
     "create_pp_loads",
     "create_pp_ext_grid",
     "create_pandapower",
     "power_processing",
+    "get_grid_area",
+    "reduce_network",
+    "request_geo_data",
+    "add_geodata",
+    "read_gaslib_cs",
+    "read_simone_file",
+    "read_json",
+    "simone_to_dave",
 ]

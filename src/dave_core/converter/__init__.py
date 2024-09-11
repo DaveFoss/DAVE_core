@@ -20,7 +20,7 @@ from .create_pandapower import (
     power_processing,
 )
 from .elements import *
-from .converter.extend_panda import get_grid_area, reduce_network, request_geo_data, add_geodata
+from .extend_panda import get_grid_area, reduce_network, request_geo_data, add_geodata
 from .read_gaslib import read_gaslib_cs
 from .read_simone import read_simone_file, read_json, simone_to_dave
 

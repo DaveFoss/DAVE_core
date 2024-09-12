@@ -309,50 +309,68 @@ def pp_to_json(net, file_path):
         **net** (attr Dict) - pandapower network
         **file_path** (str) - absoulut path where the pandapower file will be stored in json format
     """
+    # copy network to keep the geometries in object form in the network return
+    net_conv = net.deepcopy()
     # convert geometry
-    if not net.bus.empty and all(list(map(lambda x: isinstance(x, Point), net.bus.geometry))):
-        net.bus["geometry"] = net.bus.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.line.empty and all(
+    if not net_conv.bus.empty and all(
+        list(map(lambda x: isinstance(x, Point), net_conv.bus.geometry))
+    ):
+        net_conv.bus["geometry"] = net_conv.bus.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.line.empty and all(
         list(
             map(
                 lambda x: isinstance(x, (LineString, MultiLineString)),
-                net.line.geometry,
+                net_conv.line.geometry,
             )
         )
     ):
-        net.line["geometry"] = net.line.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.trafo.empty and all(list(map(lambda x: isinstance(x, Point), net.trafo.geometry))):
-        net.trafo["geometry"] = net.trafo.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.gen.empty and all(list(map(lambda x: isinstance(x, Point), net.gen.geometry))):
-        net.gen["geometry"] = net.gen.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.sgen.empty and all(list(map(lambda x: isinstance(x, Point), net.sgen.geometry))):
-        net.sgen["geometry"] = net.sgen.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.substations.empty and all(
-        list(map(lambda x: isinstance(x, Polygon), net.substations.geometry))
+        net_conv.line["geometry"] = net_conv.line.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.trafo.empty and all(
+        list(map(lambda x: isinstance(x, Point), net_conv.trafo.geometry))
     ):
-        net.substations["geometry"] = net.substations.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.buildings.empty and all(
-        list(map(lambda x: isinstance(x, LineString), net.buildings.geometry))
+        net_conv.trafo["geometry"] = net_conv.trafo.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.gen.empty and all(
+        list(map(lambda x: isinstance(x, Point), net_conv.gen.geometry))
     ):
-        net.buildings["geometry"] = net.buildings.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.roads.empty and all(
-        list(map(lambda x: isinstance(x, LineString), net.roads.geometry))
+        net_conv.gen["geometry"] = net_conv.gen.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.sgen.empty and all(
+        list(map(lambda x: isinstance(x, Point), net_conv.sgen.geometry))
     ):
-        net.roads["geometry"] = net.roads.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.railways.empty and all(
-        list(map(lambda x: isinstance(x, LineString), net.railways.geometry))
+        net_conv.sgen["geometry"] = net_conv.sgen.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.substations.empty and all(
+        list(map(lambda x: isinstance(x, Polygon), net_conv.substations.geometry))
     ):
-        net.railways["geometry"] = net.railways.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.waterways.empty and all(
-        list(map(lambda x: isinstance(x, LineString), net.waterways.geometry))
+        net_conv.substations["geometry"] = net_conv.substations.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.buildings.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.buildings.geometry))
     ):
-        net.waterways["geometry"] = net.waterways.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.landuse.empty and all(
-        list(map(lambda x: isinstance(x, Polygon), net.landuse.geometry))
+        net_conv.buildings["geometry"] = net_conv.buildings.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.roads.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.roads.geometry))
     ):
-        net.landuse["geometry"] = net.landuse.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.railways.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.railways.geometry))
+    ):
+        net_conv.railways["geometry"] = net_conv.railways.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.waterways.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.waterways.geometry))
+    ):
+        net_conv.waterways["geometry"] = net_conv.waterways.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.landuse.empty and all(
+        list(map(lambda x: isinstance(x, Polygon), net_conv.landuse.geometry))
+    ):
+        net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
     # convert pp model to json and save the file
-    to_json_pp(net, filename=file_path)
+    to_json_pp(net_conv, filename=file_path)
 
 
 def json_to_pp(file_path):

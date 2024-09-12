@@ -18,13 +18,13 @@ include pytest.ini
 include tox.ini
 
 include AUTHORS.rst
-include CHANGELOG.rst
 include CONTRIBUTING.rst
 include LICENSE
 include README.rst
 
 include *.txt
 include *.yml
+include *.rst
 recursive-include examples *.geojson
 recursive-include examples *.ipynb
 recursive-include examples *.py

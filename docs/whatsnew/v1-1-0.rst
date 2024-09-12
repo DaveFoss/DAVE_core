@@ -1,0 +1,37 @@
+1.1.0 (November 03, 2022)
+=========================
+
+Added
+-----
+
+* Algorithm for automated deployment
+* Geography module and separated geographical data from grid model generation
+* Restructured target area functions
+* Different years as option for nuts regions
+* Function for intersection with considering mixed geometries
+* Topology cleanup for power and gas models
+* Gaslib converter
+* Gas component: source, sink, compressor
+* Pandapipes converter
+* Function to transform address into coordinates
+
+Changed
+-------
+
+* Renamed building category from "for_living" to "residential"
+* Power components script splitted to separate scripts according to the components
+* Bus naming in ehv and hv models from "bus0/bus1" to "from/to_bus"
+* Channel for required packages to only "conda forge" because of anaconda terms changes
+
+Fixed
+-----
+
+* Osm gateway timeout
+* Stack overflow error
+* Duplicate naming
+
+Event
+-----
+
+* First open accessible "software as a service" platform version
+* DAVE licensed under a three clause bsd license

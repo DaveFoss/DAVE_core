@@ -1,0 +1,8 @@
+1.0.4 (March 18, 2021)
+======================
+
+Changed
+-------
+
+* Pandapower converter function restructured
+* Condition deleted that more than one bus must exist for transformers

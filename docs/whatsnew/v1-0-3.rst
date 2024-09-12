@@ -1,0 +1,8 @@
+1.0.3 (March 04, 2021)
+======================
+
+Added
+-----
+
+* Description in install tutorial for using DaVe in PyCharm
+* Runtime count

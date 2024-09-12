@@ -1,0 +1,7 @@
+1.0.0 (December 21, 2020)
+=========================
+
+Event
+-----
+
+* First usable DaVe version

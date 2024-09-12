@@ -1,0 +1,31 @@
+1.3.0 (August 23, 2024)
+=======================
+
+Added
+-----
+
+* Consider case sensitivity at geodata parameter
+* Return plotting and converting functions from DAVE_client
+* Tutorial for creating a grid model with DAVE_core main function
+
+Changed
+-------
+
+* Changelog style
+* Authors list to DAVE_core constributers
+
+Removed
+-------
+
+* building hight, heat demand and census popolation
+
+Fixed
+-----
+
+* Problem with multilinestrings at medium voltage topology
+
+Event
+-----
+
+* Switched name from DAVE to DAVE_core as part of the open source publication and restructuring
+* This release represents the state from the paper (https://doi.org/10.1038/s41598-024-52199-w)

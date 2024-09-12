@@ -1,0 +1,31 @@
+1.2.0 (November 20, 2023)
+=========================
+
+Added
+-----
+
+* Building height based on raster data
+* Extend api with functions for database managment
+* Environment files for the possibility to install DAVE via mamba
+* Converter for the multiphysical network simulator MYNTS
+* Population data from census and the possibility to request the raster data
+* Importer for data from the gassimulation softwaretool SIMONE
+* Api restriction by user role
+* Option to choose year for nuts regions (2013, 2016, 2021)
+* Geopackage as possible output format
+* Extend geographical data with more landuse information and data for waterways
+
+Changed
+-------
+
+* Archiv i/o function in seperated file
+* Input parameters for geographical objects reduced to one parameter "geodata"
+
+Removed
+-------
+
+* Moved dave structure functions to DAVE client
+* Moved read simone function to DAVE client
+* Moved read gaslib function to DAVE client
+* Moved io module to DAVE client
+* Moved plotting module to DAVE client

@@ -1,0 +1,25 @@
+1.0.6 (October 20, 2021)
+========================
+
+Added
+-----
+
+* Option for output folder path
+* Functions for serialization
+* Basic test structure
+* setup file
+* Uniform code style (with black) via pre-commit hooks
+* Uniform import order (with isort) via pre-commit hooks
+
+Changed
+-------
+
+* Build seperated io modul, changed structure and moved existing io functions to that
+* Rebuild from/to hdf functions and merged with from/to archiv
+* Moved dave dir paths to settings file
+
+Fixed
+-----
+
+* Wrong/missing types at pandapower converter
+* Missing crs definitions

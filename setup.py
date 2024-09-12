@@ -21,7 +21,11 @@ setup(
     description="DAVE is a tool for automatic energy grid generation",
     long_description="{}\n{}".format(
         re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub("", read("README.rst")),
-        re.sub(":[a-z]+:`~?(.*?)`", r"``\1``", read("CHANGELOG.rst")),
+        re.sub(
+            ":[a-z]+:`~?(.*?)`",
+            r"``\1``",
+            "https://dave-core.readthedocs.io/en/latest/changelog.html",
+        ),
     ),
     long_description_content_type="text/x-rst",
     author="DAVE_core Developers",

@@ -1,0 +1,12 @@
+1.0.2 (February 10, 2021)
+=========================
+
+Added
+-----
+
+* Progress bars
+
+Fixed
+-----
+
+* Overwriting points in voronoi calculation

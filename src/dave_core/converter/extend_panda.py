@@ -123,7 +123,7 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
     return net
 
 
-def request_geo_data(grid_area, crs):
+def request_geo_data(grid_area, crs, save_data=True):
     """
     This function requests all available geodata for a given area from DAVE.
 
@@ -131,6 +131,10 @@ def request_geo_data(grid_area, crs):
          **grid_area** (Shapely polygon) - Polygon which defines the considered grid area \n
          **crs** (str, default: 'epsg:4326') - Definition of the network \
              coordinate reference system \n
+    
+    OPTIONAL:
+         **save_data** (boolean, default True) - if true, the resulting data will stored in a \
+             local folder
 
     OUTPUT:
          **request_geodata** (pandapower net) - geodata for the grid_area from DAVE
@@ -141,12 +145,14 @@ def request_geo_data(grid_area, crs):
         grid_area.to_crs(crs="epsg:4326", inplace=True)
         grid_area = grid_area.iloc[0].geometry
     # request geodata from DAVE
-    _, net = create_grid(own_area=grid_area, geodata=["ALL"], convert_power=["pandapower"])
+    _, net = create_grid(
+        own_area=grid_area, geodata=["ALL"], convert_power=["pandapower"], save_data=save_data
+    )
     # TODO: convert pandapower oder pandapipes jenachdem was abgefragt wird
     return net
 
 
-def add_geodata(net, buffer=10, crs="epsg:4326"):
+def add_geodata(net, buffer=10, crs="epsg:4326", save_data=True):
     """
     This function extends a pandapower/pandapipes net with geodata from DAVE
     
@@ -159,6 +165,8 @@ def add_geodata(net, buffer=10, crs="epsg:4326"):
         **buffer** (float) - Buffer around the considered network elements
          **crs** (str, default: 'epsg:4326') - Definition of the network coordinate reference \
              system \n
+        **save_data** (boolean, default True) - if true, the resulting data will stored in a \
+            local folder
 
     OUTPUT:
          **net** (pandapower/pandapipes net) - pandapower net extended with geodata
@@ -166,7 +174,7 @@ def add_geodata(net, buffer=10, crs="epsg:4326"):
     # get area polygon for the network
     area = get_grid_area(net, buffer=buffer, crs=crs)
     # request all available geodata for a given area from DAVE
-    net_geodata = request_geo_data(area, crs)
+    net_geodata = request_geo_data(area, crs, save_data)
     # extend net with geodata
     for typ in ["buildings", "roads", "railways", "landuse", "waterways"]:
         if typ in net_geodata.keys():

@@ -465,7 +465,7 @@ def create_pp_ext_grid(net, grid_data):
             net.ext_grid.at[ext_id, "voltage_level"] = 6
 
 
-def create_pandapower(grid_data, opt_model, output_folder):
+def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
     """
     This function creates a pandapower network based an the DaVe dataset
 
@@ -473,6 +473,8 @@ def create_pandapower(grid_data, opt_model, output_folder):
         **grid_data** (attrdict) - calculated grid data from dave \n
         **opt_model** (bool) - optimize model during model processing \n
         **output_folder** (str) - patht to the location where the results will be saved \n
+        **save_data** (boolean, default True) - if true, the resulting data will stored in a \
+            local folder
 
     OUTPUT:
         **net** (attrdict) - pandapower attrdict with grid data \n
@@ -593,8 +595,9 @@ def create_pandapower(grid_data, opt_model, output_folder):
     if not net.bus.empty:
         net = power_processing(net, opt_model=opt_model)
     # save pandapower model in the dave output folder
-    file_path = output_folder + "\\dave_pandapower.json"
-    pp_to_json(net, file_path)
+    if save_data:
+        file_path = output_folder + "\\dave_pandapower.json"
+        pp_to_json(net, file_path)
     return net
 
 

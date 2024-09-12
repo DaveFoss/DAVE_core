@@ -48,9 +48,7 @@ def create_pp_buses(net, buses):
             if "type" not in buses.keys() or all(buses.type.isna())
             else buses.type.apply(lambda x: "b" if isna(x) else x)
         ),
-        geodata=buses.geometry.apply(
-            lambda x: (x.coords[:][0][0], x.coords[:][0][1])
-        ).to_list(),
+        geodata=buses.geometry.apply(lambda x: (x.coords[:][0][0], x.coords[:][0][1])).to_list(),
         in_service=(
             True
             if "in_service" not in buses.keys() or all(buses.in_service.isna())
@@ -63,12 +61,8 @@ def create_pp_ehvhv_lines(
     net, lines
 ):  # TODO: Umschreiben auf pp.create_lines und evt mit mvlv script (unten) mergen
     lines.rename(columns={"dave_name": "name"}, inplace=True)
-    lines["from_bus"] = lines.from_bus.apply(
-        lambda x: net.bus[net.bus["name"] == x].index[0]
-    )
-    lines["to_bus"] = lines.to_bus.apply(
-        lambda x: net.bus[net.bus["name"] == x].index[0]
-    )
+    lines["from_bus"] = lines.from_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
+    lines["to_bus"] = lines.to_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
     lines["type"] = lines.type.apply(lambda x: "ol" if isna(x) else x)
     # geodata
     coords_ehvhv = DataFrame(
@@ -77,9 +71,7 @@ def create_pp_ehvhv_lines(
                 lambda x: [
                     list(coords)
                     for coords in (
-                        multiline_coords(x)
-                        if isinstance(x, MultiLineString)
-                        else x.coords[:]
+                        multiline_coords(x) if isinstance(x, MultiLineString) else x.coords[:]
                     )
                 ]
             )
@@ -87,9 +79,7 @@ def create_pp_ehvhv_lines(
     )
     # write line data into pandapower structure
     net.line = concat([net.line, lines], ignore_index=True)
-    net.line_geodata = concat(
-        [net.line_geodata, coords_ehvhv], ignore_index=True
-    )
+    net.line_geodata = concat([net.line_geodata, coords_ehvhv], ignore_index=True)
     # check necessary parameters and add pandapower standard if needed  #TODO Der Teil kann raus, wenn die ehvhv lines auch über create lines gemacht werden
     net.line["in_service"] = (
         True
@@ -129,12 +119,8 @@ def create_pp_mvlv_lines(net, lines):
     # create lines
     create_lines(
         net,
-        from_buses=lines.from_bus.apply(
-            lambda x: net.bus[net.bus["name"] == x].index[0]
-        ),
-        to_buses=lines.to_bus.apply(
-            lambda x: net.bus[net.bus["name"] == x].index[0]
-        ),
+        from_buses=lines.from_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
+        to_buses=lines.to_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
         length_km=lines["length_km"],
         std_type=lines.voltage_level.apply(
             lambda x: {
@@ -143,9 +129,7 @@ def create_pp_mvlv_lines(net, lines):
             }[x]
         ),
         name=lines["name"],
-        geodata=lines.geometry.apply(
-            lambda x: [list(coords) for coords in x.coords[:]]
-        ),
+        geodata=lines.geometry.apply(lambda x: [list(coords) for coords in x.coords[:]]),
         df=(
             float(1)
             if "df" not in lines.keys() or all(lines.df.isna())
@@ -188,21 +172,13 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
         )
         # trafo über parameter. Dafür müssen die Parameter noch berechnet werden
         # aber wie? wenn ich nur r,x,b, gegeben habe
-        trafos_ehvhv["vkr_percent"] = dave_settings[
-            "trafo_vkr_percent"
-        ]  # dummy value
-        trafos_ehvhv["vk_percent"] = dave_settings[
-            "trafo_vk_percent"
-        ]  # dummy value
-        trafos_ehvhv["pfe_kw"] = dave_settings[
-            "trafo_pfe_kw"
-        ]  # dummy value accepted as ideal
+        trafos_ehvhv["vkr_percent"] = dave_settings["trafo_vkr_percent"]  # dummy value
+        trafos_ehvhv["vk_percent"] = dave_settings["trafo_vk_percent"]  # dummy value
+        trafos_ehvhv["pfe_kw"] = dave_settings["trafo_pfe_kw"]  # dummy value accepted as ideal
         trafos_ehvhv["i0_percent"] = dave_settings[
             "trafo_i0_percent"
         ]  # dummy value accepted as ideal
-        trafos_ehvhv["tap_phase_shifter"] = (
-            False  # dummy value accepted as ideal
-        )
+        trafos_ehvhv["tap_phase_shifter"] = False  # dummy value accepted as ideal
         trafos_ehvhv["hv_bus"] = trafos_ehvhv.bus_hv.apply(
             lambda x: net.bus[net.bus["name"] == x].index[0]
         )
@@ -235,21 +211,13 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
         trafos_mvlv["i0_percent"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].i0_percent
         )
-        trafos_mvlv["pfe_kw"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].pfe_kw
-        )
+        trafos_mvlv["pfe_kw"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].pfe_kw)
         trafos_mvlv["vkr_percent"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].vkr_percent
         )
-        trafos_mvlv["sn_mva"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].sn_mva
-        )
-        trafos_mvlv["vn_lv_kv"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].vn_lv_kv
-        )
-        trafos_mvlv["vn_hv_kv"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].vn_hv_kv
-        )
+        trafos_mvlv["sn_mva"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].sn_mva)
+        trafos_mvlv["vn_lv_kv"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].vn_lv_kv)
+        trafos_mvlv["vn_hv_kv"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].vn_hv_kv)
         trafos_mvlv["vk_percent"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].vk_percent
         )
@@ -259,18 +227,12 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
         trafos_mvlv["vector_group"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].vector_group
         )
-        trafos_mvlv["tap_side"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].tap_side
-        )
+        trafos_mvlv["tap_side"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].tap_side)
         trafos_mvlv["tap_neutral"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].tap_neutral
         )
-        trafos_mvlv["tap_min"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].tap_min
-        )
-        trafos_mvlv["tap_max"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].tap_max
-        )
+        trafos_mvlv["tap_min"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].tap_min)
+        trafos_mvlv["tap_max"] = trafos_mvlv.std_type.apply(lambda x: std_trafo.loc[x].tap_max)
         trafos_mvlv["tap_step_degree"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].tap_step_degree
         )
@@ -281,9 +243,7 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
             lambda x: std_trafo.loc[x].tap_phase_shifter
         )
     # write trafo data into pandapower structure
-    net.trafo = concat(
-        [net.trafo, trafos_ehvhv, trafos_mvlv], ignore_index=True
-    )
+    net.trafo = concat([net.trafo, trafos_ehvhv, trafos_mvlv], ignore_index=True)
     # check necessary parameters and add pandapower standart if needed
     net.trafo["in_service"] = (
         True
@@ -308,9 +268,7 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_lines
     net.trafo["tap_phase_shifter"] = (
         False
         if all(net.trafo.tap_phase_shifter.isna())
-        else net.trafo.tap_phase_shifter.apply(
-            lambda x: False if isna(x) else x
-        )
+        else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
     )
     net.trafo["std_type"] = (
         None
@@ -335,9 +293,7 @@ def create_pp_sgens(net, sgens):
     # create sgens
     create_sgens(
         net,
-        buses=sgens.bus.apply(
-            lambda x: net.bus[net.bus["name"] == x].index[0]
-        ),
+        buses=sgens.bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
         p_mw=sgens.electrical_capacity_kw.apply(lambda x: float(x) / 1000),
         q_mvar=(
             float(0)
@@ -362,8 +318,7 @@ def create_pp_sgens(net, sgens):
         ),
         current_source=(
             True
-            if "current_source" not in sgens.keys()
-            or all(sgens.current_source.isna())
+            if "current_source" not in sgens.keys() or all(sgens.current_source.isna())
             else sgens.current_source.apply(lambda x: True if isna(x) else x)
         ),
     )
@@ -418,9 +373,7 @@ def create_pp_gens(net, gens):
 def create_pp_loads(net, loads):
     create_loads(
         net,
-        buses=loads.bus.apply(
-            lambda x: net.bus[net.bus["name"] == x].index[0]
-        ),
+        buses=loads.bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
         p_mw=loads["p_mw"],
         q_mvar=(
             float(0)
@@ -429,19 +382,13 @@ def create_pp_loads(net, loads):
         ),
         const_z_percent=(
             float(0)
-            if "const_z_percent" not in loads.keys()
-            or all(loads.const_z_percent.isna())
-            else loads.const_z_percent.apply(
-                lambda x: float(0) if isna(x) else x
-            )
+            if "const_z_percent" not in loads.keys() or all(loads.const_z_percent.isna())
+            else loads.const_z_percent.apply(lambda x: float(0) if isna(x) else x)
         ),
         const_i_percent=(
             float(0)
-            if "const_i_percent" not in loads.keys()
-            or all(loads.const_i_percent.isna())
-            else loads.const_i_percent.apply(
-                lambda x: float(0) if isna(x) else x
-            )
+            if "const_i_percent" not in loads.keys() or all(loads.const_i_percent.isna())
+            else loads.const_i_percent.apply(lambda x: float(0) if isna(x) else x)
         ),
         # sn_mva=nan, # TODO kann aus p und q abgeleitete werden
         name=loads["name"],
@@ -464,16 +411,11 @@ def create_pp_loads(net, loads):
 
 
 def create_pp_ext_grid(net, grid_data):
-    if (
-        "ehv" in grid_data.target_input.power_levels[0]
-        and not grid_data.ehv_data.ehv_nodes.empty
-    ):
+    if "ehv" in grid_data.target_input.power_levels[0] and not grid_data.ehv_data.ehv_nodes.empty:
         # check if their are convolutional power plants in the grid area
         if not net.gen.empty:
             # set gens with max p_mw as slack bus
-            net.gen.at[
-                net.gen[net.gen.p_mw == net.gen.p_mw.max()].index[0], "slack"
-            ] = True
+            net.gen.at[net.gen[net.gen.p_mw == net.gen.p_mw.max()].index[0], "slack"] = True
         # in case there is no convolutional power plant
         else:
             # create a ext grid on the first ehv grid bus
@@ -563,17 +505,13 @@ def create_pandapower(grid_data, opt_model, output_folder):
 
     # --- create lines
     # create lines ehv + hv
-    lines_ehvhv = concat(
-        [grid_data.ehv_data.ehv_lines, grid_data.hv_data.hv_lines]
-    )
+    lines_ehvhv = concat([grid_data.ehv_data.ehv_lines, grid_data.hv_data.hv_lines])
     lines_ehvhv.reset_index(drop=True, inplace=True)
     if not lines_ehvhv.empty:
         create_pp_ehvhv_lines(net, lines_ehvhv)
 
     # create lines mv + lv
-    lines_mvlv = concat(
-        [grid_data.mv_data.mv_lines, grid_data.lv_data.lv_lines]
-    )
+    lines_mvlv = concat([grid_data.mv_data.mv_lines, grid_data.lv_data.lv_lines])
     lines_mvlv.reset_index(drop=True, inplace=True)
     if not lines_mvlv.empty:
         create_pp_mvlv_lines(net, lines_mvlv)
@@ -635,17 +573,19 @@ def create_pandapower(grid_data, opt_model, output_folder):
     create_pp_ext_grid(net, grid_data)
 
     # --- add geodata as aditional informations
-    net["buildings"] = concat(
-        [
-            grid_data.buildings.residential,
-            grid_data.buildings.commercial,
-            grid_data.buildings.other,
-        ]
+    net["buildings"] = DataFrame(
+        concat(
+            [
+                grid_data.buildings.residential,
+                grid_data.buildings.commercial,
+                grid_data.buildings.other,
+            ]
+        )
     )
-    net["roads"] = grid_data.roads.roads
-    net["railways"] = grid_data.railways
-    net["waterways"] = grid_data.waterways
-    net["landuse"] = grid_data.landuse
+    net["roads"] = DataFrame(grid_data.roads.roads)
+    net["railways"] = DataFrame(grid_data.railways)
+    net["waterways"] = DataFrame(grid_data.waterways)
+    net["landuse"] = DataFrame(grid_data.landuse)
 
     # close progress bar
     pbar.close()
@@ -695,9 +635,7 @@ def power_processing(
     # delete disconected buses and the elements connected to them
     if "disconnected_elements" in pp_diagnostic.keys():
         for idx in range(len(pp_diagnostic["disconnected_elements"])):
-            drop_buses(
-                net, pp_diagnostic["disconnected_elements"][idx]["buses"]
-            )
+            drop_buses(net, pp_diagnostic["disconnected_elements"][idx]["buses"])
             pbar.update(10 / len(pp_diagnostic["disconnected_elements"]))
         # run network diagnostic
         pp_diagnostic = diagnostic(net, report_style="None")
@@ -710,9 +648,7 @@ def power_processing(
     if "impedance_values_close_to_zero" in pp_diagnostic.keys():
         lines = pp_diagnostic["impedance_values_close_to_zero"][0]["line"]
         for line_index in lines:
-            create_replacement_switch_for_branch(
-                net, element_type="line", element_index=line_index
-            )
+            create_replacement_switch_for_branch(net, element_type="line", element_index=line_index)
             # update progress
             pbar.update(10 / len(lines))
         drop_lines(net, lines=lines)
@@ -773,16 +709,12 @@ def power_processing(
         pbar.update(20)
         # clean up overloads
         while "overload" in pp_diagnostic.keys():
-            if (pp_diagnostic["overload"]["generation"]) and (
-                net.sgen.scaling.min() >= 0.1
-            ):
+            if (pp_diagnostic["overload"]["generation"]) and (net.sgen.scaling.min() >= 0.1):
                 # scale down sgens about 10%
                 net.sgen.scaling -= 0.1
                 # run diagnostic after scale down for a new report
                 pp_diagnostic = diagnostic(net, report_style="None")
-            elif (pp_diagnostic["overload"]["load"]) and (
-                net.load.scaling.min() >= 0.1
-            ):
+            elif (pp_diagnostic["overload"]["load"]) and (net.load.scaling.min() >= 0.1):
                 # scale down sgens about 10%
                 net.load.scaling -= 0.1
                 # run diagnostic after scale down for a new report
@@ -859,21 +791,13 @@ def power_processing(
                     max_bus = (net.res_bus.vm_pu.max() < max_vm_pu_pf) or (
                         net.res_bus.vm_pu.max() < max_vm_pu
                     )
-                    max_line = (
-                        net.res_line.loading_percent.max()
-                        < max_line_loading_pf
-                    ) or (
+                    max_line = (net.res_line.loading_percent.max() < max_line_loading_pf) or (
                         net.res_line.loading_percent.max() < max_line_loading
                     )
-                    max_trafo = (
-                        net.res_trafo.loading_percent.max()
-                        < max_trafo_loading_pf
-                    ) or (
+                    max_trafo = (net.res_trafo.loading_percent.max() < max_trafo_loading_pf) or (
                         net.res_trafo.loading_percent.max() < max_trafo_loading
                     )
-                if (not pf_converged) or (
-                    min_bus and max_bus and max_line and max_trafo
-                ):
+                if (not pf_converged) or (min_bus and max_bus and max_line and max_trafo):
                     # save original parameters as installed power in grid model
                     net.sgen["p_mw_installed"] = net.sgen.p_mw
                     net.sgen["q_mvar_installed"] = net.sgen.q_mvar
@@ -888,9 +812,7 @@ def power_processing(
                     net.load.p_mw = net.res_load.p_mw
                     net.load.q_mvar = net.res_load.q_mvar
                     net.gen.p_mw = net.res_gen.p_mw
-                    net.gen.sn_mva = (
-                        net.res_gen.p_mw**2 + net.res_gen.q_mvar**2
-                    ).pow(1 / 2)
+                    net.gen.sn_mva = (net.res_gen.p_mw**2 + net.res_gen.q_mvar**2).pow(1 / 2)
                     net.gen.vm_pu = net.res_gen.vm_pu
             except:
                 print("optimal power flow did not converged")

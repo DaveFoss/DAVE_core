@@ -127,7 +127,7 @@ from .topology.medium_voltage import (
     search_connection_line,
     create_mv_topology,
 )
-from .settings import set_dave_settings
+from .settings import *
 from .toolbox import (
     multiline_coords,
     create_interim_area,

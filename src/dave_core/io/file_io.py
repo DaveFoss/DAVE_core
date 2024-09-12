@@ -5,8 +5,7 @@
 from functools import partial
 from json import dumps as json_dumps
 from json import loads as json_loads
-from os.path import exists
-from os.path import isfile
+from pathlib import Path
 
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
@@ -54,10 +53,10 @@ def from_json(file_path, encryption_key=None):
     """
     if hasattr(file_path, "read"):
         json_string = file_path.read()
-    elif not isfile(file_path):
+    elif not Path(file_path).is_file():
         raise UserWarning(f"File {file_path} does not exist!!")
     else:
-        with open(file_path) as file:
+        with Path(file_path).open("r") as file:
             json_string = file.read()
     # check if it is a json string in DAVE structure
     json_type = json_loads(json_string)["_module"]
@@ -131,7 +130,7 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     if hasattr(file_path, "write"):
         file_path.write(json_string)
     else:
-        with open(file_path, "w") as file:
+        with Path(file_path).open("w") as file:
             file.write(json_string)
 
 
@@ -150,7 +149,7 @@ def from_hdf(file_path):
     """
     crs = dave_settings["crs_main"]
     # check if path exist
-    if exists(file_path):
+    if Path(file_path).exists():
         # create empty dave dataset
         grid_data = create_empty_dataset()
         # open hdf file

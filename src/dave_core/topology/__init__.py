@@ -30,4 +30,8 @@ __all__ = [
     "search_line_connections",
     "line_connections",
     "create_lv_topology",
+    "create_hv_mv_substations",
+    "create_mv_lv_substations",
+    "search_connection_line",
+    "create_mv_topology",
 ]

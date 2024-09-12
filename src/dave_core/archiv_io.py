@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from os import listdir
-from os import path
+from pathlib import Path
 
 from pandas import DataFrame
 from pandas import read_csv
@@ -22,16 +22,10 @@ def archiv_inventory(grid_data, read_only=False):
     inventory_path = get_data_path("inventory.csv", "dave_archiv")
     # dataset parameters
     target_input = grid_data.target_input.iloc[0]
-    postalcode = (
-        target_input.data if target_input.typ == "postalcode" else "None"
-    )
-    town_name = (
-        target_input.data if target_input.typ == "town name" else "None"
-    )
-    federal_state = (
-        target_input.data if target_input.typ == "federal state" else "None"
-    )
-    if path.isfile(inventory_path):
+    postalcode = target_input.data if target_input.typ == "postalcode" else "None"
+    town_name = target_input.data if target_input.typ == "town name" else "None"
+    federal_state = target_input.data if target_input.typ == "federal state" else "None"
+    if Path(inventory_path).is_file():
         # read inventory file
         inventory_list = read_csv(inventory_path)
         # create dataset file
@@ -49,9 +43,7 @@ def archiv_inventory(grid_data, read_only=False):
         # check if archiv already contain dataset
         inventory_check = inventory_list.drop(columns=["id"])
         inventory_check_res = inventory_check == dataset_file.iloc[0]
-        inventory_index = inventory_check_res[
-            inventory_check_res.all(axis="columns")
-        ].index
+        inventory_index = inventory_check_res[inventory_check_res.all(axis="columns")].index
         if not inventory_index.empty:
             # in this case the dataset already exists in the archiv
             file_id = inventory_list.loc[inventory_index[0]].id

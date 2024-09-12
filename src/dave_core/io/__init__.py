@@ -16,7 +16,18 @@ from .file_io import (
     ppi_to_json,
     json_to_ppi,
 )
-from .io_utils import *
+from .io_utils import (
+    encrypt_string,
+    decrypt_string,
+    isinstance_partial,
+    JSONSerializableClass,
+    with_signature,
+    FromSerializable,
+    FromSerializableRegistry,
+    dave_hook,
+    DAVEJSONDecoder,
+    DAVEJSONEncoder,
+)
 
 __all__ = [
     # io
@@ -24,7 +35,7 @@ __all__ = [
     "wkt_to_wkb",
     "wkt_to_wkb_dataset",
     "change_empty_gpd",
-    "from_jso",
+    "from_json",
     "from_json_string",
     "to_json",
     "from_hdf",
@@ -35,4 +46,14 @@ __all__ = [
     "json_to_pp",
     "ppi_to_json",
     "json_to_ppi",
+    "encrypt_string",
+    "decrypt_string",
+    "isinstance_partial",
+    "JSONSerializableClass",
+    "with_signature",
+    "FromSerializable",
+    "FromSerializableRegistry",
+    "dave_hook",
+    "DAVEJSONDecoder",
+    "DAVEJSONEncoder",
 ]

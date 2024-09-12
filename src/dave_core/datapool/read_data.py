@@ -14,6 +14,7 @@ from pandas import read_hdf
 from shapely.geometry import LineString
 from shapely.wkb import loads
 from xmlschema import XMLSchema
+from pathlib import Path
 
 from dave_core.settings import dave_settings
 from dave_core.toolbox import get_data_path
@@ -25,9 +26,9 @@ def download_data(filename):
     """
     url = f"https://owncloud.fraunhofer.de/index.php/s/McrHKZ62ci0FxCN/download?path=%2F&files=data/{filename}"
     file_path = os.path.join(get_data_path(dirname="data"), filename)
-    r = requests.get(url, stream=True)
+    r = requests.get(url, stream=True, timeout=30)
     if r.ok:
-        with open(file_path, "wb") as f:
+        with Path(file_path).open("wb") as f:
             for chunk in r.iter_content(chunk_size=1024 * 8):
                 if chunk:
                     f.write(chunk)
@@ -52,7 +53,7 @@ def read_postal():
     """
     # check if data is existing in datapool otherwise download it
     filename = "postalcodesger.h5"
-    if not os.path.isfile(get_data_path(filename, "data")):
+    if not Path(get_data_path(filename, "data")).is_file():
         download_data(filename)
     # get data from datapool
     postalger = read_hdf(get_data_path(filename, "data"))
@@ -79,7 +80,7 @@ def read_federal_states():
     """
     # check if data is existing in datapool otherwise download it
     filename = "federalstatesger.h5"
-    if not os.path.isfile(get_data_path(filename, "data")):
+    if not Path(get_data_path(filename, "data")).is_file():
         download_data(filename)
     # get data from datapool
     federalstatesger = read_hdf(get_data_path(filename, "data"))
@@ -105,7 +106,7 @@ def read_nuts_regions(year):
     """
     # check if data is existing in datapool otherwise download it
     filename = "nuts_regions.h5"
-    if not os.path.isfile(get_data_path(filename, "data")):
+    if not Path(get_data_path(filename, "data")).is_file():
         download_data(filename)
     # get data from datapool
     if year == "2013":
@@ -140,7 +141,7 @@ def read_household_consumption():
     """
     # check if data is existing in datapool otherwise download it
     filename = "household_power_consumption.h5"
-    if not os.path.isfile(get_data_path(filename, "data")):
+    if not Path(get_data_path(filename, "data")).is_file():
         download_data(filename)
     # --- get data from datapool
     # read data
@@ -178,7 +179,7 @@ def read_scigridgas_iggielgn():
     """
     # check if data is existing in datapool otherwise download it
     filename = "scigridgas_iggielgn.h5"
-    if not os.path.isfile(get_data_path(filename, "data")):
+    if not Path(get_data_path(filename, "data")).is_file():
         download_data(filename)
     # --- get data from datapool
     # read data

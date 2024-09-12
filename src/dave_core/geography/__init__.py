@@ -10,4 +10,5 @@ __all__ = [
     "get_osm_data",
     "from_osm",
     "road_junctions",
+    "target_area",
 ]

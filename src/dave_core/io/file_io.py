@@ -407,7 +407,7 @@ def json_to_pp(file_path):
 
 
 # --- pandapipes
-def ppi_to_json(net, file_path=None):
+def ppi_to_json(net, file_path):
     """
     This functions converts a pandapipes model into a json file in consideration of converting \
     geometry objects to strings
@@ -416,26 +416,52 @@ def ppi_to_json(net, file_path=None):
         **net** (attr Dict) - pandapipes network
         **file_path** (str) - absoulut path where the pandapipes file will be stored in json format
     """
+    # copy network to keep the geometries in object form in the network return
+    net_conv = net.deepcopy()
     # convert geometry
-    if not net.junction.empty and all(
-        list(map(lambda x: isinstance(x, Point), net.junction.geometry))
+    if not net_conv.junction.empty and all(
+        list(map(lambda x: isinstance(x, Point), net_conv.junction.geometry))
     ):
-        net.junction["geometry"] = net.junction.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net.pipe.empty and all(
+        net_conv.junction["geometry"] = net_conv.junction.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.pipe.empty and all(
         list(
             map(
                 lambda x: isinstance(x, (LineString, MultiLineString)),
-                net.pipe.geometry,
+                net_conv.pipe.geometry,
             )
         )
     ):
-        net.pipe["geometry"] = net.pipe.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.pipe["geometry"] = net_conv.pipe.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.buildings.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.buildings.geometry))
+    ):
+        net_conv.buildings["geometry"] = net_conv.buildings.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.roads.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.roads.geometry))
+    ):
+        net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.railways.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.railways.geometry))
+    ):
+        net_conv.railways["geometry"] = net_conv.railways.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.waterways.empty and all(
+        list(map(lambda x: isinstance(x, LineString), net_conv.waterways.geometry))
+    ):
+        net_conv.waterways["geometry"] = net_conv.waterways.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
+    if not net_conv.landuse.empty and all(
+        list(map(lambda x: isinstance(x, Polygon), net_conv.landuse.geometry))
+    ):
+        net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
     # convert ppi model to json and save the file
-    if file_path:
-        ppi_to_json(net, filename=file_path)
-    else:
-        net_ppi_json = to_json_ppi(net)
-        return net_ppi_json
+    to_json_ppi(net_conv, filename=file_path)
 
 
 def json_to_ppi(file_path):

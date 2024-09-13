@@ -2,6 +2,8 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from pathlib import Path
+
 from dave_core.converter.converter import Converter
 from dave_core.converter.converter import Strategy
 from dave_core.converter.elements import Elements
@@ -247,9 +249,7 @@ class MyntsWriter:  # Output file strategy class for Mynts
             line = line + ', "' + prop + '":"' + newValue + '"'
         line = line + "}\n"
         self.file.write(line)
-        if element.name.startswith("sink") or element.name.startswith(
-            "source"
-        ):
+        if element.name.startswith("sink") or element.name.startswith("source"):
             line = ',"s_' + element.name + '":{"obj_type":"s"'
             line = line + ', "node1":"' + element.get("junction") + '"'
             line = line + ', "node2":"' + element.name + '"'
@@ -265,8 +265,7 @@ class MyntsWriter:  # Output file strategy class for Mynts
             newName = myntsProp(prop)
             newValue = str(element.get(prop))
             if (
-                newName.casefold()
-                in (prop.casefold() for prop in MyntsReqProps[element.type])
+                newName.casefold() in (prop.casefold() for prop in MyntsReqProps[element.type])
                 or element.get(prop) is None
             ):
                 continue
@@ -298,8 +297,8 @@ class DaVe2Mynts(Strategy):
 
     # opens a file for each output format
     def openFiles(self, outfile):
-        self.files["geom"] = open(outfile + ".geom.jsn", "w")
-        self.files["scen"] = open(outfile + ".scen.jsn", "w")
+        self.files["geom"] = Path(outfile + ".geom.jsn").open("w")
+        self.files["scen"] = Path(outfile + ".scen.jsn").open("w")
         self.writer = MyntsWriter()
 
     # writes elements to geom and scen
@@ -336,16 +335,14 @@ def create_mynts(grid_data, output_folder, idx_ref="dave_name"):
     pbar = create_tqdm(desc="create mynts network")
 
     # seperate geocoordinates from geometry parameter into lat and long
-    grid_data.hp_data.hp_junctions["long"] = (
-        grid_data.hp_data.hp_junctions.geometry.apply(lambda x: x.x)
+    grid_data.hp_data.hp_junctions["long"] = grid_data.hp_data.hp_junctions.geometry.apply(
+        lambda x: x.x
     )
-    grid_data.hp_data.hp_junctions["lat"] = (
-        grid_data.hp_data.hp_junctions.geometry.apply(lambda x: x.y)
+    grid_data.hp_data.hp_junctions["lat"] = grid_data.hp_data.hp_junctions.geometry.apply(
+        lambda x: x.y
     )
     # init data
-    myntsconv = Converter(
-        grid_data, basefilepath=output_folder
-    )  # default file names
+    myntsconv = Converter(grid_data, basefilepath=output_folder)  # default file names
     # update progress
     pbar.update(50)
     print()

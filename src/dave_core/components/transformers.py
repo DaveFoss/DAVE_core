@@ -160,28 +160,16 @@ def create_transformers(grid_data):
         # add dave name for nodes which are created for the transformers
         if "dave_name" not in grid_data.hv_data.hv_nodes.keys():
             grid_data.hv_data.hv_nodes.reset_index(drop=True, inplace=True)
-            name = Series(
-                list(
-                    map(
-                        lambda x: f"node_3_{x}",
-                        grid_data.hv_data.hv_nodes.index,
-                    )
-                )
+            grid_data.hv_data.hv_nodes.insert(
+                0, "dave_name", Series([f"node_3_{x}" for x in grid_data.hv_data.hv_nodes.index])
             )
-            grid_data.hv_data.hv_nodes.insert(0, "dave_name", name)
             if "geometry" in grid_data.hv_data.hv_nodes.keys():
                 grid_data.hv_data.hv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         if "dave_name" not in grid_data.ehv_data.ehv_nodes.keys():
             grid_data.ehv_data.ehv_nodes.reset_index(drop=True, inplace=True)
-            name = Series(
-                list(
-                    map(
-                        lambda x: f"node_1_{x}",
-                        grid_data.ehv_data.ehv_nodes.index,
-                    )
-                )
+            grid_data.ehv_data.ehv_nodes.insert(
+                0, "dave_name", Series([f"node_1_{x}" for x in grid_data.ehv_data.ehv_nodes.index])
             )
-            grid_data.ehv_data.ehv_nodes.insert(0, "dave_name", name)
             if "geometry" in grid_data.ehv_data.ehv_nodes.keys():
                 grid_data.ehv_data.ehv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         # write transformator data in grid data and decied the grid level depending on voltage level
@@ -354,8 +342,9 @@ def create_transformers(grid_data):
             hv_nodes = intersection_with_area(hv_nodes, substations_reduced, remove_columns=False)
             # add dave name
             hv_nodes.reset_index(drop=True, inplace=True)
-            name = Series(list(map(lambda x: f"node_3_{x}", hv_nodes.index)), dtype=str)
-            hv_nodes.insert(0, "dave_name", name)
+            hv_nodes.insert(
+                0, "dave_name", Series([f"node_3_{x}" for x in hv_nodes.index], dtype=str)
+            )
             # set crs
             hv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
             # add mv nodes to grid data
@@ -385,8 +374,9 @@ def create_transformers(grid_data):
             mv_nodes["source"] = "OEP"
             # add dave name
             mv_nodes.reset_index(drop=True, inplace=True)
-            name = Series(list(map(lambda x: f"node_5_{x}", mv_nodes.index)), dtype=str)
-            mv_nodes.insert(0, "dave_name", name)
+            mv_nodes.insert(
+                0, "dave_name", Series([f"node_5_{x}" for x in mv_nodes.index], dtype=str)
+            )
             # set crs
             mv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
             # add mv nodes to grid data
@@ -452,16 +442,14 @@ def create_transformers(grid_data):
             # update progress
             pbar.update(9.98 / len(substations))
         # add dave name
-        name = Series(
-            list(
-                map(
-                    lambda x: f"trafo_4_{x}",
-                    grid_data.components_power.transformers.hv_mv.index,
-                )
+        grid_data.components_power.transformers.hv_mv.insert(
+            0,
+            "dave_name",
+            Series(
+                [f"trafo_4_{x}" for x in grid_data.components_power.transformers.hv_mv.index],
+                dtype=str,
             ),
-            dtype=str,
         )
-        grid_data.components_power.transformers.hv_mv.insert(0, "dave_name", name)
     else:
         # update progress
         pbar.update(30)
@@ -513,8 +501,9 @@ def create_transformers(grid_data):
             mv_buses["source"] = "OEP"
             # add dave name
             mv_buses.reset_index(drop=True, inplace=True)
-            name = Series(list(map(lambda x: f"node_5_{x}", mv_buses.index)), dtype=str)
-            mv_buses.insert(0, "dave_name", name)
+            mv_buses.insert(
+                0, "dave_name", Series([f"node_5_{x}" for x in mv_buses.index], dtype=str)
+            )
             # set crs
             mv_buses.set_crs(dave_settings["crs_main"], inplace=True)
             # add mv nodes to grid data
@@ -539,8 +528,9 @@ def create_transformers(grid_data):
             lv_buses["source"] = "OEP"
             # add dave name
             lv_buses.reset_index(drop=True, inplace=True)
-            name = Series(list(map(lambda x: f"node_7_{x}", lv_buses.index)), dtype=str)
-            lv_buses.insert(0, "dave_name", name)
+            lv_buses.insert(
+                0, "dave_name", Series([f"node_7_{x}" for x in lv_buses.index], dtype=str)
+            )
             # set crs
             lv_buses.set_crs(dave_settings["crs_main"], inplace=True)
             # add mv nodes to grid data
@@ -552,7 +542,7 @@ def create_transformers(grid_data):
         # update progress
         pbar.update(10)
         # create mv/lv transfromers
-        for i, sub in substations.iterrows():
+        for _, sub in substations.iterrows():
             # get hv bus
             mv_buses_mvlv = mv_buses[mv_buses.node_type == "mvlv_substation"]
             if (not mv_buses_mvlv.empty) and (sub.ego_subst_id in mv_buses.ego_subst_id.tolist()):
@@ -640,16 +630,14 @@ def create_transformers(grid_data):
                 # noch definieren
 
         # add dave name
-        name = Series(
-            list(
-                map(
-                    lambda x: f"trafo_6_{x}",
-                    grid_data.components_power.transformers.mv_lv.index,
-                )
+        grid_data.components_power.transformers.mv_lv.insert(
+            0,
+            "dave_name",
+            Series(
+                [f"trafo_6_{x}" for x in grid_data.components_power.transformers.mv_lv.index],
+                dtype=str,
             ),
-            dtype=str,
         )
-        grid_data.components_power.transformers.mv_lv.insert(0, "dave_name", name)
         # update progress
         pbar.update(10)
     else:

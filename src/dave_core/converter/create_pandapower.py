@@ -33,7 +33,7 @@ def create_pp_buses(net, buses):
         buses.rename(columns={"dave_name": "name"}, inplace=True)
     else:
         buses.insert(
-            0, "name", Series(list(map(lambda x: f"node_{x}", buses.index)))
+            0, "name", Series([f"node_{x}" for x in buses.index])
         )  # TODO: hier fehlt noch das voltage level
     if "voltage_kv" in buses.keys():
         buses.rename(columns={"voltage_kv": "vn_kv"}, inplace=True)
@@ -114,7 +114,7 @@ def create_pp_mvlv_lines(net, lines):
         lines.rename(columns={"dave_name": "name"}, inplace=True)
     else:
         lines.insert(
-            0, "name", Series(list(map(lambda x: f"line_{x}", lines.index)))
+            0, "name", Series([f"line_{x}" for x in lines.index])
         )  # TODO: hier fehlt noch das voltage level
     # create lines
     create_lines(
@@ -286,7 +286,7 @@ def create_pp_sgens(net, sgens):
         sgens.insert(
             0,
             "name",
-            Series(list(map(lambda x: f"ren_powerplants_{x}", sgens.index))),
+            Series([f"ren_powerplants_{x}" for x in sgens.index]),
         )  # TODO: hier fehlt noch das voltage level
     if "generation_type" in sgens.keys():
         sgens.rename(columns={"generation_type": "type"}, inplace=True)
@@ -333,7 +333,7 @@ def create_pp_gens(net, gens):
         gens.insert(
             0,
             "name",
-            Series(list(map(lambda x: f"con_powerplants_{x}", gens.index))),
+            Series([f"con_powerplants_{x}" for x in gens.index]),
         )  # TODO: hier fehlt noch das voltage level
     if "type" in gens.keys():
         gens.rename(columns={"type": "type_2"}, inplace=True)

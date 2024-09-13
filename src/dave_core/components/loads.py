@@ -209,7 +209,7 @@ def create_loads(grid_data):
                     elif isinstance(building_boundary, MultiLineString):
                         multiline_coords = []
                         for line in building_boundary.geoms:
-                            multiline_coords.extend([coords for coords in list(line.coords)])
+                            multiline_coords.extend(list(line.coords))
                         building_geom = Polygon(multiline_coords)
 
                     building_node = building_nodes[building_nodes.geometry.within(building_geom)]

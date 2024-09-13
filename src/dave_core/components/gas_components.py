@@ -55,7 +55,7 @@ def create_sources(grid_data, scigrid_productions):
         sources.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"source_1_{x}", sources.index))),
+            Series([f"source_1_{x}" for x in sources.index]),
         )
         # set crs
         sources.set_crs(dave_settings["crs_main"], inplace=True)
@@ -112,7 +112,7 @@ def create_compressors(grid_data, scigrid_compressors):
         compressors.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"compressor_1_{x}", compressors.index))),
+            Series([f"compressor_1_{x}" for x in compressors.index]),
         )
         # set crs
         compressors.set_crs(dave_settings["crs_main"], inplace=True)
@@ -173,7 +173,7 @@ def create_sinks(grid_data, scigrid_consumers):
         sinks.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"sink_1_{x}", sinks.index))),
+            Series([f"sink_1_{x}" for x in sinks.index]),
         )
         # set crs
         sinks.set_crs(dave_settings["crs_main"], inplace=True)

@@ -22,7 +22,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
     OPTIONAL:
         **save_data** (boolean, default True) - if true, the resulting data will stored in a \
             local folder
-    
+
     """
     # set progress bar
     pbar = create_tqdm(desc="create gaslib model")

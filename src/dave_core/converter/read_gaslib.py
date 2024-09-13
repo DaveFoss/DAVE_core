@@ -2,9 +2,9 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os.path import dirname
 from os.path import join
 from os.path import realpath
+from pathlib import Path
 
 from xmlschema import XMLSchema
 
@@ -13,15 +13,13 @@ def read_gaslib_cs():
     """
     This function reads informations about gaslib compressor stations as reference for the converter
     """
-    filepath = dirname(realpath(__file__))
+    filepath = Path(realpath(__file__)).parent
 
     # read data from datapool
     schema = XMLSchema(join(filepath, "gaslib/CompressorStations.xsd"))
     gaslib_dict_cs = schema.to_dict(join(filepath, "gaslib/GasLib-582-v2.cs"))
     # create data dictionary
-    gaslib_data_cs = {
-        "compressor_station": gaslib_dict_cs["framework:compressorStation"]
-    }
+    gaslib_data_cs = {"compressor_station": gaslib_dict_cs["framework:compressorStation"]}
     # read meta data  # TODO: evt aus net nehmen
     # meta_data = gaslib_dict["framework:information"]
 

@@ -72,7 +72,7 @@ def create_pandapipes(
             all_junctions.insert(
                 0,
                 "name",
-                Series(list(map(lambda x: f"junction_{x}", all_junctions.index))),
+                Series([f"junction_{x}" for x in all_junctions.index]),
             )  # TODO: hier fehlt noch das pressure level
         # !!! set nominal pressure to the lowest maximal pressure of the pipelines (has to be changed for multiple pressure levles)
         all_junctions["pn_bar"] = grid_data.hp_data.hp_pipes.max_pressure_bar.min()
@@ -147,7 +147,7 @@ def create_pandapipes(
             all_pipes.insert(
                 0,
                 "name",
-                Series(list(map(lambda x: f"pipe_{x}", all_pipes.index))),
+                Series([f"pipe{x}" for x in all_pipes.index]),
             )
         # check for circle pipes and drop them
         circle_pipe = all_pipes.loc[all_pipes["from_junction"] == all_pipes["to_junction"]]
@@ -267,7 +267,7 @@ def create_pandapipes(
             sinks.insert(
                 0,
                 "name",
-                Series(list(map(lambda x: f"sink_{x}", sinks.index))),
+                Series([f"sink_{x}" for x in sinks.index]),
             )
         # create sinks
         create_sinks(
@@ -302,7 +302,7 @@ def create_pandapipes(
             sources.insert(
                 0,
                 "name",
-                Series(list(map(lambda x: f"source_{x}", sources.index))),
+                Series([f"source_{x}" for x in sources.index]),
             )
         # create sinks
         create_sources(

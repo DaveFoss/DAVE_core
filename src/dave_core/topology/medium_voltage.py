@@ -30,12 +30,9 @@ def create_hv_mv_substations(grid_data):
         # add meta data
         if (
             bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}"
-            not in grid_data.meta_data.keys()
+            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
         ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                meta_data
-            )
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         hvmv_substations.rename(
             columns={
                 "version": "ego_version",
@@ -46,9 +43,7 @@ def create_hv_mv_substations(grid_data):
             inplace=True,
         )
         # filter substations which are within the grid area
-        hvmv_substations = intersection_with_area(
-            hvmv_substations, grid_data.area
-        )
+        hvmv_substations = intersection_with_area(hvmv_substations, grid_data.area)
         if not hvmv_substations.empty:
             hvmv_substations["voltage_level"] = 4
             # add dave name
@@ -56,14 +51,7 @@ def create_hv_mv_substations(grid_data):
             hvmv_substations.insert(
                 0,
                 "dave_name",
-                Series(
-                    list(
-                        map(
-                            lambda x: f"substation_4_{x}",
-                            hvmv_substations.index,
-                        )
-                    )
-                ),
+                Series([f"substation_4_{x}" for x in hvmv_substations.index]),
             )
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
@@ -86,11 +74,7 @@ def create_mv_lv_substations(grid_data):
     """
     mvlv_substations, meta_data = oep_request(table="ego_dp_mvlv_substation")
     # add meta data
-    if (
-        bool(meta_data)
-        and f"{meta_data['Main'].Titel.loc[0]}"
-        not in grid_data.meta_data.keys()
-    ):
+    if bool(meta_data) and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
         grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
 
     # change wrong crs from oep
@@ -103,21 +87,14 @@ def create_mv_lv_substations(grid_data):
     # filter trafos which are within the grid area
     mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)
 
-    if (
-        grid_data.components_power.substations.mv_lv.empty
-        and not mvlv_substations.empty
-    ):
+    if grid_data.components_power.substations.mv_lv.empty and not mvlv_substations.empty:
         mvlv_substations["voltage_level"] = 6
         # add dave name
         mvlv_substations.reset_index(drop=True, inplace=True)
         mvlv_substations.insert(
             0,
             "dave_name",
-            Series(
-                list(
-                    map(lambda x: f"substation_6_{x}", mvlv_substations.index)
-                )
-            ),
+            Series([f"substation_6_{x}" for x in mvlv_substations.index]),
         )
         # add ehv substations to grid data
         grid_data.components_power.substations.mv_lv = concat(
@@ -134,9 +111,7 @@ def search_connection_line(bus, mv_buses):
     Search connection line
     """
     nearest_bus_idx = (
-        mv_buses.drop([bus.name])
-        .geometry.apply(lambda x: bus.geometry.distance(x))
-        .idxmin()
+        mv_buses.drop([bus.name]).geometry.apply(lambda x: bus.geometry.distance(x)).idxmin()
     )
     return LineString([bus.geometry, mv_buses.loc[nearest_bus_idx].geometry])
 
@@ -217,9 +192,7 @@ def create_mv_topology(grid_data):
         )
         hvmv_buses["node_type"] = "hvmv_substation"
         # change geometry to point
-        hvmv_buses["geometry"] = hvmv_buses.point.apply(
-            lambda x: loads(x, hex=True)
-        )
+        hvmv_buses["geometry"] = hvmv_buses.point.apply(lambda x: loads(x, hex=True))
         # filter trafos which are within the grid area
         hvmv_buses = intersection_with_area(hvmv_buses, grid_data.area)
         hvmv_buses.drop(
@@ -239,9 +212,7 @@ def create_mv_topology(grid_data):
         # search for the substations dave name
         substations_rel = concat([hvmv_substations, mvlv_substations])
         mv_buses["subs_dave_name"] = mv_buses.ego_subst_id.apply(
-            lambda x: substations_rel[substations_rel.ego_subst_id == x]
-            .iloc[0]
-            .dave_name
+            lambda x: substations_rel[substations_rel.ego_subst_id == x].iloc[0].dave_name
         )
         mv_buses["voltage_level"] = 5
         mv_buses["voltage_kv"] = dave_settings["mv_voltage"]
@@ -252,7 +223,7 @@ def create_mv_topology(grid_data):
         mv_buses.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"node_5_{x}", mv_buses.index))),
+            Series([f"node_5_{x}" for x in mv_buses.index]),
         )
         # set crs
         mv_buses.set_crs(dave_settings["crs_main"], inplace=True)
@@ -281,32 +252,20 @@ def create_mv_topology(grid_data):
             mv_lines_rel = mv_lines.copy()
             for _, bus in mv_buses.iterrows():
                 # check if bus is conected to more than one line
-                lines_intersect = mv_lines_rel[
-                    mv_lines_rel.intersects(bus.geometry)
-                ]
+                lines_intersect = mv_lines_rel[mv_lines_rel.intersects(bus.geometry)]
                 if len(lines_intersect) > 1:
                     # get list with line objects
                     lines_list = lines_intersect.tolist()
                     # search for multilines and split them
-                    new_line = list(
-                        map(
-                            lambda x: (
-                                list(map(lambda y: y, x.geoms))
-                                if isinstance(x, MultiLineString)
-                                else [x]
-                            ),
-                            lines_list,
-                        )
-                    )
                     new_line = [
-                        line for sublist in new_line for line in sublist
+                        [y for y in x.geoms] if isinstance(x, MultiLineString) else [x]
+                        for x in lines_list
                     ]
+                    new_line = [line for sublist in new_line for line in sublist]
                     # merge found lines and add new line to line quantity
                     mv_lines_rel[len(mv_lines)] = linemerge(new_line)
                     # delete found lines from line quantity
-                    mv_lines_rel.drop(
-                        lines_intersect.index.tolist(), inplace=True
-                    )
+                    mv_lines_rel.drop(lines_intersect.index.tolist(), inplace=True)
                     mv_lines_rel.reset_index(drop=True, inplace=True)
             # break loop if all lines connected
             if len(mv_lines_rel) == 1:
@@ -314,22 +273,14 @@ def create_mv_topology(grid_data):
             # create lines for connecting line segments
             for i, line in enumerate(mv_lines_rel.to_list()):
                 # find nearest line to considered one
-                nearest_line_idx = (
-                    mv_lines_rel.drop([i]).geometry.distance(line).idxmin()
-                )
+                nearest_line_idx = mv_lines_rel.drop([i]).geometry.distance(line).idxmin()
                 # get line coordinates
                 if isinstance(line, MultiLineString):
                     line_points = GeoSeries(
-                        [
-                            Point(coords)
-                            for segment in line.geoms
-                            for coords in segment.coords[:]
-                        ]
+                        [Point(coords) for segment in line.geoms for coords in segment.coords[:]]
                     )
                 else:
-                    line_points = GeoSeries(
-                        [Point(coords) for coords in line.coords[:]]
-                    )
+                    line_points = GeoSeries([Point(coords) for coords in line.coords[:]])
                 # set crs
                 line_points = line_points.set_crs(dave_settings["crs_main"])
                 # get nearest line coordinates
@@ -345,23 +296,17 @@ def create_mv_topology(grid_data):
                 else:
                     nearest_line_points = GeoSeries(
                         [
-                            Point(
-                                mv_lines_rel.loc[nearest_line_idx].coords[:][j]
-                            )
+                            Point(mv_lines_rel.loc[nearest_line_idx].coords[:][j])
                             for j in range(len(nearest_line.coords[:]))
                         ]
                     )
                 # set crs
-                nearest_line_points.set_crs(
-                    dave_settings["crs_main"], inplace=True
-                )
+                nearest_line_points.set_crs(dave_settings["crs_main"], inplace=True)
                 # define minimal distance for initialize
                 distance_min = 1000  # any big number
                 # find pair of nearest nodes
                 for point in line_points:
-                    distance = nearest_line_points.geometry.apply(
-                        lambda x: point.distance(x)
-                    )
+                    distance = nearest_line_points.geometry.apply(lambda x: point.distance(x))
                     if distance_min > distance.min():
                         distance_min = distance.min()
                         nearest_point = nearest_line_points[distance.idxmin()]
@@ -378,7 +323,7 @@ def create_mv_topology(grid_data):
         mv_lines.set_crs(dave_settings["crs_main"], inplace=True)
         mv_lines_3035 = mv_lines.to_crs(dave_settings["crs_meter"])
         # add parameters to lines
-        for i, line in mv_lines.iterrows():
+        for _, line in mv_lines.iterrows():
             # get from bus name
             mv_lines.at[line.name, "from_bus"] = mv_buses.loc[
                 mv_buses.geometry.apply(
@@ -397,7 +342,7 @@ def create_mv_topology(grid_data):
         mv_lines.insert(
             0,
             "dave_name",
-            Series(list(map(lambda x: f"line_5_{x}", mv_lines.index))),
+            Series([f"line_5_{x}" for x in mv_lines.index]),
         )
         # additional informations
         mv_lines["voltage_kv"] = dave_settings["mv_voltage"]

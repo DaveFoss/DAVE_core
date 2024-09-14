@@ -28,9 +28,7 @@ def request_to_df(request):
     return request_data
 
 
-def oep_request(
-    table, schema=None, where=None, geometry=None, db_update=False
-):
+def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     """
     This function is to requesting data from the open energy platform.
     The available data is to find on https://openenergy-platform.org/dataedit/schemas
@@ -67,7 +65,8 @@ def oep_request(
                     "/rows/?where=",
                     where,
                 ]
-            )
+            ),
+            timeout=30,
         )
     elif dave_settings["oep_tables"][table][2] is not None:
         request = get(
@@ -81,7 +80,8 @@ def oep_request(
                     "/rows/?where=",
                     dave_settings["oep_tables"][table][2],
                 ]
-            )
+            ),
+            timeout=30,
         )
     else:
         request = get(
@@ -94,7 +94,8 @@ def oep_request(
                     table,
                     "/rows/",
                 ]
-            )
+            ),
+            timeout=30,
         )
     # convert data to dataframe
     request_data = request_to_df(request)
@@ -104,9 +105,7 @@ def oep_request(
     if geometry is not None:
         # --- convert into geopandas DataFrame with right crs
         # transform WKB to WKT / Geometry
-        request_data["geometry"] = request_data[geometry].apply(
-            lambda x: loads(x, hex=True)
-        )
+        request_data["geometry"] = request_data[geometry].apply(lambda x: loads(x, hex=True))
         # create geoDataFrame
         request_data = GeoDataFrame(
             request_data,
@@ -117,9 +116,7 @@ def oep_request(
     if table == "ego_pf_hv_transformer":
         # change geometry to point because in original data the geometry was lines with length 0
         request_data["geometry"] = request_data.geometry.apply(
-            lambda x: Point(
-                x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1]
-            )
+            lambda x: Point(x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1])
         )
     if table == "ego_dp_mvlv_substation":
         # change wrong crs from oep
@@ -129,9 +126,7 @@ def oep_request(
     # --- request meta informations for a dataset
     # !!! Todo: seperate option for getting data from DB. When there are no meta data in DB then check OEP Url
     request = get(
-        "".join(
-            [oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]
-        )
+        "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]), timeout=30
     )
     # convert data to meta dict  # !!! When getting data from database the meta informations should also came from db
     if request.status_code == 200:  # 200 is the code of a successful request
@@ -144,16 +139,12 @@ def oep_request(
                     "Description": request_meta["description"],
                     "Spatial": [request_meta["spatial"]],
                     "Licenses": request_meta["licenses"],
-                    "metadata_version": request_meta["metaMetadata"][
-                        "metadataVersion"
-                    ],
+                    "metadata_version": request_meta["metaMetadata"]["metadataVersion"],
                 },
                 index=[0],
             ),
             "Sources": DataFrame(request_meta["sources"]),
-            "Data": DataFrame(
-                request_meta["resources"][0]["schema"]["fields"]
-            ),
+            "Data": DataFrame(request_meta["resources"][0]["schema"]["fields"]),
         }
     else:
         meta_data = {}

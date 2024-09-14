@@ -5,6 +5,7 @@
 from os import environ
 from os import makedirs
 from os import path
+from pathlib import Path
 from timeit import default_timer
 from warnings import catch_warnings
 from warnings import simplefilter
@@ -54,10 +55,11 @@ def format_input_levels(power_levels, gas_levels):
     # sort level inputs
     order_power = ["ehv", "hv", "mv", "lv"]
     power_sort = sorted(list(map(order_power.index, power_levels)))
-    power_levels = list(map(lambda x: order_power[x], power_sort))
+
+    power_levels = [order_power[x] for x in power_sort]
     order_gas = ["hp", "mp", "lp"]
     gas_sort = sorted(list(map(order_gas.index, gas_levels)))
-    gas_levels = list(map(lambda x: order_gas[x], gas_sort))
+    gas_levels = [order_gas[x] for x in gas_sort]
     return power_levels, gas_levels
 
 
@@ -87,8 +89,8 @@ def save_dataset_to_archiv(grid_data):
     print("----------------------------------")
     # check if archiv folder exists otherwise create one
     archiv_dir = dave_settings["dave_dir"] + "\\datapool\\dave_archiv\\"
-    if not path.exists(archiv_dir):
-        makedirs(archiv_dir)
+    if not Path(archiv_dir).exists():
+        Path(archiv_dir).mkdir(parents=True)
     with catch_warnings():
         # filter warnings because of the PerformanceWarning from pytables at the geometry type
         simplefilter("ignore")
@@ -139,13 +141,13 @@ def create_grid(
     federal_state=None,
     nuts_region=None,
     own_area=None,
-    geodata=[],
-    power_levels=[],
-    gas_levels=[],
-    convert_power=[],
-    convert_gas=[],
+    geodata=None,
+    power_levels=None,
+    gas_levels=None,
+    convert_power=None,
+    convert_gas=None,
     opt_model=False,
-    combine_areas=[],
+    combine_areas=None,
     transformers=True,
     renewable_powerplants=True,
     conventional_powerplants=True,
@@ -182,24 +184,24 @@ def create_grid(
             the area \n
 
     OPTIONAL:
-        **geodata** (list, default []) - this parameter defines which geodata should be considered.\
+        **geodata** (list, default None) - this parameter defines which geodata should be considered.\
             options: 'roads','buildings','landuse', 'railways', 'waterways', []. \
                 there could be choose: one/multiple geoobjects or 'ALL' \n
-        **power_levels** (list, default []) - this parameter defines which power levels should be \
+        **power_levels** (list, default None) - this parameter defines which power levels should be \
             considered. options: 'ehv','hv','mv','lv', []. there could be choose: one/multiple \
                 level(s) or 'ALL' \n
-        **gas_levels** (list, default []) - this parameter defines which gas levels should be \
+        **gas_levels** (list, default None) - this parameter defines which gas levels should be \
             considered. options: 'hp' and []. there could be choose: one/multiple level(s) \
             or 'ALL' \n
-        **convert_power** (list, default []) - this parameter defines in witch formats the power \
+        **convert_power** (list, default None) - this parameter defines in witch formats the power \
             grid data should be converted. Available formats are currently: 'pandapower' \n
-        **convert_gas** (list, default []) - this parameter defines in witch formats the gas \
+        **convert_gas** (list, default None) - this parameter defines in witch formats the gas \
             grid data should be converted. Available formats are currently: 'pandapipes', 'gaslib', \
             'mynts' \n
         **opt_model** (boolean, default True) - if this value is true dave will be use the optimal \
             power flow calculation to get no boundary violations. Currently a experimental feature \
                 and only available for pandapower \n
-        **combine_areas** (list, default []) - this parameter defines on which power levels not \
+        **combine_areas** (list, default None) - this parameter defines on which power levels not \
             connected areas should combined. options: 'EHV','HV','MV','LV', [] \n
         **transformers** (boolean, default True) - if true, transformers are added to the grid \
             model \n
@@ -237,18 +239,28 @@ def create_grid(
 
     # create dave output folder for DaVe dataset, plotting and converted model
     if save_data:
-        if not path.exists(output_folder):
-            makedirs(output_folder)
+        if not Path(output_folder).exists():
+            Path(output_folder).mkdir(parents=True)
 
     # create empty datastructure
     grid_data = create_empty_dataset()
 
     # format level inputs
+    if power_levels is None:
+        power_levels = []
+    if gas_levels is None:
+        gas_levels = []
     power_levels, gas_levels = format_input_levels(power_levels, gas_levels)
-    combine_areas = list(map(str.lower, combine_areas))
+    if combine_areas is None:
+        combine_areas = []
+    else:
+        combine_areas = list(map(str.lower, combine_areas))
 
     # create geographical informations
-    geodata = list(map(str.lower, geodata))
+    if geodata is None:
+        geodata = []
+    else:
+        geodata = list(map(str.lower, geodata))
     roads_l, roads_plot_l, buildings_l, landuse_l = geo_info_needs(power_levels, gas_levels, loads)
     file_exists, file_name = target_area(
         grid_data,

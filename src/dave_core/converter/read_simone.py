@@ -202,15 +202,15 @@ def read_simone_file(topology_path, scenario_path=None, result_path=None, crs="e
 
     # read scenario data from file
     if scenario_path:
-        data["node_parameter"], data["element_parameter"] = read_json(scenario_path)
+        data["node_parameter"], data["element_parameter"] = read_json_simone(scenario_path)
 
     # read result data from file
     if result_path:
-        data["node_results"], data["element_results"] = read_json(result_path)
+        data["node_results"], data["element_results"] = read_json_simone(result_path)
     return data
 
 
-def read_json(filepath):
+def read_json_simone(filepath):
     # read scenario and result data
     n_df = read_json(f"{filepath}_nodes.json", orient="records", lines=True)
     e_df = read_json(f"{filepath}_elements.json", orient="records", lines=True)

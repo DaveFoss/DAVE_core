@@ -131,7 +131,7 @@ def request_geo_data(grid_area, crs, save_data=True):
          **grid_area** (Shapely polygon) - Polygon which defines the considered grid area \n
          **crs** (str, default: 'epsg:4326') - Definition of the network \
              coordinate reference system \n
-    
+
     OPTIONAL:
          **save_data** (boolean, default True) - if true, the resulting data will stored in a \
              local folder
@@ -155,12 +155,12 @@ def request_geo_data(grid_area, crs, save_data=True):
 def add_geodata(net, buffer=10, crs="epsg:4326", save_data=True):
     """
     This function extends a pandapower/pandapipes net with geodata from DAVE
-    
+
     INPUT:
         **net** (pandapower net) - A pandapower network \n
         **dave_user** (str) - User name of a DAVE Account \n
         **dave_password** (str) - Password of a DAVE Account \n
-    
+
     OPTIONAL:
         **buffer** (float) - Buffer around the considered network elements
          **crs** (str, default: 'epsg:4326') - Definition of the network coordinate reference \

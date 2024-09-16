@@ -364,7 +364,7 @@ def target_area(
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)
         # find road junctions
-        if "lv" in grid_data.target_input.power_levels[0]:
+        if "lv" in grid_data.target_input.power_levels[0] or roads:
             road_junctions(grid_data)
         # close progress bar
         pbar.update(9.99)

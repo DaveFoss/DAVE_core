@@ -585,6 +585,7 @@ def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
         )
     )
     net["roads"] = DataFrame(grid_data.roads.roads)
+    net["road_junctions"] = DataFrame(grid_data.roads.road_junctions)
     net["railways"] = DataFrame(grid_data.railways)
     net["waterways"] = DataFrame(grid_data.waterways)
     net["landuse"] = DataFrame(grid_data.landuse)

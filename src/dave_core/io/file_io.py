@@ -339,6 +339,12 @@ def pp_to_json(net, file_path):
         [isinstance(x, LineString) for x in net_conv.roads.geometry]
     ):
         net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.road_junctions.empty and all(
+        [isinstance(x, Point) for x in net_conv.road_junctions.geometry]
+    ):
+        net_conv.road_junctions["geometry"] = net_conv.road_junctions.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if not net_conv.railways.empty and all(
         [isinstance(x, LineString) for x in net_conv.railways.geometry]
     ):
@@ -381,6 +387,7 @@ def json_to_pp(file_path):
         "sgen",
         "buildings",
         "roads",
+        "road_junctions",
         "railways",
         "waterways",
         "landuse",
@@ -423,6 +430,12 @@ def ppi_to_json(net, file_path):
         [isinstance(x, LineString) for x in net_conv.roads.geometry]
     ):
         net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
+    if not net_conv.road_junctions.empty and all(
+        [isinstance(x, Point) for x in net_conv.road_junctions.geometry]
+    ):
+        net_conv.road_junctions["geometry"] = net_conv.road_junctions.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if not net_conv.railways.empty and all(
         [isinstance(x, LineString) for x in net_conv.railways.geometry]
     ):

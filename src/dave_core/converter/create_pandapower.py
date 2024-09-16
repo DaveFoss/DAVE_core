@@ -596,7 +596,7 @@ def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
         net = power_processing(net, opt_model=opt_model)
     # save pandapower model in the dave output folder
     if save_data:
-        file_path = output_folder + "\\dave_pandapower.json"
+        file_path = f"{output_folder}\\dave_pandapower.json"
         pp_to_json(net, file_path)
     return net
 

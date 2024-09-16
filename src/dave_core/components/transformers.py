@@ -31,7 +31,7 @@ def create_transformers(grid_data):
     power_levels = grid_data.target_input.power_levels[0]
     # --- create ehv/ehv and ehv/hv trafos
     # check if power levels are requested and not all nodes are ampty
-    if any(map(lambda x: x in power_levels, ["ehv", "hv"])) and not (
+    if any(x in power_levels for x in ["ehv", "hv"]) and not (
         grid_data.ehv_data.ehv_nodes.empty and grid_data.hv_data.hv_nodes.empty
     ):
         # read transformator data from OEP, filter current exsist ones and rename paramter names
@@ -251,7 +251,7 @@ def create_transformers(grid_data):
 
     # --- create hv/mv trafos
     # check if power levels are requested and not all nodes are ampty
-    if any(map(lambda x: x in power_levels, ["hv", "mv"])) and not (
+    if any(x in power_levels for x in ["hv", "mv"]) and not (
         grid_data.hv_data.hv_nodes.empty and grid_data.mv_data.mv_nodes.empty
     ):
         if grid_data.components_power.substations.hv_mv.empty:
@@ -456,7 +456,7 @@ def create_transformers(grid_data):
 
     # --- create mv/lv trafos
     # check if power levels are requested and not all nodes are ampty
-    if any(map(lambda x: x in power_levels, ["mv", "lv"])) and not (
+    if any(x in power_levels for x in ["mv", "lv"]) and not (
         grid_data.mv_data.mv_nodes.empty and grid_data.lv_data.lv_nodes.empty
     ):
         if grid_data.components_power.substations.mv_lv.empty:

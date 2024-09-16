@@ -311,56 +311,48 @@ def pp_to_json(net, file_path):
     # copy network to keep the geometries in object form in the network return
     net_conv = net.deepcopy()
     # convert geometry
-    if not net_conv.bus.empty and all(
-            [isinstance(x, Point) for x in net_conv.bus.geometry]
-    ):
+    if not net_conv.bus.empty and all([isinstance(x, Point) for x in net_conv.bus.geometry]):
         net_conv.bus["geometry"] = net_conv.bus.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.line.empty and all(
-            [isinstance(x, (LineString, MultiLineString)) for x in net_conv.line.geometry]
+        [isinstance(x, (LineString, MultiLineString)) for x in net_conv.line.geometry]
     ):
         net_conv.line["geometry"] = net_conv.line.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net_conv.trafo.empty and all(
-            [isinstance(x, Point) for x in net_conv.trafo.geometry]
-    ):
+    if not net_conv.trafo.empty and all([isinstance(x, Point) for x in net_conv.trafo.geometry]):
         net_conv.trafo["geometry"] = net_conv.trafo.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net_conv.gen.empty and all(
-            [isinstance(x, Point) for x in net_conv.gen.geometry]
-    ):
+    if not net_conv.gen.empty and all([isinstance(x, Point) for x in net_conv.gen.geometry]):
         net_conv.gen["geometry"] = net_conv.gen.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net_conv.sgen.empty and all(
-            [isinstance(x, Point) for x in net_conv.sgen.geometry]
-    ):
+    if not net_conv.sgen.empty and all([isinstance(x, Point) for x in net_conv.sgen.geometry]):
         net_conv.sgen["geometry"] = net_conv.sgen.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.substations.empty and all(
-            [isinstance(x, Polygon) for x in net_conv.substations.geometry]
+        [isinstance(x, Polygon) for x in net_conv.substations.geometry]
     ):
         net_conv.substations["geometry"] = net_conv.substations.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.buildings.empty and all(
-            [isinstance(x, LineString) for x in net_conv.buildings.geometry]
+        [isinstance(x, LineString) for x in net_conv.buildings.geometry]
     ):
         net_conv.buildings["geometry"] = net_conv.buildings.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.roads.empty and all(
-            [isinstance(x, LineString) for x in net_conv.roads.geometry]
+        [isinstance(x, LineString) for x in net_conv.roads.geometry]
     ):
         net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.railways.empty and all(
-            [isinstance(x, LineString) for x in , net_conv.railways.geometry]
+        [isinstance(x, LineString) for x in net_conv.railways.geometry]
     ):
         net_conv.railways["geometry"] = net_conv.railways.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.waterways.empty and all(
-            [isinstance(x, LineString) for x in net_conv.waterways.geometry]
+        [isinstance(x, LineString) for x in net_conv.waterways.geometry]
     ):
         net_conv.waterways["geometry"] = net_conv.waterways.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.landuse.empty and all(
-            [isinstance(x, Polygon) for x in net_conv.landuse.geometry]
+        [isinstance(x, Polygon) for x in net_conv.landuse.geometry]
     ):
         net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
     # convert pp model to json and save the file
@@ -393,9 +385,7 @@ def json_to_pp(file_path):
         "waterways",
         "landuse",
     ]:
-        if not net[element].empty and all(
-                [isinstance(x, str) for x in net[element].geometry]
-        ):
+        if not net[element].empty and all([isinstance(x, str) for x in net[element].geometry]):
             net[element]["geometry"] = net[element].geometry.apply(lambda x: loads(x, hex=True))
     return net
 
@@ -414,39 +404,39 @@ def ppi_to_json(net, file_path):
     net_conv = net.deepcopy()
     # convert geometry
     if not net_conv.junction.empty and all(
-            [isinstance(x, Point) for x in net_conv.junction.geometry]
+        [isinstance(x, Point) for x in net_conv.junction.geometry]
     ):
         net_conv.junction["geometry"] = net_conv.junction.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.pipe.empty and all(
-            [isinstance(x, (LineString, MultiLineString)) for x in net_conv.pipe.geometry]
+        [isinstance(x, (LineString, MultiLineString)) for x in net_conv.pipe.geometry]
     ):
         net_conv.pipe["geometry"] = net_conv.pipe.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.buildings.empty and all(
-            [isinstance(x, LineString) for x in net_conv.buildings.geometry]
+        [isinstance(x, LineString) for x in net_conv.buildings.geometry]
     ):
         net_conv.buildings["geometry"] = net_conv.buildings.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.roads.empty and all(
-            [isinstance(x, LineString) for x in net_conv.roads.geometry]
+        [isinstance(x, LineString) for x in net_conv.roads.geometry]
     ):
         net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.railways.empty and all(
-            [isinstance(x, LineString) for x in net_conv.railways.geometry]
+        [isinstance(x, LineString) for x in net_conv.railways.geometry]
     ):
         net_conv.railways["geometry"] = net_conv.railways.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.waterways.empty and all(
-            [isinstance(x, LineString) for x in net_conv.waterways.geometry]
+        [isinstance(x, LineString) for x in net_conv.waterways.geometry]
     ):
         net_conv.waterways["geometry"] = net_conv.waterways.geometry.apply(
             lambda x: dumps(x, hex=True)
         )
     if not net_conv.landuse.empty and all(
-            [isinstance(x, Polygon) for x in net_conv.landuse.geometry]
+        [isinstance(x, Polygon) for x in net_conv.landuse.geometry]
     ):
         net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
     # convert ppi model to json and save the file
@@ -467,9 +457,7 @@ def json_to_ppi(file_path):
     # read json file and convert to pp model
     net = from_json_ppi(file_path)
     # convert geometry
-    if not net.junction.empty and all(
-            [isinstance(x, str) for x in net.junction.geometry]
-    ):
+    if not net.junction.empty and all([isinstance(x, str) for x in net.junction.geometry]):
         net.junction["geometry"] = net.junction.geometry.apply(lambda x: loads(x, hex=True))
     if not net.pipe.empty and all([isinstance(x, str) for x in net.pipe.geometry]):
         net.pipe["geometry"] = net.pipe.geometry.apply(lambda x: loads(x, hex=True))

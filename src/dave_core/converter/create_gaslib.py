@@ -116,9 +116,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
             )
             nodes.append(innode)
 
-        if (node.is_export is False and node.is_import is True) or (
-            node.is_export is True and node.is_import is True
-        ):
+        if (not node.is_export and node.is_import) or (node.is_export and node.is_import):
             source = etree.Element("source", {"alias": "", "y": "", "x": ""})
             source.attrib["geoWGS84Long"] = str(node.long)
             source.attrib["geoWGS84Lat"] = str(node.lat)
@@ -138,10 +136,10 @@ def create_gaslib(grid_data, output_folder, save_data=True):
                 {"unit": "1000m_cube_per_hour", "value": "0"},
             )  # !!! annahme
             # get flow max value from soure data or calculate from pipes for external nodes
-            if node.is_export is False and node.is_import is True:
+            if not node.is_export and node.is_import:
                 source_dave = sources_dave[sources_dave.junction == node.dave_name].iloc[0]
                 flow_max_source = str(source_dave["max_supply_M_m3_per_d"] * 1000 / 24)
-            elif node.is_export is True and node.is_import is True:
+            elif node.is_export and node.is_import:
                 source_pipes = pipes_dave[
                     (pipes_dave.from_junction == node.dave_name)
                     | (pipes_dave.to_junction == node.dave_name)
@@ -193,9 +191,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
             )  # !!! annahme
             nodes.append(source)
 
-        if (node.is_export is True and node.is_import is False) or (
-            node.is_export is True and node.is_import is True
-        ):
+        if (node.is_export and not node.is_import) or (node.is_export and node.is_import):
             sink = etree.Element("sink", {"alias": "", "y": "", "x": ""})
             sink.attrib["geoWGS84Long"] = str(node.long)
             sink.attrib["geoWGS84Lat"] = str(node.lat)
@@ -215,7 +211,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
                 sink, "flowMin", {"unit": "1000m_cube_per_hour", "value": "0"}
             )  # !!! annahme
             # get flow max value from sink data or calculate from pipes for external nodes
-            if node.is_export == True and node.is_import == False:
+            if node.is_export and not node.is_import:
                 sink_dave = sinks_dave[sinks_dave.junction == node.dave_name].iloc[0]
                 # overwrite flowMax assumption
                 flow_max_sink = str(sink_dave.max_demand_M_m3_per_d * 1000 / 24)
@@ -236,7 +232,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
             sink.append(height)
             nodes.append(sink)
 
-        if node.is_export is True and node.is_import is True:
+        if node.is_export and node.is_import:
             # overwrite mapping entry
             mapping[node.dave_name] = [innode_id, source_id, sink_id]
             # get neighboring pipline to use their charakteristics

@@ -10,6 +10,8 @@ from shapely.geometry import LineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 from shapely.ops import nearest_points
+import functools
+import operator
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
@@ -118,7 +120,8 @@ def line_connections(grid_data):
     all_nodes = concat([nearest_building_point, grid_data.roads.road_junctions]).drop_duplicates()
     # search line connections
     line_connect = GeoSeries(
-        sum(
+        functools.reduce(
+            operator.iadd,
             grid_data.roads.roads.geometry.apply(
                 lambda x: search_line_connections(x, all_nodes)
             ).to_list(),

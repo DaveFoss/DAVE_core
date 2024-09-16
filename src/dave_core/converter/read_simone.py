@@ -2,7 +2,7 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from xml.etree.ElementTree import parse
+from defusedxml.ElementTree import parse
 
 from geopandas import GeoDataFrame
 from pandas import DataFrame

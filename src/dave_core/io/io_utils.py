@@ -220,9 +220,9 @@ class JSONSerializableClass:
         if index in net[element].index.values:
             obj = net[element].object.at[index]
             if overwrite or not isinstance(obj, JSONSerializableClass):
-                logger.info("Updating %s with index %s" % (element, index))
+                logger.info(f"Updating {element} with index {index}")
             else:
-                raise UserWarning("%s with index %s already exists" % (element, index))
+                raise UserWarning(f"{element} with index {index} already exists")
 
         dtypes = None
         if preserve_dtypes:
@@ -246,6 +246,7 @@ class JSONSerializableClass:
             "by directly comparing the objects 'a == b'. "
             "To check if two variables point to the same object, use 'a is b'",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         logger.warning(
@@ -388,8 +389,7 @@ class FromSerializable:
             _module = ("", class_module[1])
             if (_class in self.registry) and (_module in self.registry):
                 logger.error(
-                    "the saved object %s is ambiguous. There are at least two possibilites"
-                    " to decode the object" % class_module
+                    f"the saved object {class_module} is ambiguous. There are at least two possibilites to decode the object"
                 )
             elif _class in self.registry:
                 class_module = _class
@@ -538,7 +538,7 @@ class FromSerializableRegistry:
     @from_serializable.register(class_name="MultiGraph", module_name="networkx")
     def networkx(self):
         mg = json_graph.adjacency_graph(self.obj, attrs={"id": "json_id", "key": "json_key"})
-        edges = list()
+        edges = []
         for n1, n2, e in mg.edges:
             attr = {
                 k: v
@@ -563,8 +563,7 @@ class FromSerializableRegistry:
         module = importlib.import_module(self.module_name)
         if not hasattr(module, self.obj):  # in case a function is a lambda or is not defined
             raise UserWarning(
-                "Could not find the definition of the function %s in the module %s"
-                % (self.obj, module.__name__)
+                f"Could not find the definition of the function {self.obj} in the module {module.__name__}"
             )
         class_ = getattr(module, self.obj)  # works
         return class_
@@ -659,7 +658,7 @@ def dave_hook(
         else:
             return d
     except TypeError:
-        logger.debug("Loading your grid raised a TypeError. %s raised this exception" % d)
+        logger.debug(f"Loading your grid raised a TypeError. {d} raised this exception")
         return d
 
 

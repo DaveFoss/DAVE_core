@@ -251,7 +251,7 @@ def create_loads(grid_data):
         )  # !!! replace unary union function
         industrial_area_full = industrial_polygons_sum.area
         for _, industrial_poly in industrial_buildings.iterrows():
-            building_poly = list(polygonize(industrial_poly.geometry))[0]
+            building_poly = next(iter(polygonize(industrial_poly.geometry)))
             # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
@@ -286,7 +286,7 @@ def create_loads(grid_data):
         )
         commercial_area_full = commercial_polygons_sum.area
         for _, commercial_poly in commercial_buildings.iterrows():
-            building_poly = list(polygonize(commercial_poly.geometry))[0]
+            building_poly = next(iter(polygonize(commercial_poly.geometry)))
             # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
@@ -311,7 +311,7 @@ def create_loads(grid_data):
             # update progress
             pbar.update(19.8 / len(commercial_buildings))
     # create loads for non grid level 7
-    elif any(map(lambda x: x in power_levels, ["ehv", "hv", "mv"])) and not (
+    elif any(x in power_levels for x in ["ehv", "hv", "mv"]) and not (
         grid_data.components_power.transformers.ehv_hv.empty
         and grid_data.components_power.transformers.hv_mv.empty
         and grid_data.components_power.transformers.mv_lv.empty

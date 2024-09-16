@@ -54,11 +54,11 @@ def format_input_levels(power_levels, gas_levels):
         gas_levels = ["hp", "mp", "lp"]
     # sort level inputs
     order_power = ["ehv", "hv", "mv", "lv"]
-    power_sort = sorted(list(map(order_power.index, power_levels)))
+    power_sort = sorted(map(order_power.index, power_levels))
 
     power_levels = [order_power[x] for x in power_sort]
     order_gas = ["hp", "mp", "lp"]
-    gas_sort = sorted(list(map(order_gas.index, gas_levels)))
+    gas_sort = sorted(map(order_gas.index, gas_levels))
     gas_levels = [order_gas[x] for x in gas_sort]
     return power_levels, gas_levels
 
@@ -70,14 +70,14 @@ def geo_info_needs(power_levels, gas_levels, loads):
     """
     # check power and gas level and set decision for geographical parameters
     if ("lv" in power_levels) or ("lp" in gas_levels):
-        roads, roads_plot, buildings, landuse = True, True, True, True
+        roads, buildings, landuse = True, True, True
     elif ("mv" in power_levels) or ("mp" in gas_levels):
-        roads, roads_plot, buildings = False, False, False
+        roads, buildings = False, False
         landuse = bool(loads)  # landuse is needed for load calculation
     else:  # for ehv, hv and hp
-        roads, roads_plot, buildings = False, False, False
+        roads, buildings = False, False
         landuse = bool(loads and power_levels)  # landuse is needed for load calculation
-    return roads, roads_plot, buildings, landuse
+    return roads, buildings, landuse
 
 
 def save_dataset_to_archiv(grid_data):
@@ -121,17 +121,17 @@ def save_dataset_to_user_folder(grid_data, output_format, output_folder, save_da
             if output_format == "json":
                 to_json(
                     grid_data,
-                    file_path=output_folder + "\\" + "dave_dataset.json",
+                    file_path=f"{output_folder}\\dave_dataset.json",
                 )
             elif output_format == "hdf":
                 to_hdf(
                     grid_data,
-                    file_path=output_folder + "\\" + "dave_dataset.h5",
+                    file_path=f"{output_folder}\\dave_dataset.h5",
                 )
             elif output_format == "gpkg":
                 to_gpkg(
                     grid_data,
-                    file_path=output_folder + "\\" + "dave_dataset.gpkg",
+                    file_path=f"{output_folder}\\dave_dataset.gpkg",
                 )
 
 
@@ -261,7 +261,7 @@ def create_grid(
         geodata = []
     else:
         geodata = list(map(str.lower, geodata))
-    roads_l, roads_plot_l, buildings_l, landuse_l = geo_info_needs(power_levels, gas_levels, loads)
+    roads_l, buildings_l, landuse_l = geo_info_needs(power_levels, gas_levels, loads)
     file_exists, file_name = target_area(
         grid_data,
         power_levels=power_levels,

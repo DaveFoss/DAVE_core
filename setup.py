@@ -88,6 +88,7 @@ setup(
         "tqdm",
         "pandapower",
         "pandapipes",
+        "defusedxml",
     ],
     extras_require={
         "dev": ["black", "isort", "pre-commit"]

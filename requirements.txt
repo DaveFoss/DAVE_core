@@ -17,6 +17,7 @@ rasterio
 tqdm
 owslib
 tables
+defusedxml
 # via pip
 #pandapower
 #pandapipes

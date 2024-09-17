@@ -20,6 +20,8 @@ dependencies:
   - rasterio
   - tqdm
   - owslib
+  - tables
+  - defusedxml
   - pip
   - pip:
       - pandapower

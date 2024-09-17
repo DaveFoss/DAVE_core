@@ -748,7 +748,7 @@ def power_processing(
             else:
                 use_opf = False
                 print("power flow converged and has no violations")
-        except:
+        except Exception:
             use_opf = True
             pf_converged = False
             print("power flow did not converged")

@@ -21,7 +21,7 @@ def request_to_df(request):
         # if request is empty their will be an JSONDecodeError
         try:
             request_data = DataFrame(request.json())
-        except:
+        except Exception:
             request_data = DataFrame()
     else:
         request_data = DataFrame()

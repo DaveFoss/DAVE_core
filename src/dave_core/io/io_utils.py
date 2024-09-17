@@ -15,6 +15,7 @@ from inspect import _findclass
 from inspect import isclass
 from warnings import warn
 from pathlib import Path
+from typing import ClassVar
 
 import fiona
 from deepdiff.diff import DeepDiff
@@ -172,7 +173,7 @@ def isinstance_partial(obj, cls):
 
 
 class JSONSerializableClass:
-    json_excludes = ["self", "__class__"]
+    json_excludes: ClassVar[str] = ["self", "__class__"]
 
     def __init__(self, **kwargs):
         pass
@@ -275,14 +276,14 @@ class JSONSerializableClass:
                 if len(obj1) > 0:
                     try:
                         assert_frame_equal(obj1, obj2)
-                    except:
-                        raise UnequalityFound
+                    except Exception as e:
+                        raise UnequalityFound from e
             elif isinstance(obj2, Series):
                 if len(obj1) > 0:
                     try:
                         assert_series_equal(obj1, obj2)
-                    except:
-                        raise UnequalityFound
+                    except Exception as e:
+                        raise UnequalityFound from e
             elif isinstance(obj1, dict):
                 check_dictionary_equality(obj1, obj2)
             elif obj1 != obj1 and obj2 != obj2:
@@ -293,8 +294,8 @@ class JSONSerializableClass:
                 try:
                     if not (isnan(obj1) and isnan(obj2)):
                         raise UnequalityFound
-                except:
-                    raise UnequalityFound
+                except Exception as e:
+                    raise UnequalityFound from e
 
         def check_dictionary_equality(obj1, obj2):
             if set(obj1.keys()) != set(obj2.keys()):
@@ -461,7 +462,7 @@ class FromSerializableRegistry:
                     ser.index = MultiIndex.from_tuples(
                         Series(ser.index).apply(literal_eval).tolist()
                     )
-            except:
+            except Exception:
                 logger.warning("Converting index to multiindex failed.")
             else:
                 if index_names is not None:
@@ -507,7 +508,7 @@ class FromSerializableRegistry:
                     df.index = MultiIndex.from_tuples(Series(df.index).apply(literal_eval).tolist())
                 # slower alternative code:
                 # df.index = pd.MultiIndex.from_tuples([literal_eval(idx) for idx in df.index])
-            except:
+            except Exception:
                 logger.warning("Converting index to multiindex failed.")
             else:
                 if index_names is not None:
@@ -520,7 +521,7 @@ class FromSerializableRegistry:
                     df.columns = MultiIndex.from_tuples(
                         Series(df.columns).apply(literal_eval).tolist()
                     )
-            except:
+            except Exception:
                 logger.warning("Converting columns to multiindex failed.")
             else:
                 if column_names is not None:

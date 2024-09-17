@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pathlib import Path
+from typing import ClassVar
 
 from dave_core.converter.converter import Converter
 from dave_core.converter.converter import Strategy
@@ -192,7 +193,7 @@ def daveProp(prop) -> str:
 
 class MyntsWriter:  # Output file strategy class for Mynts
     elements = Elements()
-    MyntsProps = {}
+    MyntsProps: ClassVar[dict()] = {}
 
     def __init__(self, file=None):
         self.file = file

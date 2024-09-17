@@ -59,9 +59,7 @@ def create_interim_area(areas):
         for i, area in areas.iterrows():
             # check if the considered area adjoining an other one
             areas_other = areas.drop([i])
-            distance = areas_other.geometry.apply(
-                lambda x: area.geometry.distance(x)
-            )
+            distance = areas_other.geometry.apply(lambda x, area=area: area.geometry.distance(x))
             if distance.min() > 0:
                 areas_iso.append((i, distance.idxmin()))
         # if their are isolated areas, check for a connection on the highest grid level
@@ -79,9 +77,7 @@ def create_interim_area(areas):
                 areas = concat(
                     [
                         areas,
-                        GeoDataFrame(
-                            {"name": "interim area", "geometry": [difference]}
-                        ),
+                        GeoDataFrame({"name": "interim area", "geometry": [difference]}),
                     ],
                     ignore_index=True,
                 )
@@ -100,9 +96,7 @@ def voronoi(points):
     """
     # define points for voronoi centroids
     points = points.reset_index(drop=True)  # don't use inplace
-    voronoi_centroids = [
-        [point.x, point.y] for i, point in points.geometry.items()
-    ]
+    voronoi_centroids = [[point.x, point.y] for i, point in points.geometry.items()]
     voronoi_points = array(voronoi_centroids)
     # maximum points of the considered area define, which limit the voronoi polygons
     bound_points = MultiPoint(points.geometry).convex_hull.buffer(1).bounds
@@ -117,17 +111,11 @@ def voronoi(points):
     # carry out voronoi analysis
     vor = Voronoi(voronoi_points)
     # select finit lines and create LineStrings (regions with -1 are infinit)
-    lines = [
-        LineString(vor.vertices[line])
-        for line in vor.ridge_vertices
-        if -1 not in line
-    ]
+    lines = [LineString(vor.vertices[line]) for line in vor.ridge_vertices if -1 not in line]
     # create polygons from the lines
     polygons = array(list(polygonize(lines)))
     # create GeoDataFrame with polygons
-    voronoi_polygons = GeoDataFrame(
-        geometry=polygons, crs=dave_settings["crs_main"]
-    )
+    voronoi_polygons = GeoDataFrame(geometry=polygons, crs=dave_settings["crs_main"])
     # search voronoi centroids and dave name
     voronoi_polygons["centroid"] = None
     voronoi_polygons["dave_name"] = None
@@ -136,9 +124,7 @@ def voronoi(points):
             if polygon.geometry.contains(point.geometry):
                 voronoi_polygons.at[polygon.name, "centroid"] = point.geometry
                 if point.dave_name is not None:
-                    voronoi_polygons.at[polygon.name, "dave_name"] = (
-                        point.dave_name
-                    )
+                    voronoi_polygons.at[polygon.name, "dave_name"] = point.dave_name
                 break
     return voronoi_polygons
 
@@ -195,14 +181,10 @@ def intersection_with_area(gdf, area, remove_columns=True):
         gdf_over = GeoDataFrame([])
         for geom_type in geom_types_gdf:
             gdf_geom_idx = [
-                row.name
-                for i, row in gdf.iterrows()
-                if isinstance(row.geometry, (geom_type))
+                row.name for i, row in gdf.iterrows() if isinstance(row.geometry, (geom_type))
             ]
             # check for values in the target area
-            gdf_over_geom = overlay(
-                gdf.loc[gdf_geom_idx], area, how="intersection"
-            )
+            gdf_over_geom = overlay(gdf.loc[gdf_geom_idx], area, how="intersection")
             gdf_over = concat([gdf_over, gdf_over_geom], ignore_index=True)
     elif len(geom_types_area) > 1:
         # in this case the geodataframe has mixed geometrie information. A seperated consideration
@@ -210,14 +192,10 @@ def intersection_with_area(gdf, area, remove_columns=True):
         gdf_over = GeoDataFrame([])
         for geom_type in geom_types_area:
             area_geom_idx = [
-                row.name
-                for i, row in area.iterrows()
-                if isinstance(row.geometry, (geom_type))
+                row.name for i, row in area.iterrows() if isinstance(row.geometry, (geom_type))
             ]
             # check for values in the target area
-            gdf_over_geom = overlay(
-                gdf, area.loc[area_geom_idx], how="intersection"
-            )
+            gdf_over_geom = overlay(gdf, area.loc[area_geom_idx], how="intersection")
             gdf_over = concat([gdf_over, gdf_over_geom], ignore_index=True)
     else:
         gdf_over = overlay(gdf, area, how="intersection")
@@ -242,17 +220,9 @@ def related_sub(bus, substations):
         (Tuple) - Substation information for a given bus (ego_subst_id, subst_dave_name, subst_name)
     """
     sub_filtered = substations[
-        substations.geometry.apply(
-            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05)
-        )
+        substations.geometry.apply(lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05))
     ]
-    ego_subst_id = (
-        sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []
-    )
-    subst_dave_name = (
-        sub_filtered.dave_name.to_list() if not sub_filtered.empty else []
-    )
-    subst_name = (
-        sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
-    )
+    ego_subst_id = sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []
+    subst_dave_name = sub_filtered.dave_name.to_list() if not sub_filtered.empty else []
+    subst_name = sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
     return ego_subst_id, subst_dave_name, subst_name

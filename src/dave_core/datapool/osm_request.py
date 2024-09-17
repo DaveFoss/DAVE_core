@@ -6,7 +6,7 @@ from collections import namedtuple
 from time import sleep
 from urllib.parse import urlencode
 from urllib.request import urlopen
-from xml.etree.ElementTree import fromstring
+from defusedxml.ElementTree import fromstring
 
 from geopandas import GeoDataFrame
 from pandas import DataFrame
@@ -153,6 +153,8 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
     #     content = response.read()
     while 1:
         try:
+            if not url.startswith(("http:", "https:")):
+                raise ValueError("URL must start with 'http:' or 'https:'")
             with urlopen(url) as response:
                 content = response.read()
                 if response.getcode() == 200:
@@ -182,11 +184,11 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
     else:
         try:
             recursestr = recurse_map[recurse]
-        except KeyError:
+        except KeyError as e:
             raise ValueError(
                 "Unrecognized recurse value '{}'. "
                 "Must be one of: {}.".format(recurse, ", ".join(recurse_map.keys()))
-            )
+            ) from e
 
     # Allow tags to be a single string
     if isinstance(tags, string_types) and tags:

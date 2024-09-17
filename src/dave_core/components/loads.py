@@ -219,7 +219,9 @@ def create_loads(grid_data):
                         # check the case that the building centroid is outside building boundary
                         building_centroid = building_geom.centroid
                         centroid_distance = building_nodes.geometry.apply(
-                            lambda x: building_centroid.distance(x)
+                            lambda x, building_centroid=building_centroid: building_centroid.distance(
+                                x
+                            )
                         )
                         if centroid_distance.min() < 1e-04:
                             lv_node = building_nodes.loc[centroid_distance.idxmin()]

@@ -818,7 +818,7 @@ def power_processing(
                     net.gen.p_mw = net.res_gen.p_mw
                     net.gen.sn_mva = (net.res_gen.p_mw**2 + net.res_gen.q_mvar**2).pow(1 / 2)
                     net.gen.vm_pu = net.res_gen.vm_pu
-            except:
+            except Exception:
                 print("optimal power flow did not converged")
         # update progress
         pbar.update(50)

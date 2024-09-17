@@ -305,7 +305,9 @@ def create_mv_topology(grid_data):
                 distance_min = 1000  # any big number
                 # find pair of nearest nodes
                 for point in line_points:
-                    distance = nearest_line_points.geometry.apply(lambda x: point.distance(x))
+                    distance = nearest_line_points.geometry.apply(
+                        lambda x, point=point: point.distance(x)
+                    )
                     if distance_min > distance.min():
                         distance_min = distance.min()
                         nearest_point = nearest_line_points[distance.idxmin()]
@@ -326,13 +328,13 @@ def create_mv_topology(grid_data):
             # get from bus name
             mv_lines.at[line.name, "from_bus"] = mv_buses.loc[
                 mv_buses.geometry.apply(
-                    lambda x: Point(line.geometry.coords[:][0]).distance(x)
+                    lambda x, line=line: Point(line.geometry.coords[:][0]).distance(x)
                 ).idxmin()
             ].dave_name
             # get to bus name
             mv_lines.at[line.name, "to_bus"] = mv_buses.loc[
                 mv_buses.geometry.apply(
-                    lambda x: Point(line.geometry.coords[:][1]).distance(x)
+                    lambda x, line=line: Point(line.geometry.coords[:][1]).distance(x)
                 ).idxmin()
             ].dave_name
         # calculate length in km

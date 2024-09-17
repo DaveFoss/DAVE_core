@@ -320,7 +320,7 @@ def create_lv_topology(grid_data):
         else:
             # check if there is a suitable road junction in grid data
             distance = road_junctions_grid.geometry.apply(
-                lambda x: Point(line_coords_from).distance(x)
+                lambda x, line_coords_from=line_coords_from: Point(line_coords_from).distance(x)
             )
             if not distance.empty and distance.min() < 1e-04:
                 # road junction node was found
@@ -328,7 +328,7 @@ def create_lv_topology(grid_data):
             else:
                 # no road junction was found, create it from road junction data
                 distance = road_junctions_origin.geometry.apply(
-                    lambda x: Point(line_coords_from).distance(x)
+                    lambda x, line_coords_from=line_coords_from: Point(line_coords_from).distance(x)
                 )
                 if distance.min() < 1e-04:
                     road_junction_geom = road_junctions_origin.loc[distance.idxmin()]
@@ -362,7 +362,7 @@ def create_lv_topology(grid_data):
         else:
             # check if there is a suitable road junction in grid data
             distance = road_junctions_grid.geometry.apply(
-                lambda x: Point(line_coords_to).distance(x)
+                lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
             )
             if distance.min() < 1e-04:
                 # road junction node was found
@@ -370,7 +370,7 @@ def create_lv_topology(grid_data):
             else:
                 # no road junction was found, create it from road junction data
                 distance = road_junctions_origin.geometry.apply(
-                    lambda x: Point(line_coords_to).distance(x)
+                    lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
                 )
                 if distance.min() < 1e-04:
                     road_junction_geom = road_junctions_origin.loc[distance.idxmin()]

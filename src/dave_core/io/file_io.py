@@ -311,7 +311,7 @@ def pp_to_json(net, file_path):
     # copy network to keep the geometries in object form in the network return
     net_conv = net.deepcopy()
     # convert geometry
-    if not net_conv.bus.empty and all([isinstance(x, Point) for x in net_conv.bus.geometry]):
+    if not net_conv.bus.empty and all(isinstance(x, Point) for x in net_conv.bus.geometry):
         net_conv.bus["geometry"] = net_conv.bus.geometry.apply(lambda x: dumps(x, hex=True))
     if not net_conv.line.empty and all(
         isinstance(x, (LineString, MultiLineString)) for x in net_conv.line.geometry

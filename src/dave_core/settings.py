@@ -13,7 +13,7 @@ def set_dave_settings():
     settings = {
         # main definitions
         "dave_dir": Path(path.realpath(__file__)).parent,
-        "dave_output_dir": Path(r"~\Desktop\DaVe_output").expanduser(),
+        "dave_output_dir": Path.home().joinpath("Desktop", "DAVE_output"),
         # structural definitions:
         "bar_format": "{desc:<10}{percentage:5.0f}%|{bar:30}| completed",  # format progress bar
         # geographical defintions:

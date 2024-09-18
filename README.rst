@@ -12,7 +12,12 @@ DAVE_core
     * - tests
       - |github-actions| |coveralls| |codecov|
     * - package
-      - |version| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
+      - |version| |download| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
+
+
+.. |download| image:: https://static.pepy.tech/badge/dave-core.svg
+    :alt: download statistic
+    :target: https://pepy.tech/project/dave-core
 
 .. |version| image:: https://img.shields.io/pypi/v/dave_core.svg
     :alt: PyPI Package latest release

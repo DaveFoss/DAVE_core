@@ -1,0 +1,26 @@
+1.3.1 (September 19, 2024)
+=======================
+
+Added
+-----
+
+* functions for extending pandapower/pandapipes models with geodata
+* possibility to deactivate the local data saving
+* example for extending pandapower/pandapipes network with geodata
+
+Changed
+-------
+
+* replaced api_use parameter with save_data in create function
+
+Fixed
+-----
+
+* converting additional geodata at pandapower converter
+* url for downloading data from external dave data storage
+
+Required
+--------
+
+* added tables to requirements
+* added defusedxml to requirements

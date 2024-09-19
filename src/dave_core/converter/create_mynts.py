@@ -193,7 +193,7 @@ def daveProp(prop) -> str:
 
 class MyntsWriter:  # Output file strategy class for Mynts
     elements = Elements()
-    MyntsProps: ClassVar[{}] = {}
+    # MyntsProps = {}
 
     def __init__(self, file=None):
         self.file = file

@@ -29,7 +29,7 @@ def read_gaslib_cs():
     # root = etree.parse(get_data_path("gaslib/GasLib-582-v2.cs", "data"))
     # import xml.etree.ElementTree as ET
 
-    tree = ET.parse(join(filepath, "gaslib/GasLib-582-v2.cs"))
+    tree = ET.parse(join(filepath, "gaslib/GasLib-582-v2.cs"))  # noqa: S320
     gaslib_data_cs_xml = tree.getroot()
 
     return gaslib_data_cs, gaslib_data_cs_xml

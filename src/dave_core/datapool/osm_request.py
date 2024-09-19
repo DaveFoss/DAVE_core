@@ -7,7 +7,6 @@ from time import sleep
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-import requests
 from defusedxml.ElementTree import fromstring
 from geopandas import GeoDataFrame
 from pandas import DataFrame

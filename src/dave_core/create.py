@@ -3,8 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from os import environ
-from os import makedirs
-from os import path
 from pathlib import Path
 from timeit import default_timer
 from warnings import catch_warnings

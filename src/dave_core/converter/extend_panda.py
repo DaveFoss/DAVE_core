@@ -1,13 +1,16 @@
 from json import dumps
 
-from geopandas import GeoDataFrame, GeoSeries
+from geopandas import GeoDataFrame
+from geopandas import GeoSeries
 from pandapipes import pandapipesNet
 from pandapipes import toolbox as ppi_toolbox
 from pandapower import toolbox as pp_toolbox
 from pandapower.auxiliary import pandapowerNet
-from pandapower.io_utils import PPJSONEncoder, isinstance_partial
+from pandapower.io_utils import PPJSONEncoder
+from pandapower.io_utils import isinstance_partial
 from pandas import concat
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
+from shapely.geometry import Point
 from shapely.ops import linemerge
 
 from dave_core.create import create_grid

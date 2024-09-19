@@ -6,9 +6,9 @@ from collections import namedtuple
 from time import sleep
 from urllib.parse import urlencode
 from urllib.request import urlopen
-from defusedxml.ElementTree import fromstring
-import requests
 
+import requests
+from defusedxml.ElementTree import fromstring
 from geopandas import GeoDataFrame
 from pandas import DataFrame
 from pandas import concat

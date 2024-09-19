@@ -3,9 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from ast import literal_eval
+
 from pandas import Series
 from pandas import concat
-from ast import literal_eval
 
 from dave_core.datapool.read_data import read_gaslib
 from dave_core.datapool.read_data import read_scigridgas_iggielgn

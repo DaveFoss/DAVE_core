@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+from pathlib import Path
 
 import requests
 from geopandas import GeoDataFrame
@@ -14,7 +15,6 @@ from pandas import read_hdf
 from shapely.geometry import LineString
 from shapely.wkb import loads
 from xmlschema import XMLSchema
-from pathlib import Path
 
 from dave_core.settings import dave_settings
 from dave_core.toolbox import get_data_path

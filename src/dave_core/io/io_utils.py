@@ -13,9 +13,9 @@ from functools import partial
 from functools import singledispatch
 from inspect import _findclass
 from inspect import isclass
-from warnings import warn
 from pathlib import Path
 from typing import ClassVar
+from warnings import warn
 
 import fiona
 from deepdiff.diff import DeepDiff

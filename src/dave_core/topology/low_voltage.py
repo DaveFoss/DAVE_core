@@ -2,6 +2,9 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import functools
+import operator
+
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import Series
@@ -10,8 +13,6 @@ from shapely.geometry import LineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 from shapely.ops import nearest_points
-import functools
-import operator
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm

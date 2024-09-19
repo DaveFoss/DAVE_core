@@ -1,21 +1,18 @@
 # via conda forge
+pandas
 Shapely
 geopandas
 matplotlib
 geopy
 fiona
+networkx
 contextily
 pytest
 pytest-cov
 pytest-xdist
-openpyxl
 xmlschema
 lxml
-python-keycloak
-authlib
-rasterio
 tqdm
-owslib
 tables
 defusedxml
 # via pip

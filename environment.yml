@@ -2,12 +2,13 @@ name: dave_core
 channels:
   - conda-forge
 dependencies:
-  - python=3.11.6
+  - python=3.12.5
   - shapely
   - geopandas
   - matplotlib
   - geopy
   - fiona
+  - networkx
   - contextily
   - pytest
   - pytest-cov
@@ -15,11 +16,7 @@ dependencies:
   - openpyxl
   - xmlschema
   - lxml
-  - authlib
-  - pytables
-  - rasterio
   - tqdm
-  - owslib
   - tables
   - defusedxml
   - pip

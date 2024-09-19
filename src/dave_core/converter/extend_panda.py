@@ -42,11 +42,15 @@ def get_grid_area(net, buffer=10, crs="epsg:4326", convex_hull=True):
     # define grid area by calculating the convexx hull for the lines/pipes
     if isinstance(net, pandapowerNet):
         grid_lines = GeoDataFrame(
-            net.line, geometry=net.line_geodata.coords.apply(lambda x: LineString(x)), crs=crs
+            net.line,
+            geometry=net.line_geodata.coords.apply(lambda x: LineString(x)),
+            crs=crs,
         )
     if isinstance(net, pandapipesNet):
         grid_lines = GeoDataFrame(
-            net.pipe, geometry=net.pipe_geodata.coords.apply(lambda x: LineString(x)), crs=crs
+            net.pipe,
+            geometry=net.pipe_geodata.coords.apply(lambda x: LineString(x)),
+            crs=crs,
         )  # 'epsg:23032'
     # change crs for using meter as unit
     if crs != "epsg:3035":
@@ -93,7 +97,11 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
         if cross_border:
             # check lines which not intersecting with area
             lines = GeoDataFrame(
-                net.line, geometry=net.line_geodata.coords.apply(lambda x: LineString(x)), crs=crs
+                net.line,
+                geometry=net.line_geodata.coords.apply(
+                    lambda x: LineString(x)
+                ),
+                crs=crs,
             )
             lines_in = lines[lines.geometry.intersects(area)]
             buses_in_idx = set(concat([lines_in.from_bus, lines_in.to_bus]))
@@ -101,7 +109,9 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
         else:
             # check buses which not intersecting with area
             buses = GeoDataFrame(
-                net.bus, geometry=net.bus_geodata.apply(lambda x: Point(x), axis=1), crs=crs
+                net.bus,
+                geometry=net.bus_geodata.apply(lambda x: Point(x), axis=1),
+                crs=crs,
             )
             buses_out_idx = buses[~buses.geometry.intersects(area)].index
         pp_toolbox.drop_buses(net, buses_out_idx, drop_elements=True)
@@ -109,19 +119,31 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
         if cross_border:
             # check pipes which not intersecting with area
             pipes = GeoDataFrame(
-                net.pipe, geometry=net.pipe_geodata.coords.apply(lambda x: LineString(x)), crs=crs
+                net.pipe,
+                geometry=net.pipe_geodata.coords.apply(
+                    lambda x: LineString(x)
+                ),
+                crs=crs,
             )
             pipes_in = pipes[pipes.geometry.intersects(area)]
-            junctions_in_idx = set(concat([pipes_in.from_junction, pipes_in.to_junction]))
-            junctions_out_idx = list(set(net.junction.index) - junctions_in_idx)
+            junctions_in_idx = set(
+                concat([pipes_in.from_junction, pipes_in.to_junction])
+            )
+            junctions_out_idx = list(
+                set(net.junction.index) - junctions_in_idx
+            )
         else:
             # check buses which not intersecting with area
             junctions = GeoDataFrame(
                 net.junction,
-                geometry=net.junction_geodata.apply(lambda x: Point(x), axis=1),
+                geometry=net.junction_geodata.apply(
+                    lambda x: Point(x), axis=1
+                ),
                 crs=crs,
             )
-            junctions_out_idx = junctions[~junctions.geometry.intersects(area)].index
+            junctions_out_idx = junctions[
+                ~junctions.geometry.intersects(area)
+            ].index
         ppi_toolbox.drop_junctions(net, junctions_out_idx, drop_elements=True)
     return net
 
@@ -144,12 +166,17 @@ def request_geo_data(grid_area, crs, save_data=True):
     """
     if crs != "epsg:4326":
         # adjusted grid_area polygon to work with the DAVE main function, projection to 4326
-        grid_area = GeoDataFrame({"name": ["own area"], "geometry": [grid_area]}, crs=crs)
+        grid_area = GeoDataFrame(
+            {"name": ["own area"], "geometry": [grid_area]}, crs=crs
+        )
         grid_area.to_crs(crs="epsg:4326", inplace=True)
         grid_area = grid_area.iloc[0].geometry
     # request geodata from DAVE
     _, net = create_grid(
-        own_area=grid_area, geodata=["ALL"], convert_power=["pandapower"], save_data=save_data
+        own_area=grid_area,
+        geodata=["ALL"],
+        convert_power=["pandapower"],
+        save_data=save_data,
     )
     # TODO: convert pandapower oder pandapipes jenachdem was abgefragt wird
     return net

@@ -23,7 +23,9 @@ def create_sources(grid_data, scigrid_productions):
     # get compressor data
     sources = scigrid_productions.copy()
     # prepare data
-    sources.rename(columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True)
+    sources.rename(
+        columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True
+    )
     sources["source"] = "scigridgas"
     # intersection with target area
     sources = overlay(sources, grid_data.area, how="intersection")
@@ -36,13 +38,17 @@ def create_sources(grid_data, scigrid_productions):
         # search for junction dave name
         junctions = grid_data.hp_data.hp_junctions.copy()
         sources["junction"] = sources.node_id.apply(
-            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]].iloc[0].dave_name
+            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]]
+            .iloc[0]
+            .dave_name
         )
         # set junction is_export to true if a sink is connected to
         sources_junctions = sources.junction.to_list()
         for _, junction in grid_data.hp_data.hp_junctions.iterrows():
             if junction.dave_name in sources_junctions:
-                grid_data.hp_data.hp_junctions.at[junction.name, "is_import"] = True
+                grid_data.hp_data.hp_junctions.at[
+                    junction.name, "is_import"
+                ] = True
         # set grid level number
         sources["pressure_level"] = 1
         # get some relevant parameters out from scigrid param and write in single parameter
@@ -83,7 +89,9 @@ def create_compressors(grid_data, scigrid_compressors):
     # get compressor data
     compressors = scigrid_compressors.copy()
     # prepare data
-    compressors.rename(columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True)
+    compressors.rename(
+        columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True
+    )
     compressors["source"] = "scigridgas"
     # intersection with target area
     compressors = overlay(compressors, grid_data.area, how="intersection")
@@ -96,7 +104,9 @@ def create_compressors(grid_data, scigrid_compressors):
         # search for junction dave name
         junctions = grid_data.hp_data.hp_junctions.copy()
         compressors["junction"] = compressors.node_id.apply(
-            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]].iloc[0].dave_name
+            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]]
+            .iloc[0]
+            .dave_name
         )
         # set grid level number
         compressors["pressure_level"] = 1
@@ -141,7 +151,9 @@ def create_sinks(grid_data, scigrid_consumers):
     # get sink data
     sinks = scigrid_consumers.copy()
     # prepare data
-    sinks.rename(columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True)
+    sinks.rename(
+        columns={"id": "scigrid_id", "name": "scigrid_name"}, inplace=True
+    )
     sinks["source"] = "scigridgas"
     # intersection with target area
     sinks = overlay(sinks, grid_data.area, how="intersection")
@@ -154,13 +166,17 @@ def create_sinks(grid_data, scigrid_consumers):
         # search for junction dave name
         junctions = grid_data.hp_data.hp_junctions.copy()
         sinks["junction"] = sinks.node_id.apply(
-            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]].iloc[0].dave_name
+            lambda x: junctions[junctions.scigrid_id == literal_eval(x)[0]]
+            .iloc[0]
+            .dave_name
         )
         # set junction is_export to true if a sink is connected to
         sink_junctions = sinks.junction.to_list()
         for _, junction in grid_data.hp_data.hp_junctions.iterrows():
             if junction.dave_name in sink_junctions:
-                grid_data.hp_data.hp_junctions.at[junction.name, "is_export"] = True
+                grid_data.hp_data.hp_junctions.at[
+                    junction.name, "is_export"
+                ] = True
         # set grid level number
         sinks["pressure_level"] = 1
         # get some relevant parameters out from scigrid param and write in single parameter
@@ -201,14 +217,25 @@ def gas_components(grid_data, compressor, sink, source):
         if any([compressor, source, sink]):
             scigrid_data, meta_data = read_scigridgas_iggielgn()
             # add meta data
-            if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
-                grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
+            if (
+                f"{meta_data['Main'].Titel.loc[0]}"
+                not in grid_data.meta_data.keys()
+            ):
+                grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
+                    meta_data
+                )
         # add compressors
         if compressor:
-            create_compressors(grid_data, scigrid_compressors=scigrid_data["compressors"])
+            create_compressors(
+                grid_data, scigrid_compressors=scigrid_data["compressors"]
+            )
         # add sinks
         if sink:
-            create_sinks(grid_data, scigrid_consumers=scigrid_data["consumers"])
+            create_sinks(
+                grid_data, scigrid_consumers=scigrid_data["consumers"]
+            )
         # add sources
         if source:
-            create_sources(grid_data, scigrid_productions=scigrid_data["productions"])
+            create_sources(
+                grid_data, scigrid_productions=scigrid_data["productions"]
+            )

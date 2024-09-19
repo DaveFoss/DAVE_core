@@ -129,7 +129,9 @@ def encrypt_string(s, key, compress=True):
         ~array([cryptography_INSTALLED, hashlib_INSTALLED, base64_INSTALLED])
     ]
     if len(missing_packages):
-        soft_dependency_error(str(sys._getframe().f_code.co_name) + "()", missing_packages)
+        soft_dependency_error(
+            str(sys._getframe().f_code.co_name) + "()", missing_packages
+        )
     key_base = hashlib.sha256(key.encode())
     key = base64.urlsafe_b64encode(key_base.digest())
     cipher_suite = Fernet(key)
@@ -149,7 +151,9 @@ def decrypt_string(s, key):
         ~array([cryptography_INSTALLED, hashlib_INSTALLED, base64_INSTALLED])
     ]
     if len(missing_packages):
-        soft_dependency_error(str(sys._getframe().f_code.co_name) + "()", missing_packages)
+        soft_dependency_error(
+            str(sys._getframe().f_code.co_name) + "()", missing_packages
+        )
     key_base = hashlib.sha256(key.encode())
     key = base64.urlsafe_b64encode(key_base.digest())
     cipher_suite = Fernet(key)
@@ -192,8 +196,13 @@ class JSONSerializableClass:
                 types.MethodType,
                 types.FunctionType,
             ):
-                if value.__class__ == types.MethodType and _findclass(value) is not None:
-                    return with_signature(value, value.__name__, obj_module=_findclass(value))
+                if (
+                    value.__class__ == types.MethodType
+                    and _findclass(value) is not None
+                ):
+                    return with_signature(
+                        value, value.__name__, obj_module=_findclass(value)
+                    )
                 return with_signature(value, value.__name__)
             return value
 
@@ -223,7 +232,9 @@ class JSONSerializableClass:
             if overwrite or not isinstance(obj, JSONSerializableClass):
                 logger.info(f"Updating {element} with index {index}")
             else:
-                raise UserWarning(f"{element} with index {index} already exists")
+                raise UserWarning(
+                    f"{element} with index {index} already exists"
+                )
 
         dtypes = None
         if preserve_dtypes:
@@ -261,7 +272,9 @@ class JSONSerializableClass:
             pass
 
         def check_equality(obj1, obj2):
-            if isinstance(obj1, (ndarray, generic)) or isinstance(obj2, (ndarray, generic)):
+            if isinstance(obj1, (ndarray, generic)) or isinstance(
+                obj2, (ndarray, generic)
+            ):
                 unequal = True
                 if equal(obj1, obj2):
                     unequal = False
@@ -437,14 +450,19 @@ class FromSerializableRegistry:
                     dataset = dave_dataset[key]
                 elif isinstance(dave_dataset[key], davestructure):
                     for key_sec in dave_dataset[key].keys():
-                        if next(iter(self.obj)) in dave_dataset[key][key_sec].keys():
+                        if (
+                            next(iter(self.obj))
+                            in dave_dataset[key][key_sec].keys()
+                        ):
                             dataset = dave_dataset[key][key_sec]
             if dataset is None:
                 dataset = dave_dataset
             dataset.update(self.obj)
             return dataset
 
-    @from_serializable.register(class_name="Series", module_name="pandas.core.series")
+    @from_serializable.register(
+        class_name="Series", module_name="pandas.core.series"
+    )
     def Series(self):
         is_multiindex = self.d.pop("is_multiindex", False)
         index_name = self.d.pop("index_name", None)
@@ -457,7 +475,9 @@ class FromSerializableRegistry:
         if is_multiindex:
             try:
                 if len(ser) == 0:
-                    ser.index = MultiIndex.from_tuples([], names=index_names, dtype=int64)
+                    ser.index = MultiIndex.from_tuples(
+                        [], names=index_names, dtype=int64
+                    )
                 else:
                     ser.index = MultiIndex.from_tuples(
                         Series(ser.index).apply(literal_eval).tolist()
@@ -469,7 +489,9 @@ class FromSerializableRegistry:
                     ser.index.names = index_names
         return ser
 
-    @from_serializable.register(class_name="DataFrame", module_name="pandas.core.frame")
+    @from_serializable.register(
+        class_name="DataFrame", module_name="pandas.core.frame"
+    )
     def DataFrame(self):
         is_multiindex = self.d.pop("is_multiindex", False)
         is_multicolumn = self.d.pop("is_multicolumn", False)
@@ -479,7 +501,9 @@ class FromSerializableRegistry:
         column_names = self.d.pop("column_names", None)
 
         obj = self.obj
-        if isinstance(obj, str) and (not Path(obj).is_absolute() or not obj.endswith(".json")):
+        if isinstance(obj, str) and (
+            not Path(obj).is_absolute() or not obj.endswith(".json")
+        ):
             obj = io.StringIO(obj)
 
         df = read_json(obj, precise_float=True, convert_axes=False, **self.d)
@@ -503,9 +527,13 @@ class FromSerializableRegistry:
         if is_multiindex:
             try:
                 if len(df) == 0:
-                    df.index = MultiIndex.from_frame(DataFrame(columns=index_names, dtype=int64))
+                    df.index = MultiIndex.from_frame(
+                        DataFrame(columns=index_names, dtype=int64)
+                    )
                 else:
-                    df.index = MultiIndex.from_tuples(Series(df.index).apply(literal_eval).tolist())
+                    df.index = MultiIndex.from_tuples(
+                        Series(df.index).apply(literal_eval).tolist()
+                    )
                 # slower alternative code:
                 # df.index = pd.MultiIndex.from_tuples([literal_eval(idx) for idx in df.index])
             except Exception:
@@ -516,7 +544,9 @@ class FromSerializableRegistry:
         if is_multicolumn:
             try:
                 if len(df) == 0:
-                    df.columns = MultiIndex.from_frame(DataFrame(columns=column_names, dtype=int64))
+                    df.columns = MultiIndex.from_frame(
+                        DataFrame(columns=column_names, dtype=int64)
+                    )
                 else:
                     df.columns = MultiIndex.from_tuples(
                         Series(df.columns).apply(literal_eval).tolist()
@@ -536,9 +566,13 @@ class FromSerializableRegistry:
                 df[col] = df[col].apply(self.dave_hook)
         return df
 
-    @from_serializable.register(class_name="MultiGraph", module_name="networkx")
+    @from_serializable.register(
+        class_name="MultiGraph", module_name="networkx"
+    )
     def networkx(self):
-        mg = json_graph.adjacency_graph(self.obj, attrs={"id": "json_id", "key": "json_key"})
+        mg = json_graph.adjacency_graph(
+            self.obj, attrs={"id": "json_id", "key": "json_key"}
+        )
         edges = []
         for n1, n2, e in mg.edges:
             attr = {
@@ -562,7 +596,9 @@ class FromSerializableRegistry:
     @from_serializable.register(class_name="function")
     def function(self):
         module = importlib.import_module(self.module_name)
-        if not hasattr(module, self.obj):  # in case a function is a lambda or is not defined
+        if not hasattr(
+            module, self.obj
+        ):  # in case a function is a lambda or is not defined
             raise UserWarning(
                 f"Could not find the definition of the function {self.obj} in the module {module.__name__}"
             )
@@ -575,7 +611,9 @@ class FromSerializableRegistry:
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
-                self.obj = json.loads(self.obj, cls=DAVEJSONDecoder, object_hook=dave_hook)
+                self.obj = json.loads(
+                    self.obj, cls=DAVEJSONDecoder, object_hook=dave_hook
+                )
                 # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
@@ -595,9 +633,13 @@ class FromSerializableRegistry:
                     #     df.at[idx, geom] = val
                 return df
 
-    @from_serializable.register(class_name="GeoDataFrame", module_name="geopandas.geodataframe")
+    @from_serializable.register(
+        class_name="GeoDataFrame", module_name="geopandas.geodataframe"
+    )
     def GeoDataFrame(self):
-        df = GeoDataFrame.from_features(fiona.Collection(self.obj), crs=self.d["crs"])
+        df = GeoDataFrame.from_features(
+            fiona.Collection(self.obj), crs=self.d["crs"]
+        )
         # set original index
         if "id" in df:
             df.set_index(df["id"].values.astype(int64), inplace=True)
@@ -607,17 +649,23 @@ class FromSerializableRegistry:
         if "coords" in df:
             # df['coords'] = df.coords.apply(json.loads)
             valid_coords = ~isnull(df.coords)
-            df.loc[valid_coords, "coords"] = df.loc[valid_coords, "coords"].apply(json.loads)
+            df.loc[valid_coords, "coords"] = df.loc[
+                valid_coords, "coords"
+            ].apply(json.loads)
         df = df.reindex(columns=self.d["columns"])
 
         # df.astype changes geodataframe to dataframe -> _preserve_dtypes fixes it
         _preserve_dtypes(df, dtypes=self.d["dtype"])
         return df
 
-    @from_serializable.register(class_name="GeoSeries", module_name="geopandas.geoseries")
+    @from_serializable.register(
+        class_name="GeoSeries", module_name="geopandas.geoseries"
+    )
     def GeoSeries(self):
         # create GeoDataFrame because from_feature function exist only for gdf
-        df = GeoDataFrame.from_features(fiona.Collection(self.obj), crs=self.d["crs"])
+        df = GeoDataFrame.from_features(
+            fiona.Collection(self.obj), crs=self.d["crs"]
+        )
         # set original index
         if "id" in df:
             df.set_index(df["id"].values.astype(int64), inplace=True)
@@ -650,7 +698,11 @@ def dave_hook(
                 return obj  # backwards compatibility
             else:
                 # obj = {"_init": d, "_state": dict()}  # backwards compatibility
-                obj = {key: val for key, val in d.items() if key not in ["_module", "_class"]}
+                obj = {
+                    key: val
+                    for key, val in d.items()
+                    if key not in ["_module", "_class"]
+                }
             fs = registry_class(obj, d, dave_hook)
             fs.class_name = d.pop("_class", "")
             fs.module_name = d.pop("_module", "")
@@ -659,7 +711,9 @@ def dave_hook(
         else:
             return d
     except TypeError:
-        logger.debug(f"Loading your grid raised a TypeError. {d} raised this exception")
+        logger.debug(
+            f"Loading your grid raised a TypeError. {d} raised this exception"
+        )
         return d
 
 
@@ -726,7 +780,10 @@ class DAVEJSONEncoder(json.JSONEncoder):
                 return _repr(o)
 
             if not allow_nan:
-                raise ValueError("Out of range float values are not JSON compliant: " + repr(o))
+                raise ValueError(
+                    "Out of range float values are not JSON compliant: "
+                    + repr(o)
+                )
 
             return text
 
@@ -811,7 +868,9 @@ def json_num(obj):
 @to_serializable.register(complex)
 def json_complex(obj):
     logger.debug("complex")
-    d = with_signature(obj, str(obj), obj_module="builtins", obj_class="complex")
+    d = with_signature(
+        obj, str(obj), obj_module="builtins", obj_class="complex"
+    )
     d.pop("dtype")
     return d
 
@@ -825,7 +884,9 @@ def json_bool(obj):
 @to_serializable.register(tuple)
 def json_tuple(obj):
     logger.debug("tuple")
-    d = with_signature(obj, list(obj), obj_module="builtins", obj_class="tuple")
+    d = with_signature(
+        obj, list(obj), obj_module="builtins", obj_class="tuple"
+    )
     return d
 
 
@@ -839,14 +900,18 @@ def json_set(obj):
 @to_serializable.register(frozenset)
 def json_frozenset(obj):
     logger.debug("frozenset")
-    d = with_signature(obj, list(obj), obj_module="builtins", obj_class="frozenset")
+    d = with_signature(
+        obj, list(obj), obj_module="builtins", obj_class="frozenset"
+    )
     return d
 
 
 @to_serializable.register(Graph)
 def json_networkx(obj):
     logger.debug("nx graph")
-    json_string = json_graph.adjacency_data(obj, attrs={"id": "json_id", "key": "json_key"})
+    json_string = json_graph.adjacency_data(
+        obj, attrs={"id": "json_id", "key": "json_key"}
+    )
     d = with_signature(obj, json_string, obj_module="networkx")
     return d
 
@@ -869,10 +934,13 @@ def json_dataframe(obj):
     logger.debug("DataFrame")
     orient = (
         "split"
-        if not isinstance(obj.index, MultiIndex) and not isinstance(obj.columns, MultiIndex)
+        if not isinstance(obj.index, MultiIndex)
+        and not isinstance(obj.columns, MultiIndex)
         else "columns"
     )
-    json_string = obj.to_json(orient=orient, default_handler=to_serializable, double_precision=15)
+    json_string = obj.to_json(
+        orient=orient, default_handler=to_serializable, double_precision=15
+    )
     d = with_signature(obj, json_string)
     d["orient"] = orient
     if len(obj.columns) > 0 and isinstance(obj.columns[0], str):
@@ -886,7 +954,9 @@ def json_dataframe(obj):
         d["column_name"] = obj.columns.name
     if isinstance(obj.index, MultiIndex) and set(obj.index.names) != {None}:
         d["index_names"] = obj.index.names
-    if isinstance(obj.columns, MultiIndex) and set(obj.columns.names) != {None}:
+    if isinstance(obj.columns, MultiIndex) and set(obj.columns.names) != {
+        None
+    }:
         d["column_names"] = obj.columns.names
 
     # store info that index is of type Multiindex originally
@@ -902,7 +972,9 @@ def json_series(obj):
     orient = "split" if not isinstance(obj.index, MultiIndex) else "index"
     d = with_signature(
         obj,
-        obj.to_json(orient=orient, default_handler=to_serializable, double_precision=15),
+        obj.to_json(
+            orient=orient, default_handler=to_serializable, double_precision=15
+        ),
     )
     d.update({"dtype": str(obj.dtypes), "orient": orient, "typ": "series"})
 

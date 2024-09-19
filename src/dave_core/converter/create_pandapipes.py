@@ -23,7 +23,11 @@ from dave_core.toolbox import multiline_coords
 
 
 def create_pandapipes(
-    grid_data, save_data=True, output_folder=None, fluid=None, idx_ref="dave_name"
+    grid_data,
+    save_data=True,
+    output_folder=None,
+    fluid=None,
+    idx_ref="dave_name",
 ):
     """
     This function creates a pandapipes network based an the DaVe dataset
@@ -75,7 +79,9 @@ def create_pandapipes(
                 Series([f"junction_{x}" for x in all_junctions.index]),
             )  # TODO: hier fehlt noch das pressure level
         # !!! set nominal pressure to the lowest maximal pressure of the pipelines (has to be changed for multiple pressure levles)
-        all_junctions["pn_bar"] = grid_data.hp_data.hp_pipes.max_pressure_bar.min()
+        all_junctions["pn_bar"] = (
+            grid_data.hp_data.hp_pipes.max_pressure_bar.min()
+        )
         # all_junctions.reset_index(drop=True, inplace=True)
         # create junctions
         create_junctions(
@@ -84,22 +90,31 @@ def create_pandapipes(
             pn_bar=all_junctions["pn_bar"],
             tfluid_k=(
                 dave_settings["hp_pipes_tfluid_k"]
-                if "tfluid_k" not in all_junctions.keys() or all(all_junctions.tfluid_k.isna())
+                if "tfluid_k" not in all_junctions.keys()
+                or all(all_junctions.tfluid_k.isna())
                 else all_junctions.tfluid_k.apply(
-                    lambda x: dave_settings["hp_pipes_tfluid_k"] if isna(x) else x
+                    lambda x: dave_settings["hp_pipes_tfluid_k"]
+                    if isna(x)
+                    else x
                 )
             ),
             height_m=all_junctions["height_m"],
             name=all_junctions["name"],
             in_service=(
                 True
-                if "in_service" not in all_junctions.keys() or all(all_junctions.in_service.isna())
-                else all_junctions.in_service.apply(lambda x: True if isna(x) else x)
+                if "in_service" not in all_junctions.keys()
+                or all(all_junctions.in_service.isna())
+                else all_junctions.in_service.apply(
+                    lambda x: True if isna(x) else x
+                )
             ),
             type=(
                 "junction"
-                if "type" not in all_junctions.keys() or all(all_junctions.type.isna())
-                else all_junctions.type.apply(lambda x: "junction" if isna(x) else x)
+                if "type" not in all_junctions.keys()
+                or all(all_junctions.type.isna())
+                else all_junctions.type.apply(
+                    lambda x: "junction" if isna(x) else x
+                )
             ),
             geodata=all_junctions.geometry.apply(
                 lambda x: (x.coords[:][0][0], x.coords[:][0][1])
@@ -112,9 +127,13 @@ def create_pandapipes(
         net.junction["source"] = all_junctions["source"]
         net.junction["geometry"] = all_junctions["geometry"]
         if "res_simone_p_barg" in all_junctions.keys():
-            net.junction["res_simone_p_barg"] = all_junctions["res_simone_p_barg"]
+            net.junction["res_simone_p_barg"] = all_junctions[
+                "res_simone_p_barg"
+            ]
         if "res_simone_q_eff_mw" in all_junctions.keys():
-            net.junction["res_simone_q_eff_mw"] = all_junctions["res_simone_q_eff_mw"]
+            net.junction["res_simone_q_eff_mw"] = all_junctions[
+                "res_simone_q_eff_mw"
+            ]
     map_junctions_simone_id_to_pandapipes_id = dict(
         zip(net.junction.source_id.values, net.junction.index)
     )
@@ -150,7 +169,9 @@ def create_pandapipes(
                 Series([f"pipe{x}" for x in all_pipes.index]),
             )
         # check for circle pipes and drop them
-        circle_pipe = all_pipes.loc[all_pipes["from_junction"] == all_pipes["to_junction"]]
+        circle_pipe = all_pipes.loc[
+            all_pipes["from_junction"] == all_pipes["to_junction"]
+        ]
         if not circle_pipe.empty:
             print(
                 f"\nWarning: pipes {circle_pipe.name.values} have the same from and to junctions and "
@@ -166,7 +187,9 @@ def create_pandapipes(
             )
             all_pipes.drop(index=zero_lenght.index, inplace=True)
         # conver diameter from mm to m
-        all_pipes["diameter_m"] = all_pipes.diameter_mm.apply(lambda x: x / 1000)
+        all_pipes["diameter_m"] = all_pipes.diameter_mm.apply(
+            lambda x: x / 1000
+        )
         all_pipes.drop(columns=["diameter_mm"])
         # geodata
         all_pipes_coords = DataFrame(
@@ -175,7 +198,9 @@ def create_pandapipes(
                     lambda x: [
                         list(coords)
                         for coords in (
-                            multiline_coords(x) if isinstance(x, MultiLineString) else x.coords[:]
+                            multiline_coords(x)
+                            if isinstance(x, MultiLineString)
+                            else x.coords[:]
                         )
                     ]
                 )
@@ -192,25 +217,33 @@ def create_pandapipes(
         diameter_m=all_pipes["diameter_m"],
         k_mm=(
             dave_settings["hp_pipes_k_mm"]
-            if "roughness_mm" not in all_pipes.keys() or all(all_pipes.roughness_mm.isna())
+            if "roughness_mm" not in all_pipes.keys()
+            or all(all_pipes.roughness_mm.isna())
             else all_pipes.roughness_mm.apply(
                 lambda x: dave_settings["hp_pipes_k_mm"] if isna(x) else x
             )
         ),
         loss_coefficient=(
             float(0)
-            if "loss_coefficient" not in all_pipes.keys() or all(all_pipes.loss_coefficient.isna())
-            else all_pipes.loss_coefficient.apply(lambda x: float(0) if isna(x) else x)
+            if "loss_coefficient" not in all_pipes.keys()
+            or all(all_pipes.loss_coefficient.isna())
+            else all_pipes.loss_coefficient.apply(
+                lambda x: float(0) if isna(x) else x
+            )
         ),
         sections=(
             1
-            if "sections" not in all_pipes.keys() or all(all_pipes.sections.isna())
+            if "sections" not in all_pipes.keys()
+            or all(all_pipes.sections.isna())
             else all_pipes.sections.apply(lambda x: 1 if isna(x) else x)
         ),
         alpha_w_per_m2k=(
             float(0)
-            if "alpha_w_per_m2k" not in all_pipes.keys() or all(all_pipes.alpha_w_per_m2k.isna())
-            else all_pipes.alpha_w_per_m2k.apply(lambda x: float(0) if isna(x) else x)
+            if "alpha_w_per_m2k" not in all_pipes.keys()
+            or all(all_pipes.alpha_w_per_m2k.isna())
+            else all_pipes.alpha_w_per_m2k.apply(
+                lambda x: float(0) if isna(x) else x
+            )
         ),
         text_k=(
             float(293)
@@ -226,7 +259,8 @@ def create_pandapipes(
         geodata=all_pipes_coords.coords,
         in_service=(
             True
-            if "in_service" not in all_pipes.keys() or all(all_pipes.in_service.isna())
+            if "in_service" not in all_pipes.keys()
+            or all(all_pipes.in_service.isna())
             else all_pipes.in_service.apply(lambda x: True if isna(x) else x)
         ),
         type=(
@@ -274,7 +308,9 @@ def create_pandapipes(
             net,
             junctions=sinks["junction"],
             mdot_kg_per_s=(
-                sinks["mdot_kg_per_s"] if "mdot_kg_per_s" in sinks.keys() else 0.1
+                sinks["mdot_kg_per_s"]
+                if "mdot_kg_per_s" in sinks.keys()
+                else 0.1
             ),  # !!! dummy value has to change
             scaling=float(1),
             name=sinks["name"],
@@ -309,7 +345,9 @@ def create_pandapipes(
             net,
             junctions=sources["junction"],
             mdot_kg_per_s=(
-                sources["mdot_kg_per_s"] if "mdot_kg_per_s" in sources.keys() else 0.1
+                sources["mdot_kg_per_s"]
+                if "mdot_kg_per_s" in sources.keys()
+                else 0.1
             ),  # !!! dummy value has to change
             scaling=float(1),
             name=sources["name"],
@@ -412,7 +450,9 @@ def create_pandapipes(
     pbar.update(10)
 
     # --- create external grid
-    ext_grids = grid_data.hp_data.hp_junctions[grid_data.hp_data.hp_junctions["Pset_barg"].notna()]
+    ext_grids = grid_data.hp_data.hp_junctions[
+        grid_data.hp_data.hp_junctions["Pset_barg"].notna()
+    ]
     if ext_grids.empty:
         # create external grid on the first grid junction
         ext_grids = grid_data.hp_data.hp_junctions.head(1)

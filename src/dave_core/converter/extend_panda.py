@@ -4,8 +4,8 @@ from pandapipes import pandapipesNet
 from pandapipes import toolbox as ppi_toolbox
 from pandapower import toolbox as pp_toolbox
 from pandapower.auxiliary import pandapowerNet
-from pandas import concat
 from pandas import DataFrame
+from pandas import concat
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.ops import linemerge
@@ -95,7 +95,9 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
             # check lines which not intersecting with area
             lines = GeoDataFrame(
                 net.line,
-                geometry=net.line_geodata.coords.apply(lambda x: LineString(x)),
+                geometry=net.line_geodata.coords.apply(
+                    lambda x: LineString(x)
+                ),
                 crs=crs,
             )
             lines_in = lines[lines.geometry.intersects(area)]
@@ -115,20 +117,30 @@ def reduce_network(net, area, cross_border=True, crs="epsg:4326"):
             # check pipes which not intersecting with area
             pipes = GeoDataFrame(
                 net.pipe,
-                geometry=net.pipe_geodata.coords.apply(lambda x: LineString(x)),
+                geometry=net.pipe_geodata.coords.apply(
+                    lambda x: LineString(x)
+                ),
                 crs=crs,
             )
             pipes_in = pipes[pipes.geometry.intersects(area)]
-            junctions_in_idx = set(concat([pipes_in.from_junction, pipes_in.to_junction]))
-            junctions_out_idx = list(set(net.junction.index) - junctions_in_idx)
+            junctions_in_idx = set(
+                concat([pipes_in.from_junction, pipes_in.to_junction])
+            )
+            junctions_out_idx = list(
+                set(net.junction.index) - junctions_in_idx
+            )
         else:
             # check buses which not intersecting with area
             junctions = GeoDataFrame(
                 net.junction,
-                geometry=net.junction_geodata.apply(lambda x: Point(x), axis=1),
+                geometry=net.junction_geodata.apply(
+                    lambda x: Point(x), axis=1
+                ),
                 crs=crs,
             )
-            junctions_out_idx = junctions[~junctions.geometry.intersects(area)].index
+            junctions_out_idx = junctions[
+                ~junctions.geometry.intersects(area)
+            ].index
         ppi_toolbox.drop_junctions(net, junctions_out_idx, drop_elements=True)
     return net
 
@@ -151,7 +163,9 @@ def request_geo_data(grid_area, crs, save_data=True):
     """
     if crs != "epsg:4326":
         # adjusted grid_area polygon to work with the DAVE main function, projection to 4326
-        grid_area = GeoDataFrame({"name": ["own area"], "geometry": [grid_area]}, crs=crs)
+        grid_area = GeoDataFrame(
+            {"name": ["own area"], "geometry": [grid_area]}, crs=crs
+        )
         grid_area.to_crs(crs="epsg:4326", inplace=True)
         grid_area = grid_area.iloc[0].geometry
     # request geodata from DAVE
@@ -166,9 +180,9 @@ def request_geo_data(grid_area, crs, save_data=True):
         for typ in ["buildings", "roads", "railways", "landuse", "waterways"]:
             if typ in net.keys():
                 net[typ] = DataFrame(
-                    GeoDataFrame(net[typ], geometry=net[typ].geometry, crs="epsg:4326").to_crs(
-                        crs=crs
-                    )
+                    GeoDataFrame(
+                        net[typ], geometry=net[typ].geometry, crs="epsg:4326"
+                    ).to_crs(crs=crs)
                 )
     return net
 

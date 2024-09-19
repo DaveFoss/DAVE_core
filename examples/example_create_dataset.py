@@ -85,5 +85,5 @@ grid_data = create_grid(
     # output settings
     output_folder=dave_settings["dave_output_dir"],
     output_format="json",
-    api_use=False,
+    save_data=True,
 )

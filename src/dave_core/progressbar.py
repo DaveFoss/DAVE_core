@@ -10,6 +10,7 @@ from dave_core.settings import dave_settings
 def create_tqdm(desc):
     """
     This function creates a tqdm progress bar object
+
     INPUT:
         **desc** (str) - Name of the task (max 34 signs)
 

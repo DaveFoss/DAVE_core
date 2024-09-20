@@ -8,14 +8,13 @@ class Element:
     """
     This class defines a single object of a net
 
-        defines:
-                 attributes: dictionary of properties of the object as string pairs key:value
-                     key: the attribute's name, value: the attribute's value
-                 type:       type of the attribute: n(ode) or p(ipe) or v(alve)  c(ompressor)
-                 name:       name of the object
+    defines:
+        attributes: dictionary of properties of the object as string pairs key:value
+        key: the attribute's name, value: the attribute's value
+        type:       type of the attribute: n(ode) or p(ipe) or v(alve)  c(ompressor)
+        name:       name of the object
 
     example usage: Element(type="p", name="Pipe_1")
-
     """
 
     def __init__(self, element_type="None", name=""):
@@ -86,9 +85,9 @@ class Elements:
     def insert(self, element_type, data):
         """
         This function fills the dictionary with data elements from Dave;
-            defines:
-                         n_ele number of elements
-                         type  short form for type of the Elements: n(ode) or p(ipe) or v(alve) or c(ompressor)
+        defines:
+            n_ele number of elements
+            type  short form for type of the Elements: n(ode) or p(ipe) or v(alve) or c(ompressor)
 
         INPUT:
             **element_type** (src)  -
@@ -108,9 +107,7 @@ class Elements:
             data.insert(
                 0,
                 "dave_name",
-                Series(
-                    [f"{type_names[element_type]}_{x}" for x in data.index]
-                ),
+                Series([f"{type_names[element_type]}_{x}" for x in data.index]),
             )
         for ele in range(self.n_ele):
             name = data["dave_name"][ele]

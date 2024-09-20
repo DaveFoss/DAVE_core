@@ -6,6 +6,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx.ext.ifconfig",
     "sphinx.ext.napoleon",
+    "sphinx.ext.imgconverter",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
 ]

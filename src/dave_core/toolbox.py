@@ -129,7 +129,7 @@ def voronoi(points):
     return voronoi_polygons
 
 
-def adress_to_coords(adress, geolocator):
+def adress_to_coords(adress, geolocator=None):
     """
     This function request geocoordinates to a given adress.
 

@@ -592,7 +592,6 @@ def create_renewable_powerplants(grid_data):
                     renewables_mv,
                     voronoi_polygons,
                     how="inner",
-                    op="intersects",
                 )
                 intersection.drop(columns=["index_right", "centroid"], inplace=True)
                 intersection.rename(columns={"dave_name": "bus"}, inplace=True)
@@ -659,7 +658,6 @@ def create_renewable_powerplants(grid_data):
                     renewables_hv_mv,
                     voronoi_polygons,
                     how="inner",
-                    op="intersects",
                 )
                 intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
                 # search transformer bus lv name
@@ -724,7 +722,6 @@ def create_renewable_powerplants(grid_data):
                     renewables_hv,
                     voronoi_polygons,
                     how="inner",
-                    op="intersects",
                 )
                 intersection.drop(columns=["index_right", "centroid"], inplace=True)
                 intersection.rename(columns={"dave_name": "bus"}, inplace=True)
@@ -783,7 +780,6 @@ def create_renewable_powerplants(grid_data):
                     renewables_ehv_hv,
                     voronoi_polygons,
                     how="inner",
-                    op="intersects",
                 )
                 intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
                 # search transformer bus lv name
@@ -1262,7 +1258,6 @@ def create_conventional_powerplants(grid_data):
                     conventionals_hv,
                     voronoi_polygons,
                     how="inner",
-                    op="intersects",
                 )
                 intersection.drop(columns=["index_right", "centroid"], inplace=True)
                 intersection.rename(

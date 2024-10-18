@@ -19,6 +19,7 @@ dependencies:
   - tqdm
   - tables
   - defusedxml
+  - dask_geopandas
   - pip
   - pip:
       - pandapower

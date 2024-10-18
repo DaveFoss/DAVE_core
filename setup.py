@@ -87,6 +87,7 @@ setup(
         "pandapower",
         "pandapipes",
         "defusedxml",
+        "dask_geopandas",
     ],
     extras_require={
         "dev": ["black", "isort", "pre-commit"]

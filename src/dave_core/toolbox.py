@@ -14,6 +14,7 @@ from scipy.spatial import Voronoi
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import MultiPoint
+from shapely.geometry import Point
 from shapely.ops import cascaded_union
 from shapely.ops import linemerge
 from shapely.ops import polygonize
@@ -84,12 +85,14 @@ def create_interim_area(areas):
     return areas
 
 
-def voronoi(points):
+def voronoi(points, polygon_param=True):
     """
     This function calculates the voronoi diagram for given points
 
     INPUT:
         **points** (GeoDataFrame) - all nodes for voronoi analysis (centroids)
+        **polygon_param** (bool, default True) - if True the centroid and dave name for each \
+            voronoi polygon will be searched
 
     OUTPUT:
         **voronoi polygons** (GeoDataFrame) - all voronoi areas for the given points
@@ -117,15 +120,13 @@ def voronoi(points):
     # create GeoDataFrame with polygons
     voronoi_polygons = GeoDataFrame(geometry=polygons, crs=dave_settings["crs_main"])
     # search voronoi centroids and dave name
-    voronoi_polygons["centroid"] = None
-    voronoi_polygons["dave_name"] = None
-    for _, polygon in voronoi_polygons.iterrows():
-        for _, point in points.iterrows():
-            if polygon.geometry.contains(point.geometry):
-                voronoi_polygons.at[polygon.name, "centroid"] = point.geometry
-                if point.dave_name is not None:
-                    voronoi_polygons.at[polygon.name, "dave_name"] = point.dave_name
-                break
+    if polygon_param:
+        voronoi_polygons["centroid"] = voronoi_polygons.geometry.apply(
+            lambda x: points[points.within(x)].iloc[0].geometry
+        )
+        voronoi_polygons["dave_name"] = voronoi_polygons.geometry.apply(
+            lambda x: points[points.within(x)].iloc[0].dave_name
+        )
     return voronoi_polygons
 
 
@@ -159,20 +160,25 @@ def get_data_path(filename=None, dirname=None):
     return data_path
 
 
-def intersection_with_area(gdf, area, remove_columns=True):
+def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
     This function intersects a given geodataframe with an area in consideration of mixed geometry
     types at both input variables
-    
     INPUT:
-        **gdf** (GeoDataFrame) - Data which should reduced to an area \n
-        **area** (GeoDataFrame) - Information about the considered area \n
-        **remove_columns** (bool, default True) - If True the original parameters from area will \
-            not include in the resulting Data \n
+        **gdf** (GeoDataFrame) - Data to be intersect with an area
+        **area** (GeoDataFrame) - Considered Area
+        **remove_columns** (bool, default True) - If True the area parameters will deleted in the \
+            result 
+        **only_limit** (bool, default True) - If True it will only considered if the data \
+            intersects the area instead of which part of the area they intersect if the area is \
+            split in multiple polygons 
 
     OUTPUT:
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area
     """
+    # reduce grid area geometries to one polygon
+    if only_limit:
+        area = GeoDataFrame(geometry=[area.geometry.unary_union], crs=dave_settings["crs_main"])
     # check if geodataframe has mixed geometries
     geom_types_gdf = set(map(type, gdf.geometry))
     geom_types_area = set(map(type, area.geometry))
@@ -181,6 +187,7 @@ def intersection_with_area(gdf, area, remove_columns=True):
         # of overlay is necessary because the function can not handle mixed geometries
         gdf_over = GeoDataFrame([])
         for geom_type in geom_types_gdf:
+            # get indeces for geom type
             gdf_geom_idx = [
                 row.name for i, row in gdf.iterrows() if isinstance(row.geometry, (geom_type))
             ]
@@ -197,7 +204,9 @@ def intersection_with_area(gdf, area, remove_columns=True):
             ]
             # check for values in the target area
             gdf_over_geom = overlay(gdf, area.loc[area_geom_idx], how="intersection")
-            gdf_over = concat([gdf_over, gdf_over_geom], ignore_index=True)
+            gdf_over = concat(
+                [gdf_over, gdf_over_geom], ignore_index=True
+            )  # TODO: Problem ist das es hier Population_1 und _2 gibt, daher wirft er einen Fehler
     else:
         gdf_over = overlay(gdf, area, how="intersection")
     # remove parameters from area
@@ -206,6 +215,46 @@ def intersection_with_area(gdf, area, remove_columns=True):
         remove_columns.remove("geometry")
         gdf_over.drop(columns=remove_columns, inplace=True)
     return gdf_over
+
+
+def intersect_with_composition(gdf1, gdf2, gdf1_name=None, area=None):
+    """
+    This function intersects two GeoDataFrames with each other and calculates the composition how gdf1 will splitted to gdf2
+
+    Hint: gdf1 and gdf2 must have "name" and "geometry" parameters
+    INPUT:
+        **gdf1** (GeoDataFrame) - Area with polygons to divide
+        **gdf2** (GeoDataFrame) - Area with polygons or nodes to which gdf1 should be divide
+
+    OPTIONAL:
+        **gdf1_name** (GeoDataFrame, default None) - Gdf1 parameter which includes the area name. \
+            Per default the first column will taken
+        **grid_area** (GeoDataFrame, default None) - definition of the consider area
+    """
+    # reduce data to considered area
+    if area:
+        gdf1 = intersection_with_area(gdf1, area)
+        gdf2 = intersection_with_area(gdf2, area)
+    # voronoi tesselation in case gdf2 is a dataset of points
+    if isinstance(gdf2.geometry.iloc[0], Point):
+        gdf2["geometry"] = voronoi(gdf2, polygon_param=False).geometry
+
+    # define gdf1 name per default
+    if not gdf1_name:
+        gdf1_name = gdf1.keys()[0]
+    if gdf1_name == "name":
+        gdf1_name = "gdf1_name"
+        gdf1.rename(columns={"name": gdf1_name}, inplace=True)
+    # intersect data with voronoi regions
+    gdf_intersect = overlay(gdf1, gdf2)  # !!! ggf. drop von centorid und dave_name an der stelle
+    # replace "nan" because "nan" is not equals to nan
+    gdf_intersect.fillna("None", inplace=True)
+    # calculate area percentage
+    gdf_intersect["area_percentage"] = gdf_intersect.geometry.area / gdf_intersect.apply(
+        lambda x: gdf1[(gdf1[gdf1_name] == x[gdf1_name])].iloc[0].geometry.area,
+        axis=1,
+    )
+    return gdf_intersect
 
 
 def related_sub(bus, substations):

@@ -4,6 +4,7 @@
 
 from os import path
 
+from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import overlay
 from geopy.geocoders import ArcGIS
@@ -269,10 +270,18 @@ def related_sub(bus, substations):
     OUTPUT:
         (Tuple) - Substation information for a given bus (ego_subst_id, subst_dave_name, subst_name)
     """
+    substation_geom_dask = from_geopandas(
+        substations.geometry, npartitions=dave_settings["cpu_number"]
+    )
     sub_filtered = substations[
-        substations.geometry.apply(lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05))
+        substation_geom_dask.apply(
+            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05), meta=substation_geom_dask
+        ).compute()
     ]
     ego_subst_id = sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []
     subst_dave_name = sub_filtered.dave_name.to_list() if not sub_filtered.empty else []
-    subst_name = sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
+    if "subst_name" in sub_filtered.keys():
+        subst_name = sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
+    else:
+        subst_name = "nan"
     return ego_subst_id, subst_dave_name, subst_name

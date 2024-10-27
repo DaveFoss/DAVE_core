@@ -93,7 +93,7 @@ def from_osm(
         # check if there are data for landuse
         if not landuse.empty:
             # convert geometry to polygon
-            for i, land in landuse.iterrows():
+            for _, land in landuse.iterrows():
                 if isinstance(land.geometry, LineString):
                     # A LinearRing must have at least 3 coordinate tuples
                     if len(land.geometry.coords[:]) >= 3:

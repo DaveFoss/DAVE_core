@@ -15,7 +15,8 @@ def set_dave_settings():
         "dave_dir": Path(path.realpath(__file__)).parent,
         "dave_output_dir": Path.home().joinpath("Desktop", "DAVE_output"),
         # structural definitions:
-        "bar_format": "{desc:<10}{percentage:5.0f}%|{bar:30}| completed",  # format progress bar
+	"bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
+        "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
         # geographical defintions:
         "crs_main": "EPSG:4326",  # crs which is based on the unit degree
         "crs_meter": "EPSG:3035",  # crs which is based on the unit meter

@@ -100,6 +100,7 @@ def voronoi(points, polygon_param=True):
     """
     # define points for voronoi centroids
     points = points.reset_index(drop=True)  # don't use inplace
+
     voronoi_centroids = [[point.x, point.y] for i, point in points.geometry.items()]
     voronoi_points = array(voronoi_centroids)
     # maximum points of the considered area define, which limit the voronoi polygons
@@ -122,12 +123,25 @@ def voronoi(points, polygon_param=True):
     voronoi_polygons = GeoDataFrame(geometry=polygons, crs=dave_settings["crs_main"])
     # search voronoi centroids and dave name
     if polygon_param:
-        voronoi_polygons["centroid"] = voronoi_polygons.geometry.apply(
-            lambda x: points[points.within(x)].iloc[0].geometry
+        voronoi_polygons_geom_dask = from_geopandas(
+            voronoi_polygons.geometry, npartitions=dave_settings["cpu_number"]
         )
-        voronoi_polygons["dave_name"] = voronoi_polygons.geometry.apply(
-            lambda x: points[points.within(x)].iloc[0].dave_name
-        )
+        voronoi_polygons["centroid"] = voronoi_polygons_geom_dask.apply(
+            lambda x: (
+                points[points.within(x)].iloc[0].geometry
+                if not points[points.within(x)].empty
+                else "fail"
+            ),
+            meta=voronoi_polygons_geom_dask,
+        ).compute()
+        voronoi_polygons["dave_name"] = voronoi_polygons_geom_dask.apply(
+            lambda x: (
+                points[points.within(x)].iloc[0].dave_name
+                if not points[points.within(x)].empty
+                else "fail"
+            ),
+            meta=voronoi_polygons_geom_dask,
+        ).compute()
     return voronoi_polygons
 
 

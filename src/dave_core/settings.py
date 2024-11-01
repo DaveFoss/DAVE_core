@@ -2,7 +2,7 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os import path
+from os import cpu_count, path
 from pathlib import Path
 
 
@@ -14,8 +14,9 @@ def set_dave_settings():
         # main definitions
         "dave_dir": Path(path.realpath(__file__)).parent,
         "dave_output_dir": Path.home().joinpath("Desktop", "DAVE_output"),
+        "cpu_number": cpu_count(),
         # structural definitions:
-	"bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
+        "bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
         "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
         # geographical defintions:
         "crs_main": "EPSG:4326",  # crs which is based on the unit degree
@@ -36,6 +37,8 @@ def set_dave_settings():
         "osm_time_delay": 60,  # in seconds
         # osm considered area (data for this area will be downloaded and impplemented in database)
         "osm_area": "germany",
+        # osm buffer for geodata to add to area to get some informations around the area (not for buildings)
+        "osm_area_buffer": 0.01,
         # osm tags: (type: (osm key, osm tags, osm type, parameter))
         "osm_tags": {
             "road": (

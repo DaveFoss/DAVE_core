@@ -2,7 +2,7 @@ name: dave_core
 channels:
   - conda-forge
 dependencies:
-  - python=3.12.5
+  - python=3.12.7
   - shapely
   - geopandas
   - matplotlib

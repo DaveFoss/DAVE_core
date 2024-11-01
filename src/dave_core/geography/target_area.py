@@ -361,8 +361,19 @@ def target_area(
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)
         # find road junctions
-        if "lv" in grid_data.target_input.power_levels[0] or roads:
-            road_junctions(grid_data)
+        roads_highway_dask = from_geopandas(
+            grid_data.roads.roads.highway, npartitions=dave_settings["cpu_number"]
+        )
+        if "lv" in grid_data.target_input.power_levels[0]:
+            road_junctions(
+                grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_lv"]).compute()],
+                grid_data,
+            )
+        elif "mv" in grid_data.target_input.power_levels[0]:
+            road_junctions(
+                grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_mv"]).compute()],
+                grid_data,
+            )
         # close progress bar
         pbar.update(9.99)
         pbar.close()

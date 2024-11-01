@@ -43,18 +43,9 @@ def set_dave_settings():
         "osm_tags": {
             "road": (
                 "highway",
-                [
-                    "secondary",
-                    "tertiary",
-                    "unclassified",
-                    "residential",
-                    "living_street",
-                    "footway",
-                    "track",
-                    "path",
-                ],
+                True,
                 ["way"],
-                ["geometry", "name", "highway", "surface"],
+                ["geometry", "name", "highway", "surface", "sidewalk", "id"],
                 "id",
             ),
             "landuse": (

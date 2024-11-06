@@ -39,6 +39,8 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     OPTIONAL:
         **schema** (string, default None) - schema name of the searched data. By default DAVE \
             search for the schema in the settings file via table name example: 'postcode=34225'
+        **where** (string, default None) - filter the table of the searched data
+                             example: 'postcode=34225'
         **geometry** (string, default None) - name of the geometry parameter in the OEP dataset to \
             transform it from WKB to WKT
         **db_update** (boolean, default False) - If True in every case the data will be related \

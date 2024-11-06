@@ -117,13 +117,15 @@ def create_pp_mvlv_lines(net, lines):
         lines.insert(
             0, "name", Series([f"line_{x}" for x in lines.index])
         )  # TODO: hier fehlt noch das voltage level
-    # define stadnard type
-
     # create lines
     create_lines(
         net,
-        from_buses=lines.from_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
-        to_buses=lines.to_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0]),
+        from_buses=lines.from_node.apply(
+            lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
+        ),
+        to_buses=lines.to_node.apply(
+            lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
+        ),
         length_km=lines["length_km"],
         std_type=lines.apply(
             lambda x: (

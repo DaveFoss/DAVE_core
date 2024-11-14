@@ -77,6 +77,7 @@ from .geography.osm_data import from_osm
 from .geography.osm_data import get_osm_data
 from .geography.osm_data import road_junctions
 from .geography.target_area import target_area
+from .geography.geo_utils import nearest_road_points
 
 # io
 from .io.convert_format import change_empty_gpd
@@ -134,7 +135,6 @@ from .topology.high_voltage import create_hv_topology
 from .topology.low_voltage import connect_grid_nodes
 from .topology.low_voltage import create_lv_topology
 from .topology.low_voltage import line_connections
-from .topology.low_voltage import nearest_road
 from .topology.low_voltage import search_line_connections
 from .topology.medium_voltage import create_hv_mv_substations
 from .topology.medium_voltage import create_mv_lv_substations
@@ -201,6 +201,7 @@ __all__ = [
     "get_osm_data",
     "from_osm",
     "road_junctions",
+    "nearest_road_points",
     # io
     "wkb_to_wkt",
     "wkt_to_wkb",
@@ -238,7 +239,6 @@ __all__ = [
     "gaslib_pipe_clustering",
     "create_hp_topology",
     "create_hv_topology",
-    "nearest_road",
     "connect_grid_nodes",
     "search_line_connections",
     "line_connections",

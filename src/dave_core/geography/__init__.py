@@ -6,6 +6,7 @@ from .osm_data import from_osm
 from .osm_data import get_osm_data
 from .osm_data import road_junctions
 from .target_area import target_area
+from .geo_utils import nearest_road_points
 
 __all__ = [
     # geography
@@ -13,4 +14,5 @@ __all__ = [
     "from_osm",
     "road_junctions",
     "target_area",
+    "nearest_road_points",
 ]

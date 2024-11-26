@@ -13,7 +13,7 @@ def create_tqdm(desc, bar_type="main_bar"):
     This function creates a tqdm progress bar object
     INPUT:
         **desc** (str) - Name of the task (max 33 signs)
-        
+
     OPTIONAL:
         **bar_type** (str, default "main_bar") - Which style of progress bar should be used \
             Options: "main_bar, "sub_bar"
@@ -75,5 +75,4 @@ def create_tqdm_dask(desc, bar_type):
             bar_format=dave_settings["sub_bar_format"],
             tqdm_class=tqdm,
         )
-
     return tqdm_object_dask

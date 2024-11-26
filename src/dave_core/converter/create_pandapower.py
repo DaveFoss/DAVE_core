@@ -62,8 +62,10 @@ def create_pp_ehvhv_lines(
     net, lines
 ):  # TODO: Umschreiben auf pp.create_lines und evt mit mvlv script (unten) mergen
     lines.rename(columns={"dave_name": "name"}, inplace=True)
-    lines["from_bus"] = lines.from_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
-    lines["to_bus"] = lines.to_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
+    # search for node indices based on dave_name
+    if isinstance(lines.iloc[0].from_node, str):
+        lines["from_bus"] = lines.from_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
+        lines["to_bus"] = lines.to_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
     lines["type"] = lines.type.apply(lambda x: "ol" if isna(x) else x)
     # geodata
     coords_ehvhv = DataFrame(
@@ -518,15 +520,10 @@ def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
     # create lines ehv + hv
     lines_ehvhv = concat([grid_data.ehv_data.ehv_lines, grid_data.hv_data.hv_lines])
     if not lines_ehvhv.empty:
-        lines_ehvhv["from_node"] = lines_ehvhv.from_node.apply(lambda x: all_buses.loc[x].dave_name)
-        lines_ehvhv["to_node"] = lines_ehvhv.to_node.apply(lambda x: all_buses.loc[x].dave_name)
-        create_pp_ehvhv_lines(net, lines_ehvhv.reset_index(inplace=True))
-
+        create_pp_ehvhv_lines(net, lines_ehvhv.reset_index())
     # create lines mv + lv
     lines_mvlv = concat([grid_data.mv_data.mv_lines, grid_data.lv_data.lv_lines])
     if not lines_mvlv.empty:
-        lines_mvlv["from_node"] = lines_mvlv.from_node.apply(lambda x: all_buses.loc[x].dave_name)
-        lines_mvlv["to_node"] = lines_mvlv.to_node.apply(lambda x: all_buses.loc[x].dave_name)
         create_pp_mvlv_lines(net, lines_mvlv.reset_index(drop=True))
 
     # update progress

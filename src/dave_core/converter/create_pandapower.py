@@ -27,6 +27,7 @@ from dave_core.io.file_io import pp_to_json
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import multiline_coords
+from dave_core.model_utils import find_open_ends
 
 
 def create_pp_buses(net, buses):
@@ -441,17 +442,40 @@ def create_pp_ext_grid(net, grid_data):
             net.ext_grid.at[ext_id, "voltage_level"] = 1
     elif "hv" in grid_data.target_input.power_levels[0] and not grid_data.hv_data.hv_nodes.empty:
         # !!! Todo: Solution for Case if there are no trafo in the data
-        for (
-            i,
-            trafo,
-        ) in grid_data.components_power.transformers.ehv_hv.iterrows():
-            ext_id = create_ext_grid(
-                net,
-                bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0],
-                name=f"ext_grid_2_{i}",
-            )
-            # additional Informations
-            net.ext_grid.at[ext_id, "voltage_level"] = 2
+        if not grid_data.components_power.transformers.ehv_hv.empty:
+            for (
+                i,
+                trafo,
+            ) in grid_data.components_power.transformers.ehv_hv.iterrows():
+                ext_id = create_ext_grid(
+                    net,
+                    bus=net.bus[net.bus["name"] == trafo.bus_hv].index[0],
+                    name=f"ext_grid_2_{i}",
+                )
+                # additional Informations
+                net.ext_grid.at[ext_id, "voltage_level"] = 2
+        else:
+            # in case there is no suitable transformer create external grids at each topology open end
+            nodes_end = find_open_ends(grid_data.hv_data.hv_nodes, grid_data.hv_data.hv_lines)
+            nodes_rel = grid_data.hv_data.hv_nodes[
+                (grid_data.hv_data.hv_nodes.dave_name.isin(nodes_end))
+            ]
+            nodes_rel = nodes_rel[
+                ~(
+                    nodes_rel.dave_name.isin(
+                        grid_data.components_power.transformers.hv_mv.bus_hv.to_list()
+                    )
+                )
+            ]
+            for i, node in nodes_rel.iterrows():
+                ext_id = create_ext_grid(
+                    net,
+                    bus=net.bus[net.bus["name"] == node.dave_name].index[0],
+                    name=f"ext_grid_2_{i}",
+                )
+                # additional Informations
+                net.ext_grid.at[ext_id, "voltage_level"] = 2
+
     elif "mv" in grid_data.target_input.power_levels[0]:
         for (
             i,
@@ -643,6 +667,7 @@ def power_processing(
     pp_diagnostic = diagnostic(net, report_style="None")
     # update progress
     pbar.update(15)
+    pbar.refresh()
     # --- clean up failures detected by the diagnostic tool
     # delete disconected buses and the elements connected to them
     if "disconnected_elements" in pp_diagnostic.keys():
@@ -653,9 +678,11 @@ def power_processing(
         pp_diagnostic = diagnostic(net, report_style="None")
         # update progress
         pbar.update(15)
+        pbar.refresh()
     else:
         # update progress
         pbar.update(25)
+        pbar.refresh()
     # change lines with impedance close to zero to switches
     if "impedance_values_close_to_zero" in pp_diagnostic.keys():
         lines = pp_diagnostic["impedance_values_close_to_zero"][0]["line"]
@@ -663,14 +690,17 @@ def power_processing(
             create_replacement_switch_for_branch(net, element_type="line", element_index=line_index)
             # update progress
             pbar.update(10 / len(lines))
+            pbar.refresh()
         drop_lines(net, lines=lines)
         # run network diagnostic
         pp_diagnostic = diagnostic(net, report_style="None")
         # update progress
         pbar.update(15)
+        pbar.refresh()
     else:
         # update progress
         pbar.update(25)
+        pbar.refresh()
     # correct invalid values
     if "invalid_values" in pp_diagnostic.keys():
         if "gen" in pp_diagnostic["invalid_values"].keys():
@@ -688,13 +718,16 @@ def power_processing(
             drop_lines(net, lines=drop_lines_diag)
         # update progress
         pbar.update(10)
+        pbar.refresh()
         # run network diagnostic
         pp_diagnostic = diagnostic(net, report_style="None")
         # update progress
         pbar.update(15)
+        pbar.refresh()
     else:
         # update progress
         pbar.update(25)
+        pbar.refresh()
     # delete parallel switches
     if "parallel_switches" in pp_diagnostic.keys():
         for i in range(len(pp_diagnostic["parallel_switches"])):
@@ -704,9 +737,11 @@ def power_processing(
                 net.switch = net.switch.drop([parallel_switches[j]])
             # update progress
             pbar.update(10 / len(pp_diagnostic["parallel_switches"]))
+            pbar.refresh()
     else:
         # update progress
         pbar.update(10)
+        pbar.refresh()
     # close progress bar
     pbar.close()
 
@@ -719,6 +754,7 @@ def power_processing(
         pp_diagnostic = diagnostic(net, report_style="None")
         # update progress
         pbar.update(20)
+        pbar.refresh()
         # clean up overloads
         while "overload" in pp_diagnostic.keys():
             if (pp_diagnostic["overload"]["generation"]) and (net.sgen.scaling.min() >= 0.1):
@@ -735,6 +771,7 @@ def power_processing(
                 break
         # update progress
         pbar.update(20)
+        pbar.refresh()
         # check if pf converged and there are no violations, otherwise must use opf
         try:
             # run powerflow
@@ -762,6 +799,7 @@ def power_processing(
             print("power flow did not converged")
         # update progress
         pbar.update(10)
+        pbar.refresh()
         # optimize grid with opf
         if use_opf:
             # --- try opf to find optimized network to network constraints
@@ -830,6 +868,7 @@ def power_processing(
                 print("optimal power flow did not converged")
         # update progress
         pbar.update(50)
+        pbar.refresh()
         # print results for boundaries parameters
         print("the optimized grid modell has the following charakteristik:")
         print(f"min_vm_pu: {net.res_bus.vm_pu.min()}")

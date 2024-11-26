@@ -228,7 +228,7 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
         ehv_hv_trafos["substation_name"] = None
         ehv_hv_trafos["tso_name"] = None
         ehv_hv_trafos.reset_index(drop=True, inplace=True)
-        for i, trafo in ehv_hv_trafos.iterrows():
+        for i, trafo in ehv_hv_trafos.iterrows():  # TODO: ersetzen durch apply functions
             ehv_hv_trafos.at[trafo.name, "dave_name"] = f"trafo_2_{i}"
             # search for bus dave name and replace ego id
             bus0 = hv_buses[hv_buses.ego_bus_id == trafo.bus0].iloc[0]

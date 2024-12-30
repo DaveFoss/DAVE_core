@@ -3,7 +3,7 @@ version: 2
 sphinx:
   configuration: docs/conf.py
 formats:
-    - html  #all fail at pdf creation
+    - htmlzip  #all fail at pdf creation
 build:
   os: ubuntu-22.04
   tools:

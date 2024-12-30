@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from dask_geopandas import from_geopandas
-from geopandas import GeoSeries, GeoDataFrame
+from geopandas import GeoDataFrame
+from geopandas import GeoSeries
 from pandas import concat
 from shapely.geometry import LineString
 from shapely.geometry import Point

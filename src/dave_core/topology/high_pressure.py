@@ -5,9 +5,10 @@
 
 from ast import literal_eval
 
+from dask_geopandas import from_geopandas
 from pandas import Series
 from pandas import concat
-from dask_geopandas import from_geopandas
+
 from dave_core.datapool.read_data import read_gaslib
 from dave_core.datapool.read_data import read_scigridgas_iggielgn
 from dave_core.progressbar import create_tqdm

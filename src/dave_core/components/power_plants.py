@@ -5,14 +5,22 @@
 
 import concurrent.futures
 
+from geopandas import GeoDataFrame
+from geopandas import points_from_xy
+from geopandas import sjoin
+from geopy.geocoders import ArcGIS
+from pandas import DataFrame
+from pandas import Series
+from pandas import concat
+from pandas import to_numeric
+from shapely.geometry import LineString
+
+from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
-from dave_core.toolbox import adress_to_coords, intersection_with_area, voronoi
-from dave_core.datapool.oep_request import oep_request
-from geopandas import GeoDataFrame, points_from_xy, sjoin
-from geopy.geocoders import ArcGIS
-from pandas import DataFrame, Series, concat, to_numeric
-from shapely.geometry import LineString
+from dave_core.toolbox import adress_to_coords
+from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import voronoi
 
 
 def aggregate_plants_ren(grid_data, plants_aggr, aggregate_name=None):

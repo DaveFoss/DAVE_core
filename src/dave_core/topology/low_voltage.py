@@ -4,6 +4,7 @@
 
 import functools
 import operator
+
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
@@ -15,11 +16,11 @@ from shapely.geometry import Point
 from shapely.ops import nearest_points
 
 from dave_core.datapool.oep_request import oep_request
+from dave_core.geography.geo_utils import nearest_road_points
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
-from dave_core.geography.geo_utils import nearest_road_points
 
 
 def connect_grid_nodes(road_course, road_points, start_node, end_node):

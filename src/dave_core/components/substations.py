@@ -2,11 +2,12 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandas import Series, concat
+from pandas import Series
+from pandas import concat
 
+from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
-from dave_core.datapool.oep_request import oep_request
 
 
 def create_hv_mv_substations(grid_data):

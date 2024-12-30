@@ -2,7 +2,8 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os import cpu_count, path
+from os import cpu_count
+from os import path
 from pathlib import Path
 
 

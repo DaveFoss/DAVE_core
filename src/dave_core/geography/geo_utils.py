@@ -3,10 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from dask_geopandas import from_geopandas
-from dave_core.progressbar import create_tqdm_dask
-from dave_core.settings import dave_settings
 from geopandas import GeoSeries
 from shapely.ops import nearest_points
+
+from dave_core.progressbar import create_tqdm_dask
+from dave_core.settings import dave_settings
 
 
 def nearest_road_points(points, roads):

@@ -71,13 +71,13 @@ from .datapool.read_data import read_nuts_regions
 from .datapool.read_data import read_postal
 from .datapool.read_data import read_scigridgas_iggielgn
 from .dave_structure import create_empty_dataset
+from .geography.geo_utils import nearest_road_points
 
 # geography
 from .geography.osm_data import from_osm
 from .geography.osm_data import get_osm_data
 from .geography.osm_data import road_junctions
 from .geography.target_area import target_area
-from .geography.geo_utils import nearest_road_points
 
 # io
 from .io.convert_format import change_empty_gpd

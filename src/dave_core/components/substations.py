@@ -42,7 +42,7 @@ def create_hv_mv_substations(grid_data):
             hvmv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_4_{x}", hvmv_substations.index))),
+                Series([f"substation_4_{x}" for x in hvmv_substations.index]),
             )
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
@@ -82,7 +82,7 @@ def create_mv_lv_substations(grid_data):
             mvlv_substations.insert(
                 0,
                 "dave_name",
-                Series(list(map(lambda x: f"substation_6_{x}", mvlv_substations.index))),
+                Series([f"substation_6_{x}" for x in mvlv_substations.index]),
             )
             # add ehv substations to grid data
             grid_data.components_power.substations.mv_lv = concat(

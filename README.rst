@@ -12,8 +12,7 @@ DAVE_core
     * - tests
       - |github-actions| |coveralls| |codecov|
     * - package
-      - |version| |download| |licence| |wheel| |supported-versions|
-      - |supported-implementations| |commits-since| |black| |isort|
+      - |version| |download| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
 
 
 .. |download| image:: https://pepy.tech/badge/dave-core

@@ -7,7 +7,8 @@ from geopandas import GeoDataFrame
 from geopandas import read_file
 from pandas import DataFrame
 from pandas import concat
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 from dave_core.archiv_io import archiv_inventory
 from dave_core.datapool.read_data import read_federal_states
@@ -54,6 +55,12 @@ def _target_by_own_area(grid_data, own_area):
         if target.empty:
             print("The given shapefile includes no data")
     elif isinstance(own_area, Polygon):
+        target = GeoDataFrame(
+            {"name": ["own area"], "geometry": [own_area]},
+            crs=dave_settings["crs_main"],
+        )
+    elif isinstance(own_area, MultiPolygon):
+        own_area = unary_union(own_area)
         target = GeoDataFrame(
             {"name": ["own area"], "geometry": [own_area]},
             crs=dave_settings["crs_main"],

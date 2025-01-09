@@ -95,7 +95,7 @@ def save_dataset_to_archiv(grid_data):
         to_archiv(grid_data)
 
 
-def save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data):
+def save_dataset_to_user_folder(grid_data, output_format, output_folder, filename, save_data):
     """
     This function saves the DAVE dataset to an output folder.
 
@@ -118,17 +118,17 @@ def save_dataset_to_user_folder(grid_data, output_format, output_folder, save_da
             if output_format == "json":
                 to_json(
                     grid_data,
-                    file_path=f"{output_folder}\\dave_dataset.json",
+                    file_path=f"{output_folder}\\{filename}.json",
                 )
             elif output_format == "hdf":
                 to_hdf(
                     grid_data,
-                    file_path=f"{output_folder}\\dave_dataset.h5",
+                    file_path=f"{output_folder}\\{filename}.h5",
                 )
             elif output_format == "gpkg":
                 to_gpkg(
                     grid_data,
-                    file_path=f"{output_folder}\\dave_dataset.gpkg",
+                    file_path=f"{output_folder}\\{filename}.gpkg",
                 )
 
 
@@ -155,6 +155,7 @@ def create_grid(
     storages_gas=True,
     valves=True,
     output_folder=dave_settings["dave_output_dir"],
+    filename="dave_dataset",
     output_format="json",
     save_data=True,
 ):
@@ -216,6 +217,8 @@ def create_grid(
                 create one \n
         **output_format** (string, default 'json') - this parameter defines the output format. \
             Available formats are currently: 'json', 'hdf' and 'gpkg' \n
+        **filename** (string, default 'dave_dataset') - this parameter defines the name of the \
+            output file
         **save_data** (boolean, default True) - if true, the resulting data will stored in a \
             local folder
 
@@ -276,7 +279,7 @@ def create_grid(
         waterways=bool("waterways" in geodata or "all" in geodata),
     )
     # save interim status of the informations in user folder
-    save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+    save_dataset_to_user_folder(grid_data, output_format, output_folder, filename, save_data)
 
     # --- collect data for the requested dataset
     if not file_exists:
@@ -295,19 +298,27 @@ def create_grid(
             if level == "ehv":
                 create_ehv_topology(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             elif level == "hv":
                 create_hv_topology(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             elif level == "mv":
                 create_mv_topology(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             elif level == "lv":
                 create_lv_topology(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             else:
                 print("no voltage level was choosen or their is a failure in the input value.")
                 print(f"the input for the power levels was: {power_levels}")
@@ -321,27 +332,37 @@ def create_grid(
             if transformers:
                 create_transformers(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             # add renewable powerplants
             if renewable_powerplants:
                 create_renewable_powerplants(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             # add conventional powerplants
             if conventional_powerplants:
                 create_conventional_powerplants(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             # create lines for power plants with a grid node far away
             if renewable_powerplants or conventional_powerplants:
                 create_power_plant_lines(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             # add loads
             if loads:
                 create_loads(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
         # --- create desired gas grid levels
         for level in gas_levels:
             # temporary extend grid area to combine not connected areas
@@ -351,7 +372,9 @@ def create_grid(
             if level == "hp":
                 create_hp_topology(grid_data)
                 # save interim status of the informations in user folder
-                save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+                save_dataset_to_user_folder(
+                    grid_data, output_format, output_folder, filename, save_data
+                )
             else:
                 print("no gas level was choosen or their is a failure in the input value.")
                 print(f"the input for the gas levels was: {gas_levels}")
@@ -363,7 +386,9 @@ def create_grid(
         if gas_levels:
             gas_components(grid_data, compressors, sinks, sources)
             # save interim status of the informations in user folder
-            save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+            save_dataset_to_user_folder(
+                grid_data, output_format, output_folder, filename, save_data
+            )
 
         # clean up power and gas grid data
         clean_up_data(grid_data)
@@ -378,7 +403,7 @@ def create_grid(
         pass
 
     # save informations in user folder
-    save_dataset_to_user_folder(grid_data, output_format, output_folder, save_data)
+    save_dataset_to_user_folder(grid_data, output_format, output_folder, filename, save_data)
 
     # convert power model
     net_power = None

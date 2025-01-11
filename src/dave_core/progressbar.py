@@ -29,7 +29,7 @@ def create_tqdm(desc, bar_type="main_bar"):
         tqdm_object = tqdm(
             total=100,
             desc=f"{desc}:" + " " * (35 - len(f"{desc}:")),
-            position=1,
+            position=0,
             bar_format=dave_settings["bar_format"],
             colour="green",
         )

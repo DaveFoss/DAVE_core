@@ -2,7 +2,7 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os import environ
+from os import environ, name as osname
 from pathlib import Path
 from timeit import default_timer
 from warnings import catch_warnings
@@ -115,20 +115,26 @@ def save_dataset_to_user_folder(grid_data, output_format, output_folder, filenam
         with catch_warnings():
             # filter warnings because of the PerformanceWarning from pytables at the geometry type
             simplefilter("ignore")
+            # check operating system
+            if osname == "nt":
+                output_folder = f"{output_folder}\\"
+            elif osname == "posix":
+                output_folder = f"{output_folder}/"
+
             if output_format == "json":
                 to_json(
                     grid_data,
-                    file_path=f"{output_folder}\\{filename}.json",
+                    file_path=f"{output_folder}{filename}.json",
                 )
             elif output_format == "hdf":
                 to_hdf(
                     grid_data,
-                    file_path=f"{output_folder}\\{filename}.h5",
+                    file_path=f"{output_folder}{filename}.h5",
                 )
             elif output_format == "gpkg":
                 to_gpkg(
                     grid_data,
-                    file_path=f"{output_folder}\\{filename}.gpkg",
+                    file_path=f"{output_folder}{filename}.gpkg",
                 )
 
 

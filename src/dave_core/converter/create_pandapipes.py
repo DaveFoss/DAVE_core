@@ -1,6 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import warnings
 
 from pandapipes import create_compressor
 from pandapipes import create_empty_network
@@ -433,7 +434,7 @@ def create_pandapipes(
             opened=valves["opened"] if "opened" in valves.keys() else True,
             **valves.drop(
                 ["from_junction", "to_junction", "diameter_m", "opened"],
-                axis=1, 
+                axis=1,
                 errors="ignore"
             ),
         )
@@ -451,10 +452,15 @@ def create_pandapipes(
     pbar.update(10)
 
     # --- create external grid
-    ext_grids = grid_data.hp_data.hp_junctions[
-        grid_data.hp_data.hp_junctions["Pset_barg"].notna()
-    ]
+    if "Pset_barg" in grid_data.hp_data.hp_junctions.columns:
+        ext_grids = grid_data.hp_data.hp_junctions[
+            grid_data.hp_data.hp_junctions["Pset_barg"].notna()
+        ]
+    else:
+        ext_grids = Series()
     if ext_grids.empty:
+        warnings.warn("No Pset_barg found - a dummy ext. "
+                      "grid with p_set=50 barg will be attached to the first junction.")
         # create external grid on the first grid junction
         ext_grids = grid_data.hp_data.hp_junctions.head(1)
         ext_grids["Pset_barg"] = 50  # dummy value need to be changed

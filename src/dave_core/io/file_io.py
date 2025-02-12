@@ -439,48 +439,25 @@ def ppi_to_json(net, file_path):
     """
     # copy network to keep the geometries in object form in the network return
     net_conv = net.deepcopy()
-    # convert geometry
-    if not net_conv.junction.empty and all(
-        isinstance(x, Point) for x in net_conv.junction.geometry
-    ):
-        net_conv.junction["geometry"] = net_conv.junction.geometry.apply(
-            lambda x: dumps(x, hex=True)
-        )
-    if not net_conv.pipe.empty and all(
-        isinstance(x, (LineString, MultiLineString)) for x in net_conv.pipe.geometry
-    ):
-        net_conv.pipe["geometry"] = net_conv.pipe.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net_conv.buildings.empty and all(
-        isinstance(x, LineString) for x in net_conv.buildings.geometry
-    ):
-        net_conv.buildings["geometry"] = net_conv.buildings.geometry.apply(
-            lambda x: dumps(x, hex=True)
-        )
-    if not net_conv.roads.empty and all(isinstance(x, LineString) for x in net_conv.roads.geometry):
-        net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
-    if not net_conv.road_junctions.empty and all(
-        isinstance(x, Point) for x in net_conv.road_junctions.geometry
-    ):
-        net_conv.road_junctions["geometry"] = net_conv.road_junctions.geometry.apply(
-            lambda x: dumps(x, hex=True)
-        )
-    if not net_conv.railways.empty and all(
-        isinstance(x, LineString) for x in net_conv.railways.geometry
-    ):
-        net_conv.railways["geometry"] = net_conv.railways.geometry.apply(
-            lambda x: dumps(x, hex=True)
-        )
-    if not net_conv.waterways.empty and all(
-        isinstance(x, LineString) for x in net_conv.waterways.geometry
-    ):
-        net_conv.waterways["geometry"] = net_conv.waterways.geometry.apply(
-            lambda x: dumps(x, hex=True)
-        )
-    if not net_conv.landuse.empty and all(
-        isinstance(x, Polygon) for x in net_conv.landuse.geometry
-    ):
-        net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
-    # convert ppi model to json and save the file
+    # List of attributes and corresponding geometry types to check
+    attributes = [
+        ("junction", Point),
+        ("pipe", (LineString, MultiLineString)),
+        ("buildings", LineString),
+        ("roads", LineString),
+        ("road_junctions", Point),
+        ("railways", LineString),
+        ("waterways", LineString),
+        ("landuse", Polygon),
+    ]
+
+    # Convert geometry
+    for attr, geom_type in attributes:
+        df = getattr(net_conv, attr, None)
+        if df is not None and not df.empty and all(isinstance(x, geom_type) for x in df.geometry):
+            df["geometry"] = df.geometry.apply(lambda x: dumps(x, hex=True))
+
+    # Convert ppi model to json and save the file
     to_json_ppi(net_conv, filename=file_path)
 
 

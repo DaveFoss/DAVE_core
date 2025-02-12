@@ -433,7 +433,8 @@ def create_pandapipes(
             opened=valves["opened"] if "opened" in valves.keys() else True,
             **valves.drop(
                 ["from_junction", "to_junction", "diameter_m", "opened"],
-                axis=1,
+                axis=1, 
+                errors="ignore"
             ),
         )
         # net.valve = valves

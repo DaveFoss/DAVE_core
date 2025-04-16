@@ -137,13 +137,13 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                 {
                     "Titel": request_meta["title"],
                     "Description": request_meta["description"],
-                    "Spatial": [request_meta["spatial"]],
-                    "Licenses": request_meta["licenses"],
+                    "Spatial": request_meta["resources"][0]["spatial"],
+                    "Licenses": request_meta["metaMetadata"]['metadataLicense'],
                     "metadata_version": request_meta["metaMetadata"]["metadataVersion"],
                 },
                 index=[0],
             ),
-            "Sources": DataFrame(request_meta["sources"]),
+            "Sources": DataFrame(request_meta["resources"][0]["sources"]),
             "Data": DataFrame(request_meta["resources"][0]["schema"]["fields"]),
         }
     else:

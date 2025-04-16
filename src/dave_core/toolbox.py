@@ -16,7 +16,7 @@ from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 from shapely.ops import linemerge
 from shapely.ops import polygonize
 
@@ -71,7 +71,7 @@ def create_interim_area(areas):
                 geom1 = areas.loc[area_iso[0]].geometry
                 geom2 = areas.loc[area_iso[1]].geometry
                 # define diffrence area
-                combined = cascaded_union([geom1, geom2])
+                combined = unary_union([geom1, geom2])
                 convex_hull = combined.convex_hull
                 difference = convex_hull.difference(geom1)
                 difference = difference.difference(geom2)

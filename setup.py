@@ -29,7 +29,7 @@ setup(
     ),
     long_description_content_type="text/x-rst",
     author="DAVE_core Developers",
-    author_email="EMAIL@IS.MISSING.DE",
+    author_email="tobias.banze@iee.fraunhofer.de",
     url="https://github.com/DaveFoss/DAVE_core",
     packages=find_packages("src"),
     package_dir={"": "src"},
@@ -68,7 +68,7 @@ setup(
     keywords=[
         # eg: "keyword1", "keyword2", "keyword3",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     install_requires=[
         "pandas",
         "Shapely",

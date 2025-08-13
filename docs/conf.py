@@ -12,7 +12,7 @@ extensions = [
 source_suffix = ".rst"
 master_doc = "index"
 project = "DAVE_core"
-year = "2024"
+year = "2025"
 author = "DAVE_core Developers"
 copyright = f"{year}, {author}"
 version = release = "v1.3.1"

@@ -177,16 +177,16 @@ def get_data_path(filename=None, dirname=None):
 
 def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
-    This function intersects a given geodataframe with an area in consideration of mixed geometry
-    types at both input variables
+    This function intersects a given geodataframe with an area in consideration \
+        of mixed geometry types at both input variables
     INPUT:
         **gdf** (GeoDataFrame) - Data to be intersect with an area
         **area** (GeoDataFrame) - Considered Area
-        **remove_columns** (bool, default True) - If True the area parameters will deleted in the \
-            result
-        **only_limit** (bool, default True) - If True it will only considered if the data \
-            intersects the area instead of which part of the area they intersect if the area is \
-            split in multiple polygons
+        **remove_columns** (bool, default True) - If True the area parameters \
+            will deleted in the result
+        **only_limit** (bool, default True) - If True it will only considered \
+            if the data intersects the area instead of which part of the area \
+            they intersect if the area is split in multiple polygons
 
     OUTPUT:
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area

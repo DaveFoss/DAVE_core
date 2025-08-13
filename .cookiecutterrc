@@ -25,7 +25,7 @@ default_context:
     command_line_interface_bin_name: "dave_core"
     coveralls: "yes"
     distribution_name: "dave_core"
-    email: "EMAIL@IS.MISSING.DE"
+    email: "tobias.banze@iee.fraunhofer.de"
     formatter_quote_style: "double"
     full_name: "DAVE_core Developers"
     function_name: "compute"

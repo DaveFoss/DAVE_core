@@ -20,6 +20,7 @@ dependencies:
   - tables
   - defusedxml
   - dask_geopandas
+  - scipy
   - pip
   - pip:
       - pandapower

@@ -25,15 +25,17 @@ from dave_core.toolbox import voronoi
 
 def aggregate_plants_ren(grid_data, plants_aggr, aggregate_name=None):
     """
-    This function aggregates renewables power plants with the same energy source which are connected
-    to the same trafo
+    This function aggregates renewables power plants with the same energy \
+        source which are connected to the same trafo
 
     INPUT:
         **grid_data** (dict) - all Informations about the target area
-        **plants_aggr** (DataFrame) - all renewable power plants that sould be aggregate after
-                                      voronoi analysis
+        **plants_aggr** (DataFrame) - all renewable power plants that sould be \
+            aggregate after voronoi analysis
+
     OPTIONAL:
-        **aggregate_name** (string) - the original voltage level of the aggregated power plants
+        **aggregate_name** (string) - the original voltage level of the \
+            aggregated power plants
     """
     # create list of all diffrent connection transformers
     trafo_names = list(set(plants_aggr.connection_trafo_dave_name.tolist()))
@@ -76,13 +78,14 @@ def aggregate_plants_ren(grid_data, plants_aggr, aggregate_name=None):
 
 def aggregate_plants_con(grid_data, plants_aggr, aggregate_name=None):
     """
-    This function aggregates conventionals power plants with the same energy source which are
-    connected to the same trafo
+    This function aggregates conventionals power plants with the same energy \
+        source which areconnected to the same trafo
 
     INPUT:
-        **grid_data** (dict) - all Informations about the target area
-        **plants_aggr** (DataFrame) - all conventional power plants that sould be aggregate after
-                                      voronoi analysis
+        **grid_data** (dict) - all Informations about the target area \
+        **plants_aggr** (DataFrame) - all conventional power plants that sould \
+            be aggregate after voronoi analysis
+
     OPTIONAL:
         **aggregate_name** (string) - the original voltage level of the aggregated power plants
     """

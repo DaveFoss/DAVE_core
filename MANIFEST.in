@@ -25,6 +25,7 @@ include README.rst
 include *.txt
 include *.yml
 include *.rst
+include *.bib
 recursive-include examples *.geojson
 recursive-include examples *.ipynb
 recursive-include examples *.py

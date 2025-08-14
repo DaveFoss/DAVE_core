@@ -1,17 +1,34 @@
-========
-Contents
-========
+.. image:: /images/dave_logo.png
+		:width: 250em
+		:align: left
+
+.. |br| raw:: html
+
+    <br />
+
+|br|
+|br|
+|br|
+
+DAVE is an open source data fusion tool for automated energy network generation based on open data
+
+
+More information about DAVE can be found on `www.databutler.energy <http://databutler.energy/>`_.
+
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   readme
-   installation
-   usage
-   reference/index
-   contributing
-   authors
-   changelog
+    about
+    .. topology
+    .. components
+    .. converter
+    .. datapool
+    .. geography
+    .. io
+    .. plotting
+
+
 
 Indices and tables
 ==================

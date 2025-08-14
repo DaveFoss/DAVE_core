@@ -52,7 +52,8 @@ def create_interim_area(areas):
         **areas** (GeoDataFrame) - all considered grid areas
 
     OUTPUT:
-        **areas** (GeoDataFrame) - all considered grid areas extended with interim areas
+        **areas** (GeoDataFrame) - all considered grid areas extended with \
+            interim areas
     """
     # check if there are diffrent grid areas
     if len(areas) > 1:
@@ -61,9 +62,7 @@ def create_interim_area(areas):
         for i, area in areas.iterrows():
             # check if the considered area adjoining an other one
             areas_other = areas.drop([i])
-            distance = areas_other.geometry.apply(
-                lambda x, area=area: area.geometry.distance(x)
-            )
+            distance = areas_other.geometry.apply(lambda x, area=area: area.geometry.distance(x))
             if distance.min() > 0:
                 areas_iso.append((i, distance.idxmin()))
         # if their are isolated areas, check for a connection on the highest grid level
@@ -81,9 +80,7 @@ def create_interim_area(areas):
                 areas = concat(
                     [
                         areas,
-                        GeoDataFrame(
-                            {"name": "interim area", "geometry": [difference]}
-                        ),
+                        GeoDataFrame({"name": "interim area", "geometry": [difference]}),
                     ],
                     ignore_index=True,
                 )
@@ -105,9 +102,7 @@ def voronoi(points, polygon_param=True):
     # define points for voronoi centroids
     points = points.reset_index(drop=True)  # don't use inplace
 
-    voronoi_centroids = [
-        [point.x, point.y] for i, point in points.geometry.items()
-    ]
+    voronoi_centroids = [[point.x, point.y] for i, point in points.geometry.items()]
     voronoi_points = array(voronoi_centroids)
     # maximum points of the considered area define, which limit the voronoi polygons
     bound_points = MultiPoint(points.geometry).convex_hull.buffer(1).bounds
@@ -122,17 +117,11 @@ def voronoi(points, polygon_param=True):
     # carry out voronoi analysis
     vor = Voronoi(voronoi_points)
     # select finit lines and create LineStrings (regions with -1 are infinit)
-    lines = [
-        LineString(vor.vertices[line])
-        for line in vor.ridge_vertices
-        if -1 not in line
-    ]
+    lines = [LineString(vor.vertices[line]) for line in vor.ridge_vertices if -1 not in line]
     # create polygons from the lines
     polygons = array(list(polygonize(lines)))
     # create GeoDataFrame with polygons
-    voronoi_polygons = GeoDataFrame(
-        geometry=polygons, crs=dave_settings["crs_main"]
-    )
+    voronoi_polygons = GeoDataFrame(geometry=polygons, crs=dave_settings["crs_main"])
     # search voronoi centroids and dave name
     if polygon_param:
         voronoi_polygons_geom_dask = from_geopandas(
@@ -191,6 +180,7 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
     This function intersects a given geodataframe with an area in consideration \
         of mixed geometry types at both input variables
+
     INPUT:
         **gdf** (GeoDataFrame) - Data to be intersect with an area
         **area** (GeoDataFrame) - Considered Area
@@ -205,9 +195,7 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
     # reduce grid area geometries to one polygon
     if only_limit:
-        area = GeoDataFrame(
-            geometry=[area.geometry.unary_union], crs=dave_settings["crs_main"]
-        )
+        area = GeoDataFrame(geometry=[area.geometry.unary_union], crs=dave_settings["crs_main"])
     # check if geodataframe has mixed geometries
     geom_types_gdf = set(map(type, gdf.geometry))
     geom_types_area = set(map(type, area.geometry))
@@ -218,14 +206,10 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
         for geom_type in geom_types_gdf:
             # get indeces for geom type
             gdf_geom_idx = [
-                row.name
-                for i, row in gdf.iterrows()
-                if isinstance(row.geometry, (geom_type))
+                row.name for i, row in gdf.iterrows() if isinstance(row.geometry, (geom_type))
             ]
             # check for values in the target area
-            gdf_over_geom = overlay(
-                gdf.loc[gdf_geom_idx], area, how="intersection"
-            )
+            gdf_over_geom = overlay(gdf.loc[gdf_geom_idx], area, how="intersection")
             gdf_over = concat([gdf_over, gdf_over_geom], ignore_index=True)
     elif len(geom_types_area) > 1:
         # in this case the geodataframe has mixed geometrie information. A seperated consideration
@@ -233,14 +217,10 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
         gdf_over = GeoDataFrame([])
         for geom_type in geom_types_area:
             area_geom_idx = [
-                row.name
-                for i, row in area.iterrows()
-                if isinstance(row.geometry, (geom_type))
+                row.name for i, row in area.iterrows() if isinstance(row.geometry, (geom_type))
             ]
             # check for values in the target area
-            gdf_over_geom = overlay(
-                gdf, area.loc[area_geom_idx], how="intersection"
-            )
+            gdf_over_geom = overlay(gdf, area.loc[area_geom_idx], how="intersection")
             gdf_over = concat(
                 [gdf_over, gdf_over_geom], ignore_index=True
             )  # TODO: Problem ist das es hier Population_1 und _2 gibt, daher wirft er einen Fehler
@@ -256,16 +236,18 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
 
 def intersect_with_composition(gdf1, gdf2, gdf1_name=None, area=None):
     """
-    This function intersects two GeoDataFrames with each other and calculates the composition how gdf1 will splitted to gdf2
+    This function intersects two GeoDataFrames with each other and calculates \
+        the composition how gdf1 will splitted to gdf2
 
     Hint: gdf1 and gdf2 must have "name" and "geometry" parameters
     INPUT:
         **gdf1** (GeoDataFrame) - Area with polygons to divide
-        **gdf2** (GeoDataFrame) - Area with polygons or nodes to which gdf1 should be divide
+        **gdf2** (GeoDataFrame) - Area with polygons or nodes to which gdf1 \
+            should be divide
 
     OPTIONAL:
-        **gdf1_name** (GeoDataFrame, default None) - Gdf1 parameter which includes the area name. \
-            Per default the first column will taken
+        **gdf1_name** (GeoDataFrame, default None) - Gdf1 parameter which \
+            includes the area name. Per default the first column will taken
         **grid_area** (GeoDataFrame, default None) - definition of the consider area
     """
     # reduce data to considered area
@@ -283,20 +265,13 @@ def intersect_with_composition(gdf1, gdf2, gdf1_name=None, area=None):
         gdf1_name = "gdf1_name"
         gdf1.rename(columns={"name": gdf1_name}, inplace=True)
     # intersect data with voronoi regions
-    gdf_intersect = overlay(
-        gdf1, gdf2
-    )  # !!! ggf. drop von centorid und dave_name an der stelle
+    gdf_intersect = overlay(gdf1, gdf2)  # !!! ggf. drop von centorid und dave_name an der stelle
     # replace "nan" because "nan" is not equals to nan
     gdf_intersect.fillna("None", inplace=True)
     # calculate area percentage
-    gdf_intersect["area_percentage"] = (
-        gdf_intersect.geometry.area
-        / gdf_intersect.apply(
-            lambda x: gdf1[(gdf1[gdf1_name] == x[gdf1_name])]
-            .iloc[0]
-            .geometry.area,
-            axis=1,
-        )
+    gdf_intersect["area_percentage"] = gdf_intersect.geometry.area / gdf_intersect.apply(
+        lambda x: gdf1[(gdf1[gdf1_name] == x[gdf1_name])].iloc[0].geometry.area,
+        axis=1,
     )
     return gdf_intersect
 
@@ -311,7 +286,8 @@ def related_sub(bus, substations):
         **substations** (DataFrame) - Table of the possible substations
 
     OUTPUT:
-        (Tuple) - Substation information for a given bus (ego_subst_id, subst_dave_name, subst_name)
+        (Tuple) - Substation information for a given bus (ego_subst_id, \
+                                                          subst_dave_name, subst_name)
     """
     substation_geom_dask = from_geopandas(
         substations.geometry, npartitions=dave_settings["cpu_number"]
@@ -322,16 +298,10 @@ def related_sub(bus, substations):
             meta=substation_geom_dask,
         ).compute()
     ]
-    ego_subst_id = (
-        sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []
-    )
-    subst_dave_name = (
-        sub_filtered.dave_name.to_list() if not sub_filtered.empty else []
-    )
+    ego_subst_id = sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []
+    subst_dave_name = sub_filtered.dave_name.to_list() if not sub_filtered.empty else []
     if "subst_name" in sub_filtered.keys():
-        subst_name = (
-            sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
-        )
+        subst_name = sub_filtered.subst_name.to_list() if not sub_filtered.empty else []
     else:
         subst_name = "nan"
     return ego_subst_id, subst_dave_name, subst_name

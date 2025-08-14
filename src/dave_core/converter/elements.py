@@ -87,11 +87,13 @@ class Elements:
         This function fills the dictionary with data elements from Dave;
         defines:
             n_ele: number of elements
-            type: short form for type of the Elements: n(ode) or p(ipe) or v(alve) or c(ompressor)
+            type: short form for type of the Elements: n(ode) or p(ipe) or \
+                v(alve) or c(ompressor)
 
         INPUT:
             **element_type** (src) - element type
-            **data** (dict) - all Information's about the grid elements (e.g. pandas.core.series.Series)
+            **data** (dict) - all Information's about the grid elements (e.g. \ 
+                pandas.core.series.Series)
         """
         self.type = element_type
         self.n_ele = len(data.index)
@@ -107,9 +109,7 @@ class Elements:
             data.insert(
                 0,
                 "dave_name",
-                Series(
-                    [f"{type_names[element_type]}_{x}" for x in data.index]
-                ),
+                Series([f"{type_names[element_type]}_{x}" for x in data.index]),
             )
         for ele in range(self.n_ele):
             name = data["dave_name"][ele]

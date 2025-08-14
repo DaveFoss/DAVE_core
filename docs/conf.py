@@ -25,10 +25,7 @@ extlinks = {
 }
 
 html_theme = "sphinx_rtd_theme"
-html_theme_options = {
-    "github_url": "https://github.com/DaveFoss/DAVE_core/",
-}
-
+html_theme_options = {"github_url": "https://github.com/DaveFoss/DAVE_core/"}
 html_use_smartypants = True
 html_last_updated_fmt = "%b %d, %Y"
 html_split_index = False

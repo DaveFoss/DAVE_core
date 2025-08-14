@@ -660,7 +660,7 @@ def create_transformers(grid_data):
     power_levels = grid_data.target_input.power_levels[0]
     # --- create ehv/ehv and ehv/hv trafos
     # check if power levels are requested and not all nodes are ampty
-    if any((x in power_levels for x in ["ehv", "hv"])) and not (
+    if any(x in power_levels for x in ["ehv", "hv"]) and not (
         grid_data.ehv_data.ehv_nodes.empty and grid_data.hv_data.hv_nodes.empty
     ):
         create_ehv_hv_trafos(grid_data, power_levels, pbar)
@@ -671,7 +671,7 @@ def create_transformers(grid_data):
     # --- create hv/mv trafos
     # check if power levels are requested and not all nodes are ampty
     if (
-        any((x in power_levels for x in ["hv", "mv"]))
+        any(x in power_levels for x in ["hv", "mv"])
         and not (grid_data.hv_data.hv_nodes.empty and grid_data.mv_data.mv_nodes.empty)
         and grid_data.components_power.transformers.hv_mv.empty
     ):
@@ -683,7 +683,7 @@ def create_transformers(grid_data):
     # --- create mv/lv trafos
     # check if power levels are requested and not all nodes are ampty
     if (
-        any((x in power_levels for x in ["mv", "lv"]))
+        any(x in power_levels for x in ["mv", "lv"])
         and grid_data.components_power.transformers.mv_lv.empty
     ):  # and not (grid_data.mv_data.mv_nodes.empty and grid_data.lv_data.lv_nodes.empty):
         create_mv_lv_trafos(grid_data, power_levels, pbar)

@@ -121,7 +121,7 @@ def create_pandapipes(
         if "res_simone_q_eff_mw" in all_junctions.keys():
             net.junction["res_simone_q_eff_mw"] = all_junctions["res_simone_q_eff_mw"]
     map_junctions_simone_id_to_pandapipes_id = dict(
-        zip(net.junction.source_id.values, net.junction.index)
+        zip(net.junction.source_id.values, net.junction.index, strict=True)
     )
     # update progress
     pbar.update(25)
@@ -355,12 +355,12 @@ def create_pandapipes(
                     errors="ignore",
                 ),  # ignore if pressure_ratio is not found
             )
-        assert net.compressor.from_junction.isin(net.junction.index).all(), (
-            "some compressors are connected to non-existing junctions!"
-        )
-        assert net.compressor.to_junction.isin(net.junction.index).all(), (
-            "some compressors are connected to non-existing junctions!"
-        )
+        assert net.compressor.from_junction.isin(
+            net.junction.index
+        ).all(), "some compressors are connected to non-existing junctions!"
+        assert net.compressor.to_junction.isin(
+            net.junction.index
+        ).all(), "some compressors are connected to non-existing junctions!"
     # update progress
     pbar.update(10)
 
@@ -408,12 +408,12 @@ def create_pandapipes(
         # check necessary parameters and add pandapipes standard if needed
         # net.valve["loss_coefficient"] = float(0)
         # net.valve["type"] = "valve"
-        assert net.valve.from_junction.isin(net.junction.index).all(), (
-            "some valves are connected to non-existing junctions!"
-        )
-        assert net.valve.to_junction.isin(net.junction.index).all(), (
-            "some valves are connected to non-existing junctions!"
-        )
+        assert net.valve.from_junction.isin(
+            net.junction.index
+        ).all(), "some valves are connected to non-existing junctions!"
+        assert net.valve.to_junction.isin(
+            net.junction.index
+        ).all(), "some valves are connected to non-existing junctions!"
     # update progress
     pbar.update(10)
 

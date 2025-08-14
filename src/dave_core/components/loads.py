@@ -37,12 +37,11 @@ def get_household_power(consumption_data, household_size):
     """
     # set power factor
     household_consumption = consumption_data["household_consumptions"][
-        consumption_data["household_consumptions"]["Personen pro Haushalt"]
-        == household_size
+        consumption_data["household_consumptions"]["Personen pro Haushalt"] == household_size
     ]
-    p_mw = (
-        household_consumption.iloc[0]["Durchschnitt  [kwh/a]"] / 1000
-    ) / dave_settings["h_per_a"]
+    p_mw = (household_consumption.iloc[0]["Durchschnitt  [kwh/a]"] / 1000) / dave_settings[
+        "h_per_a"
+    ]
     q_mvar = (
         p_mw
         * sin(acos(dave_settings["cos_phi_residential"]))
@@ -78,13 +77,8 @@ def create_loads(grid_data):
         # --- create lv loads for residential
         federal_states, meta_data = read_federal_states()
         # add meta data
-        if (
-            f"{meta_data['Main'].Titel.loc[0]}"
-            not in grid_data.meta_data.keys()
-        ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                meta_data
-            )
+        if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         federal_states.rename(columns={"name": "federal state"}, inplace=True)
         # intersect residential buildings with federal state areas to get the suitable federal state
         buildings_feds = intersection_with_area(
@@ -93,9 +87,7 @@ def create_loads(grid_data):
             remove_columns=False,
         )
         buildings_feds.drop(
-            columns=federal_states.keys()
-            .drop("federal state")
-            .drop("geometry"),
+            columns=federal_states.keys().drop("federal state").drop("geometry"),
             inplace=True,
         )
         # read consumption data
@@ -103,13 +95,8 @@ def create_loads(grid_data):
         # update progress
         pbar.update(10)
         # add meta data
-        if (
-            f"{meta_data['Main'].Titel.loc[0]}"
-            not in grid_data.meta_data.keys()
-        ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                meta_data
-            )
+        if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         # get population for the diffrent areas
         if grid_data.target_input.iloc[0].typ in [
             "postalcode",
@@ -122,13 +109,8 @@ def create_loads(grid_data):
             # calculate proportions of postal area for grid area
             postals, meta_data = read_postal()
             # add meta data
-            if (
-                f"{meta_data['Main'].Titel.loc[0]}"
-                not in grid_data.meta_data.keys()
-            ):
-                grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                    meta_data
-                )
+            if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+                grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
             # filter postal code areas which are within the grid area
             postal_own_intersection = intersection_with_area(
                 postals, grid_data.area, remove_columns=False
@@ -145,9 +127,7 @@ def create_loads(grid_data):
             for i, postal in postal_own_intersection.iterrows():
                 # --- calculate full plz residential area
                 border = (
-                    postals[postals.postalcode == postal.postalcode]
-                    .iloc[0]
-                    .geometry.convex_hull
+                    postals[postals.postalcode == postal.postalcode].iloc[0].geometry.convex_hull
                 )
                 # Obtain data from OSM
                 plz_residential, meta_data = query_osm(
@@ -157,13 +137,8 @@ def create_loads(grid_data):
                     tags=['landuse~"residential"'],
                 )
                 # add meta data
-                if (
-                    f"{meta_data['Main'].Titel.loc[0]}"
-                    not in grid_data.meta_data.keys()
-                ):
-                    grid_data.meta_data[
-                        f"{meta_data['Main'].Titel.loc[0]}"
-                    ] = meta_data
+                if f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys():
+                    grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
                 # filter non Linestring objects
                 drop_objects = [
                     obj.name
@@ -178,9 +153,7 @@ def create_loads(grid_data):
                 plz_own_landuse = postal_own_landuse[
                     postal_own_landuse.postalcode == postal.postalcode
                 ]
-                plz_own_residential = plz_own_landuse[
-                    plz_own_landuse.landuse == "residential"
-                ]
+                plz_own_residential = plz_own_landuse[plz_own_landuse.landuse == "residential"]
                 plz_own_residential = plz_own_residential.geometry.unary_union
                 # calculate population for proportion of postal area
                 pop_own = (
@@ -193,17 +166,11 @@ def create_loads(grid_data):
         for _, area in population_area.iterrows():
             if area.population != 0:
                 # filter buildings for considered area
-                buildings_area = buildings_feds[
-                    buildings_feds.geometry.within(area.geometry)
-                ]
-                buildings_idx_first = (
-                    buildings_area.index.to_list()
-                )  # this will be reduced later
+                buildings_area = buildings_feds[buildings_feds.geometry.within(area.geometry)]
+                buildings_idx_first = buildings_area.index.to_list()  # this will be reduced later
                 federal_state = buildings_area.iloc[0]["federal state"]
                 household_sizes = consumption_data["household_sizes"]
-                sizes_feds = household_sizes[
-                    household_sizes.Bundesland == federal_state
-                ].iloc[0]
+                sizes_feds = household_sizes[household_sizes.Bundesland == federal_state].iloc[0]
                 # household weights for considered federal state
                 w_1p = sizes_feds["Anteil 1 Person [%]"] / 100
                 w_2p = sizes_feds["Anteil 2 Personen [%]"] / 100
@@ -226,9 +193,7 @@ def create_loads(grid_data):
                         # selcet  the rest of population
                         household_size = pop_distribute
                     # get power values for household
-                    p_mw, q_mvar = get_household_power(
-                        consumption_data, household_size
-                    )
+                    p_mw, q_mvar = get_household_power(consumption_data, household_size)
                     # reduce population to distribute
                     pop_distribute -= household_size
                     # --- select building in grid area
@@ -238,13 +203,9 @@ def create_loads(grid_data):
                         buildings_idx_first.remove(building_idx)
                     # distribution for the rest loads makes no matter so selected randomly
                     else:
-                        building_idx = rng.choice(
-                            buildings_area.index.to_list(), 1
-                        )[0]
+                        building_idx = rng.choice(buildings_area.index.to_list(), 1)[0]
                     # search for suitable grid node
-                    building_boundary = buildings_area.loc[
-                        building_idx
-                    ].geometry
+                    building_boundary = buildings_area.loc[building_idx].geometry
                     if isinstance(building_boundary, LineString):
                         building_geom = Polygon(building_boundary)
                     elif isinstance(building_boundary, MultiLineString):
@@ -253,9 +214,7 @@ def create_loads(grid_data):
                             multiline_coords.extend(list(line.coords))
                         building_geom = Polygon(multiline_coords)
 
-                    building_node = building_nodes[
-                        building_nodes.geometry.within(building_geom)
-                    ]
+                    building_node = building_nodes[building_nodes.geometry.within(building_geom)]
                     if not building_node.empty:
                         lv_node = building_node.iloc[0]
                     else:
@@ -263,14 +222,10 @@ def create_loads(grid_data):
                         building_centroid = building_geom.centroid
                         centroid_distance = building_nodes.geometry.apply(
                             lambda x,
-                            building_centroid=building_centroid: building_centroid.distance(
-                                x
-                            )
+                            building_centroid=building_centroid: building_centroid.distance(x)
                         )
                         if centroid_distance.min() < 1e-04:
-                            lv_node = building_nodes.loc[
-                                centroid_distance.idxmin()
-                            ]
+                            lv_node = building_nodes.loc[centroid_distance.idxmin()]
                     # create residential load
                     load_df = GeoDataFrame(
                         {
@@ -289,12 +244,8 @@ def create_loads(grid_data):
             # update progress
             pbar.update(40 / len(population_area))
         # create lv loads for industrial
-        industrial_polygons = grid_data.landuse[
-            grid_data.landuse.landuse == "industrial"
-        ]
-        industrial_load_full = (
-            industrial_polygons.area_km2.sum() * industrial_load
-        )  # in MW
+        industrial_polygons = grid_data.landuse[grid_data.landuse.landuse == "industrial"]
+        industrial_load_full = industrial_polygons.area_km2.sum() * industrial_load  # in MW
         industrial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building == "industrial"
         ]
@@ -315,9 +266,7 @@ def create_loads(grid_data):
                             "bus": building_point.iloc[0].dave_name,
                             "p_mw": industrial_load_full
                             * (building_poly.area / industrial_area_full),
-                            "q_mvar": p_mw
-                            * sin(acos(cos_phi_industrial))
-                            / cos_phi_industrial,
+                            "q_mvar": p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial,
                             "landuse": "industrial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -330,12 +279,8 @@ def create_loads(grid_data):
             # update progress
             pbar.update(20 / len(industrial_buildings))
         # create lv loads for commercial
-        commercial_polygons = grid_data.landuse[
-            grid_data.landuse.landuse == "commercial"
-        ]
-        commercial_load_full = (
-            commercial_polygons.area_km2.sum() * commercial_load
-        )  # in MW
+        commercial_polygons = grid_data.landuse[grid_data.landuse.landuse == "commercial"]
+        commercial_load_full = commercial_polygons.area_km2.sum() * commercial_load  # in MW
         commercial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building != "industrial"
         ]
@@ -356,9 +301,7 @@ def create_loads(grid_data):
                             "bus": building_point.iloc[0].dave_name,
                             "p_mw": commercial_load_full
                             * (building_poly.area / commercial_area_full),
-                            "q_mvar": p_mw
-                            * sin(acos(cos_phi_commercial))
-                            / cos_phi_commercial,
+                            "q_mvar": p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial,
                             "landuse": "commercial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -380,9 +323,7 @@ def create_loads(grid_data):
         if "mv" in power_levels:
             # In this case the loads are assigned to the nearest mv/lv-transformer
             voronoi_polygons = voronoi(
-                grid_data.components_power.transformers.mv_lv[
-                    ["dave_name", "geometry"]
-                ]
+                grid_data.components_power.transformers.mv_lv[["dave_name", "geometry"]]
             )
             trafos = grid_data.components_power.transformers.mv_lv
             voltage_level = 6
@@ -390,9 +331,7 @@ def create_loads(grid_data):
         elif "hv" in power_levels:
             # In this case the loads are assigned to the nearest hv/mv-transformer
             voronoi_polygons = voronoi(
-                grid_data.components_power.transformers.hv_mv[
-                    ["dave_name", "geometry"]
-                ]
+                grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
             )
             trafos = grid_data.components_power.transformers.hv_mv
             voltage_level = 4
@@ -400,9 +339,7 @@ def create_loads(grid_data):
         elif "ehv" in power_levels:
             # In this case the loads are assigned to the nearest ehv/hv-transformer
             voronoi_polygons = voronoi(
-                grid_data.components_power.transformers.ehv_hv[
-                    ["dave_name", "geometry"]
-                ]
+                grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
             )
             trafos = grid_data.components_power.transformers.ehv_hv
             voltage_level = 2
@@ -427,9 +364,7 @@ def create_loads(grid_data):
         for trafo_name in trafo_names:
             # search trafo bus
             trafo = trafos[trafos.dave_name == trafo_name].iloc[0]
-            landuse_polygons = intersection[
-                intersection.dave_name == trafo_name
-            ]
+            landuse_polygons = intersection[intersection.dave_name == trafo_name]
             # categorize landuse polygons and add to grid_data
             for loadtype in ["residential", "industrial", "commercial"]:
                 if loadtype == "residential":
@@ -438,33 +373,19 @@ def create_loads(grid_data):
                     ]
                     area = residential_polygons.area_km2.sum()
                     p_mw = residential_load * area
-                    q_mvar = (
-                        p_mw
-                        * sin(acos(cos_phi_residential))
-                        / cos_phi_residential
-                    )
+                    q_mvar = p_mw * sin(acos(cos_phi_residential)) / cos_phi_residential
                 elif loadtype == "industrial":
-                    industrial_polygons = landuse_polygons[
-                        landuse_polygons.landuse == "industrial"
-                    ]
+                    industrial_polygons = landuse_polygons[landuse_polygons.landuse == "industrial"]
                     area = industrial_polygons.area_km2.sum()
                     p_mw = industrial_load * area
-                    q_mvar = (
-                        p_mw
-                        * sin(acos(cos_phi_industrial))
-                        / cos_phi_industrial
-                    )
+                    q_mvar = p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial
                 elif loadtype == "commercial":
                     commercial_polygons = landuse_polygons[
                         landuse_polygons.landuse.isin(["commercial", "retail"])
                     ]
                     area = commercial_polygons.area_km2.sum()
                     p_mw = commercial_load * area
-                    q_mvar = (
-                        p_mw
-                        * sin(acos(cos_phi_commercial))
-                        / cos_phi_commercial
-                    )
+                    q_mvar = p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial
                 if p_mw != 0:
                     load_df = GeoDataFrame(
                         {

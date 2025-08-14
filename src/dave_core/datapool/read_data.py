@@ -89,9 +89,7 @@ def read_federal_states():
     federalstatesger = read_hdf(get_data_path(filename, "data"))
     # convert geometry
     federalstatesger["geometry"] = federalstatesger.geometry.apply(loads)
-    federalstatesger = GeoDataFrame(
-        federalstatesger, crs=dave_settings["crs_main"]
-    )
+    federalstatesger = GeoDataFrame(federalstatesger, crs=dave_settings["crs_main"])
     # read meta data
     filename = "federalstatesger_meta.xlsx"
     if not Path(get_data_path(filename, "data")).is_file():
@@ -118,29 +116,17 @@ def read_nuts_regions(year):
         download_data(filename)
     # get data from datapool
     if year == "2013":
-        nuts_regions = read_hdf(
-            get_data_path(filename, "data"), key="/nuts_2013"
-        )
+        nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2013")
         nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(
-            nuts_regions, crs=dave_settings["crs_main"]
-        )
+        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
     elif year == "2016":
-        nuts_regions = read_hdf(
-            get_data_path(filename, "data"), key="/nuts_2016"
-        )
+        nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2016")
         nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(
-            nuts_regions, crs=dave_settings["crs_main"]
-        )
+        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
     elif year == "2021":
-        nuts_regions = read_hdf(
-            get_data_path(filename, "data"), key="/nuts_2021"
-        )
+        nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2021")
         nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(
-            nuts_regions, crs=dave_settings["crs_main"]
-        )
+        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
     # read meta data
     filename = "nuts_regions_meta.xlsx"
     if not Path(get_data_path(filename, "data")).is_file():
@@ -249,10 +235,7 @@ def read_scigridgas_iggielgn():
     pipe_segments = iggielgn_data.get("/scigridgas_iggielgn_pipe_segments")
     pipe_segments.lat = pipe_segments.lat.apply(eval)
     pipe_segments.long = pipe_segments.long.apply(eval)
-    geometry = [
-        LineString(list(zip(pipe.long, pipe.lat)))
-        for i, pipe in pipe_segments.iterrows()
-    ]
+    geometry = [LineString(list(zip(pipe.long, pipe.lat))) for i, pipe in pipe_segments.iterrows()]
     pipe_segments = GeoDataFrame(
         pipe_segments, geometry=Series(geometry), crs=dave_settings["crs_main"]
     )
@@ -294,9 +277,7 @@ def read_scigridgas_iggielgn():
 def read_gaslib():
     # read data from datapool
     schema = XMLSchema(get_data_path("gaslib/Gas.xsd", "data"))
-    gaslib_dict = schema.to_dict(
-        get_data_path("gaslib/GasLib-582-v2.net", "data")
-    )
+    gaslib_dict = schema.to_dict(get_data_path("gaslib/GasLib-582-v2.net", "data"))
     # create data dictionary
     gaslib_data = {
         "nodes": gaslib_dict["framework:nodes"],

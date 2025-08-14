@@ -22,12 +22,9 @@ def create_hv_mv_substations(grid_data):
         # add meta data
         if (
             bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}"
-            not in grid_data.meta_data.keys()
+            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
         ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                meta_data
-            )
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         hvmv_substations.rename(
             columns={
                 "version": "ego_version",
@@ -38,9 +35,7 @@ def create_hv_mv_substations(grid_data):
             inplace=True,
         )
         # filter substations which are within the grid area
-        hvmv_substations = intersection_with_area(
-            hvmv_substations, grid_data.area
-        )
+        hvmv_substations = intersection_with_area(hvmv_substations, grid_data.area)
         if not hvmv_substations.empty:
             hvmv_substations["voltage_level"] = 4
             # add dave name
@@ -70,18 +65,13 @@ def create_mv_lv_substations(grid_data):
     included in grid data
     """
     if grid_data.components_power.substations.mv_lv.empty:
-        mvlv_substations, meta_data = oep_request(
-            table="ego_dp_mvlv_substation"
-        )
+        mvlv_substations, meta_data = oep_request(table="ego_dp_mvlv_substation")
         # add meta data
         if (
             bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}"
-            not in grid_data.meta_data.keys()
+            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
         ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = (
-                meta_data
-            )
+            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         mvlv_substations.rename(
             columns={
                 "version": "ego_version",
@@ -92,9 +82,7 @@ def create_mv_lv_substations(grid_data):
         # change wrong crs from oep
         mvlv_substations.crs = dave_settings["crs_main"]
         # filter trafos which are within the grid area
-        mvlv_substations = intersection_with_area(
-            mvlv_substations, grid_data.area
-        )
+        mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)
         if not mvlv_substations.empty:
             mvlv_substations["voltage_level"] = 6
             # add dave name

@@ -13,3 +13,6 @@ python:
     - requirements: docs/requirements.txt
     - method: pip
       path: .
+versions:
+    - latest
+    - v1.3.1

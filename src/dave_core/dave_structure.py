@@ -1,5 +1,4 @@
 from geopandas import GeoDataFrame
-from geopandas import GeoSeries
 from pandapower.auxiliary import ADict
 from pandas import DataFrame
 

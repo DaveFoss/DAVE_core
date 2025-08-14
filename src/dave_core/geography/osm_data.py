@@ -133,15 +133,15 @@ def from_osm(
                 landuse_commercial = landuse[landuse.landuse == "commercial"].geometry.unary_union
                 for i, building in buildings.iterrows():
                     if building.building not in commercial:
-                        if not landuse_retail is None and building.geometry.intersects(
+                        if landuse_retail is not None and building.geometry.intersects(
                             landuse_retail
                         ):
                             buildings.at[i, "building"] = "retail"
-                        elif not landuse_industrial is None and building.geometry.intersects(
+                        elif landuse_industrial is not None and building.geometry.intersects(
                             landuse_industrial
                         ):
                             buildings.at[i, "building"] = "industrial"
-                        elif not landuse_commercial is None and building.geometry.intersects(
+                        elif landuse_commercial is not None and building.geometry.intersects(
                             landuse_commercial
                         ):
                             buildings.at[i, "building"] = "commercial"

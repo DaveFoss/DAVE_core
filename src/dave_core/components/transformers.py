@@ -4,7 +4,6 @@
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
-from geopandas import GeoSeries
 from pandas import Series
 from pandas import concat
 from shapely import wkb

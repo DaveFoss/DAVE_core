@@ -192,11 +192,12 @@ def create_sinks(grid_data, scigrid_consumers):
 
 
 def create_storages_gas(grid_data, scigrid_storages):
-    pass
+    """
     # gas storages in germany
     # read_gas_storage_ugs()
     # read_scigridgas_iggielgn()
     # check for duplicated strorages in both datasets
+    """
 
 
 def create_valves(grid_data):
@@ -204,7 +205,6 @@ def create_valves(grid_data):
     This function adds the data for valves between junctions
     """
     # At this time there are no data source for valves availible
-    pass
 
 
 def gas_components(grid_data, compressor, sink, source, storage_gas, valve):

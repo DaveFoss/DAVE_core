@@ -2,7 +2,6 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from numpy import isnan
 from pandapower import available_std_types
 from pandapower import create_buses
 from pandapower import create_empty_network

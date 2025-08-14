@@ -8,7 +8,6 @@ import concurrent.futures
 from geopandas import GeoDataFrame
 from geopandas import points_from_xy
 from geopandas import sjoin
-from geopy.geocoders import ArcGIS
 from pandas import DataFrame
 from pandas import Series
 from pandas import concat

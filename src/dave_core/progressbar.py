@@ -11,7 +11,7 @@ from dave_core.settings import dave_settings
 def create_tqdm(desc, bar_type="main_bar"):
     """
     This function creates a tqdm progress bar object
-    
+
     INPUT:
         **desc** (str) - Name of the task (max 33 signs)
 
@@ -48,7 +48,7 @@ def create_tqdm(desc, bar_type="main_bar"):
 def create_tqdm_dask(desc, bar_type):
     """
     This function creates a tqdm progress bar object for dask functions
-    
+
     INPUT:
         **desc** (str) - Name of the task (max 33 signs)
         **bar_type** (str) - Which style of progress bar should be used \

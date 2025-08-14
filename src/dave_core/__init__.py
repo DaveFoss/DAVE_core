@@ -120,7 +120,6 @@ from .plotting.plot import plot_grid_data
 from .plotting.plot import plot_grid_data_osm
 from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
-from .progressbar import create_tqdm
 from .settings import dave_settings
 from .settings import set_dave_settings
 from .toolbox import adress_to_coords

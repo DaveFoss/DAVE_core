@@ -26,7 +26,7 @@ extlinks = {
 
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
-    "githuburl": "https://github.com/DaveFoss/DAVE_core/",
+    "github_url": "https://github.com/DaveFoss/DAVE_core/",
 }
 
 html_use_smartypants = True

@@ -17,7 +17,7 @@ def read(*names, **kwargs):
 setup(
     name="dave_core",
     version="1.3.1",
-    license="BSD 3-cluase",
+    license="BSD-3-Clause",
     description="DAVE is a tool for automatic energy grid generation",
     long_description="{}\n{}".format(
         re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub("", read("README.rst")),
@@ -40,7 +40,6 @@ setup(
         # http://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: Unix",
         "Operating System :: POSIX",
         "Operating System :: Microsoft :: Windows",

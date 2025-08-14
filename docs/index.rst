@@ -1,5 +1,5 @@
 .. image:: /images/dave_logo.png
-		:width: 250em
+		:width: 150em
 		:align: left
 
 .. |br| raw:: html
@@ -27,12 +27,3 @@ More information about DAVE can be found on `www.databutler.energy <http://datab
     .. geography
     .. io
     .. plotting
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

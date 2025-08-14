@@ -1,6 +1,3 @@
-Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE) Kassel and the following individual contributors list.
-All rights reserved.
-
 =======
 Authors
 =======

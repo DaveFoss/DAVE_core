@@ -25,7 +25,9 @@ def nearest_road_points(points, roads):
     # create multistring of relevant roads and intersect radial lines with it
     multiline_roads = roads.unary_union
     # finding nearest connection between the building centroids and the roads
-    points_dask = from_geopandas(points, npartitions=dave_settings["cpu_number"])
+    points_dask = from_geopandas(
+        points, npartitions=dave_settings["cpu_number"]
+    )
     with create_tqdm_dask(desc="Nearest building nodes", bar_type="sub_bar"):
         return points_dask.apply(
             lambda x: nearest_points(x, multiline_roads)[1], meta=points_dask

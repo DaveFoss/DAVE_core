@@ -299,17 +299,15 @@ def simone_to_dave(data_simone):
             )
         ]
         grid_data.components_gas.sources["mdot_kg_per_s"] = (
-            grid_data.components_gas.sources[
-                "values"
-            ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
+            grid_data.components_gas.sources["values"].apply(
+                lambda x: x[0] * factor_mw_to_kb_per_s
+            )
         )
         grid_data.components_gas.sources.rename(
             columns={"name": "source_name"}, inplace=True
         )
         grid_data.components_gas.sources["junction"] = (
-            grid_data.components_gas.sources[
-                "source_name"
-            ].apply(
+            grid_data.components_gas.sources["source_name"].apply(
                 lambda x: grid_data.hp_data.hp_junctions[
                     grid_data.hp_data.hp_junctions.source_name == x
                 ]
@@ -324,17 +322,15 @@ def simone_to_dave(data_simone):
             & (n_par["parameters"].apply(lambda x: "Q" in x))
         ]
         grid_data.components_gas.sinks["mdot_kg_per_s"] = (
-            grid_data.components_gas.sinks[
-                "values"
-            ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
+            grid_data.components_gas.sinks["values"].apply(
+                lambda x: x[0] * factor_mw_to_kb_per_s
+            )
         )
         grid_data.components_gas.sinks.rename(
             columns={"name": "source_name"}, inplace=True
         )
         grid_data.components_gas.sinks["junction"] = (
-            grid_data.components_gas.sinks[
-                "source_name"
-            ].apply(
+            grid_data.components_gas.sinks["source_name"].apply(
                 lambda x: grid_data.hp_data.hp_junctions[
                     grid_data.hp_data.hp_junctions.source_name == x
                 ]

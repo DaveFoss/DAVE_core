@@ -28,7 +28,9 @@ def request_to_df(request):
     return request_data
 
 
-def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
+def oep_request(
+    table, schema=None, where=None, geometry=None, db_update=False
+):
     """
     This function is to requesting data from the open energy platform.\
     The available data is to find on https://openenergy-platform.org/dataedit/schemas
@@ -105,7 +107,9 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     if geometry is not None:
         # --- convert into geopandas DataFrame with right crs
         # transform WKB to WKT / Geometry
-        request_data["geometry"] = request_data[geometry].apply(lambda x: loads(x, hex=True))
+        request_data["geometry"] = request_data[geometry].apply(
+            lambda x: loads(x, hex=True)
+        )
         # create geoDataFrame
         request_data = GeoDataFrame(
             request_data,
@@ -116,7 +120,9 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     if table == "ego_pf_hv_transformer":
         # change geometry to point because in original data the geometry was lines with length 0
         request_data["geometry"] = request_data.geometry.apply(
-            lambda x: Point(x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1])
+            lambda x: Point(
+                x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1]
+            )
         )
     if table == "ego_dp_mvlv_substation":
         # change wrong crs from oep
@@ -126,7 +132,9 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     # --- request meta informations for a dataset
     # !!! Todo: seperate option for getting data from DB. When there are no meta data in DB then check OEP Url
     request = get(
-        "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
+        "".join(
+            [oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]
+        ),
         timeout=30,
     )
     # convert data to meta dict  # !!! When getting data from database the meta informations should also came from db
@@ -139,13 +147,19 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                     "Titel": request_meta["title"],
                     "Description": request_meta["description"],
                     "Spatial": request_meta["resources"][0]["spatial"],
-                    "Licenses": request_meta["metaMetadata"]["metadataLicense"],
-                    "metadata_version": request_meta["metaMetadata"]["metadataVersion"],
+                    "Licenses": request_meta["metaMetadata"][
+                        "metadataLicense"
+                    ],
+                    "metadata_version": request_meta["metaMetadata"][
+                        "metadataVersion"
+                    ],
                 },
                 index=[0],
             ),
             "Sources": DataFrame(request_meta["resources"][0]["sources"]),
-            "Data": DataFrame(request_meta["resources"][0]["schema"]["fields"]),
+            "Data": DataFrame(
+                request_meta["resources"][0]["schema"]["fields"]
+            ),
         }
     else:
         meta_data = {}

@@ -65,10 +65,14 @@ def from_json(file_path, encryption_key=None):
     ]:
         return from_json_string(json_string, encryption_key=encryption_key)
     elif json_type == "pandapower.auxiliary":
-        print("A pandapower network is given as input and will be convertert in pandapower format")
+        print(
+            "A pandapower network is given as input and will be convertert in pandapower format"
+        )
         return from_json_pp(file_path)
     elif json_type == "ppi":
-        print("A pandapipes network is given as input and will be convertert in pandapipes format")
+        print(
+            "A pandapipes network is given as input and will be convertert in pandapipes format"
+        )
         return from_json_ppi(file_path)
     else:
         raise UserWarning("The given json file is not a DAVE dataset")
@@ -91,7 +95,9 @@ def from_json_string(json_string, encryption_key=None):
     dataset = json_loads(
         json_string,
         cls=DAVEJSONDecoder,
-        object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),
+        object_hook=partial(
+            dave_hook, registry_class=FromSerializableRegistry
+        ),
     )
     return dataset
 
@@ -166,18 +172,22 @@ def from_hdf(file_path):
                     if key_parts[0] == "dave_version":
                         grid_data.dave_version = data["dave_version"][0]
                     else:
-                        grid_data[key_parts[0]] = grid_data[key_parts[0]].append(data)
+                        grid_data[key_parts[0]] = grid_data[
+                            key_parts[0]
+                        ].append(data)
                 elif len(key_parts) == 2:
                     # data road junctions has to convert into series object
                     if key_parts[1] == "road_junctions":
                         data = data.geometry
-                    grid_data[key_parts[0]][key_parts[1]] = grid_data[key_parts[0]][
-                        key_parts[1]
-                    ].append(data)
+                    grid_data[key_parts[0]][key_parts[1]] = grid_data[
+                        key_parts[0]
+                    ][key_parts[1]].append(data)
                 elif len(key_parts) == 3:
-                    grid_data[key_parts[0]][key_parts[1]][key_parts[2]] = grid_data[key_parts[0]][
-                        key_parts[1]
-                    ][key_parts[2]].append(data)
+                    grid_data[key_parts[0]][key_parts[1]][key_parts[2]] = (
+                        grid_data[key_parts[0]][key_parts[1]][
+                            key_parts[2]
+                        ].append(data)
+                    )
         # close file
         file.close()
         return grid_data
@@ -201,7 +211,9 @@ def to_hdf(grid_data, file_path):
             for key_sec in grid_data[key].keys():
                 if isinstance(grid_data[key][key_sec], davestructure):
                     for key_trd in grid_data[key][key_sec].keys():
-                        if isinstance(grid_data[key][key_sec][key_trd], GeoDataFrame):
+                        if isinstance(
+                            grid_data[key][key_sec][key_trd], GeoDataFrame
+                        ):
                             file.put(
                                 f"/{key}/{key_sec}/{key_trd}",
                                 wkt_to_wkb(grid_data[key][key_sec][key_trd]),
@@ -267,10 +279,14 @@ def to_gpkg(grid_data, file_path):
                 if str(type(grid_data[key][key_sec])) == str(davestructure):
                     for key_trd in grid_data[key][key_sec].keys():
                         if (
-                            isinstance(grid_data[key][key_sec][key_trd], GeoDataFrame)
+                            isinstance(
+                                grid_data[key][key_sec][key_trd], GeoDataFrame
+                            )
                             and not grid_data[key][key_sec][key_trd].empty
                         ):
-                            data = df_lists_to_str(grid_data[key][key_sec][key_trd])
+                            data = df_lists_to_str(
+                                grid_data[key][key_sec][key_trd]
+                            )
                             data.to_file(
                                 file_path,
                                 layer=f"{key}/{key_sec}/{key_trd}",
@@ -282,7 +298,9 @@ def to_gpkg(grid_data, file_path):
                     and not grid_data[key][key_sec].empty
                 ):
                     data = df_lists_to_str(grid_data[key][key_sec])
-                    data.to_file(file_path, layer=f"{key}/{key_sec}", driver="GPKG")
+                    data.to_file(
+                        file_path, layer=f"{key}/{key_sec}", driver="GPKG"
+                    )
                 # case GeoSeries
                 elif (
                     isinstance(grid_data[key][key_sec], GeoSeries)
@@ -290,8 +308,13 @@ def to_gpkg(grid_data, file_path):
                 ):
                     data = GeoDataFrame({"geometry": grid_data[key][key_sec]})
                     data = df_lists_to_str(data)
-                    data.to_file(file_path, layer=f"{key}/{key_sec}", driver="GPKG")
-        elif isinstance(grid_data[key], GeoDataFrame) and not grid_data[key].empty:
+                    data.to_file(
+                        file_path, layer=f"{key}/{key_sec}", driver="GPKG"
+                    )
+        elif (
+            isinstance(grid_data[key], GeoDataFrame)
+            and not grid_data[key].empty
+        ):
             data = df_lists_to_str(grid_data[key])
             data.to_file(file_path, layer=f"{key}", driver="GPKG")
 
@@ -314,31 +337,44 @@ def pp_to_json(net, file_path):
         and "geometry" in net_conv.bus.keys()
         and all(isinstance(x, Point) for x in net_conv.bus.geometry)
     ):
-        net_conv.bus["geometry"] = net_conv.bus.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.bus["geometry"] = net_conv.bus.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.line.empty
         and "geometry" in net_conv.line.keys()
-        and all(isinstance(x, (LineString, MultiLineString)) for x in net_conv.line.geometry)
+        and all(
+            isinstance(x, (LineString, MultiLineString))
+            for x in net_conv.line.geometry
+        )
     ):
-        net_conv.line["geometry"] = net_conv.line.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.line["geometry"] = net_conv.line.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.trafo.empty
         and "geometry" in net_conv.trafo.keys()
         and all(isinstance(x, Point) for x in net_conv.trafo.geometry)
     ):
-        net_conv.trafo["geometry"] = net_conv.trafo.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.trafo["geometry"] = net_conv.trafo.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.gen.empty
         and "geometry" in net_conv.gen.keys()
         and all(isinstance(x, Point) for x in net_conv.gen.geometry)
     ):
-        net_conv.gen["geometry"] = net_conv.gen.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.gen["geometry"] = net_conv.gen.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.sgen.empty
         and "geometry" in net_conv.sgen.keys()
         and all(isinstance(x, Point) for x in net_conv.sgen.geometry)
     ):
-        net_conv.sgen["geometry"] = net_conv.sgen.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.sgen["geometry"] = net_conv.sgen.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.substations.empty
         and "geometry" in net_conv.substations.keys()
@@ -360,14 +396,18 @@ def pp_to_json(net, file_path):
         and "geometry" in net_conv.roads.keys()
         and all(isinstance(x, LineString) for x in net_conv.roads.geometry)
     ):
-        net_conv.roads["geometry"] = net_conv.roads.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.roads["geometry"] = net_conv.roads.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     if (
         not net_conv.road_junctions.empty
         and "geometry" in net_conv.road_junctions.keys()
         and all(isinstance(x, Point) for x in net_conv.road_junctions.geometry)
     ):
-        net_conv.road_junctions["geometry"] = net_conv.road_junctions.geometry.apply(
-            lambda x: dumps(x, hex=True)
+        net_conv.road_junctions["geometry"] = (
+            net_conv.road_junctions.geometry.apply(
+                lambda x: dumps(x, hex=True)
+            )
         )
     if (
         not net_conv.railways.empty
@@ -390,7 +430,9 @@ def pp_to_json(net, file_path):
         and "geometry" in net_conv.landuse.keys()
         and all(isinstance(x, Polygon) for x in net_conv.landuse.geometry)
     ):
-        net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
+        net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(
+            lambda x: dumps(x, hex=True)
+        )
     # convert pp model to json and save the file
     to_json_pp(net_conv, filename=file_path)
 
@@ -422,8 +464,12 @@ def json_to_pp(file_path):
         "waterways",
         "landuse",
     ]:
-        if not net[element].empty and all(isinstance(x, str) for x in net[element].geometry):
-            net[element]["geometry"] = net[element].geometry.apply(lambda x: loads(x, hex=True))
+        if not net[element].empty and all(
+            isinstance(x, str) for x in net[element].geometry
+        ):
+            net[element]["geometry"] = net[element].geometry.apply(
+                lambda x: loads(x, hex=True)
+            )
     return net
 
 
@@ -454,7 +500,11 @@ def ppi_to_json(net, file_path):
     # Convert geometry
     for attr, geom_type in attributes:
         df = getattr(net_conv, attr, None)
-        if df is not None and not df.empty and all(isinstance(x, geom_type) for x in df.geometry):
+        if (
+            df is not None
+            and not df.empty
+            and all(isinstance(x, geom_type) for x in df.geometry)
+        ):
             df["geometry"] = df.geometry.apply(lambda x: dumps(x, hex=True))
 
     # Convert ppi model to json and save the file
@@ -475,8 +525,16 @@ def json_to_ppi(file_path):
     # read json file and convert to pp model
     net = from_json_ppi(file_path)
     # convert geometry
-    if not net.junction.empty and all(isinstance(x, str) for x in net.junction.geometry):
-        net.junction["geometry"] = net.junction.geometry.apply(lambda x: loads(x, hex=True))
-    if not net.pipe.empty and all(isinstance(x, str) for x in net.pipe.geometry):
-        net.pipe["geometry"] = net.pipe.geometry.apply(lambda x: loads(x, hex=True))
+    if not net.junction.empty and all(
+        isinstance(x, str) for x in net.junction.geometry
+    ):
+        net.junction["geometry"] = net.junction.geometry.apply(
+            lambda x: loads(x, hex=True)
+        )
+    if not net.pipe.empty and all(
+        isinstance(x, str) for x in net.pipe.geometry
+    ):
+        net.pipe["geometry"] = net.pipe.geometry.apply(
+            lambda x: loads(x, hex=True)
+        )
     return net

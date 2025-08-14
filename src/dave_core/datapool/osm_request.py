@@ -192,8 +192,7 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
             recursestr = recurse_map[recurse]
         except KeyError as e:
             raise ValueError(
-                "Unrecognized recurse value '{}'. "
-                "Must be one of: {}.".format(
+                "Unrecognized recurse value '{}'. Must be one of: {}.".format(
                     recurse, ", ".join(recurse_map.keys())
                 )
             ) from e

@@ -389,12 +389,12 @@ def create_pandapipes(
                     errors="ignore",
                 ),  # ignore if pressure_ratio is not found
             )
-        assert net.compressor.from_junction.isin(
-            net.junction.index
-        ).all(), "some compressors are connected to non-existing junctions!"
-        assert net.compressor.to_junction.isin(
-            net.junction.index
-        ).all(), "some compressors are connected to non-existing junctions!"
+        assert net.compressor.from_junction.isin(net.junction.index).all(), (
+            "some compressors are connected to non-existing junctions!"
+        )
+        assert net.compressor.to_junction.isin(net.junction.index).all(), (
+            "some compressors are connected to non-existing junctions!"
+        )
     # update progress
     pbar.update(10)
 
@@ -435,19 +435,19 @@ def create_pandapipes(
             **valves.drop(
                 ["from_junction", "to_junction", "diameter_m", "opened"],
                 axis=1,
-                errors="ignore"
+                errors="ignore",
             ),
         )
         # net.valve = valves
         # check necessary parameters and add pandapipes standard if needed
         # net.valve["loss_coefficient"] = float(0)
         # net.valve["type"] = "valve"
-        assert net.valve.from_junction.isin(
-            net.junction.index
-        ).all(), "some valves are connected to non-existing junctions!"
-        assert net.valve.to_junction.isin(
-            net.junction.index
-        ).all(), "some valves are connected to non-existing junctions!"
+        assert net.valve.from_junction.isin(net.junction.index).all(), (
+            "some valves are connected to non-existing junctions!"
+        )
+        assert net.valve.to_junction.isin(net.junction.index).all(), (
+            "some valves are connected to non-existing junctions!"
+        )
     # update progress
     pbar.update(10)
 
@@ -459,8 +459,10 @@ def create_pandapipes(
     else:
         ext_grids = Series()
     if ext_grids.empty:
-        warnings.warn("No Pset_barg found - a dummy ext. "
-                      "grid with p_set=50 barg will be attached to the first junction.")
+        warnings.warn(
+            "No Pset_barg found - a dummy ext. "
+            "grid with p_set=50 barg will be attached to the first junction."
+        )
         # create external grid on the first grid junction
         ext_grids = grid_data.hp_data.hp_junctions.head(1)
         ext_grids["Pset_barg"] = 50  # dummy value need to be changed

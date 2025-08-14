@@ -107,7 +107,9 @@ class Elements:
             data.insert(
                 0,
                 "dave_name",
-                Series([f"{type_names[element_type]}_{x}" for x in data.index]),
+                Series(
+                    [f"{type_names[element_type]}_{x}" for x in data.index]
+                ),
             )
         for ele in range(self.n_ele):
             name = data["dave_name"][ele]

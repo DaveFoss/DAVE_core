@@ -24,7 +24,7 @@ class davestructure(ADict):
         for key in list(self.keys()):
             if isinstance(self[key], DataFrame) and not self[key].empty:
                 length = len(self[key])
-                titel += f'\n   - {key} ({length} {"elements" if length > 1 else "element"})'
+                titel += f"\n   - {key} ({length} {'elements' if length > 1 else 'element'})"
             if isinstance(self[key], davestructure):
                 titel += f"\n   - {key}:"
                 for key2 in list(self[key].keys()):
@@ -33,7 +33,7 @@ class davestructure(ADict):
                         and not self[key][key2].empty
                     ):
                         length = len(self[key][key2])
-                        titel += f'\n\t   - {key2} ({length} {"elements" if length > 1 else "element"})'
+                        titel += f"\n\t   - {key2} ({length} {'elements' if length > 1 else 'element'})"
                     if isinstance(self[key][key2], davestructure):
                         titel += f"\n\t   - {key2}:"
                         for key3 in list(self[key][key2].keys()):
@@ -42,7 +42,7 @@ class davestructure(ADict):
                                 and not self[key][key2][key3].empty
                             ):
                                 length = len(self[key][key2][key3])
-                                titel += f'\n\t\t   - {key3} ({length} {"elements" if length > 1 else "element"})'
+                                titel += f"\n\t\t   - {key3} ({length} {'elements' if length > 1 else 'element'})"
         return titel
 
 

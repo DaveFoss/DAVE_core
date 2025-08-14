@@ -88,6 +88,8 @@ setup(
         "pandapipes",
         "defusedxml",
         "dask_geopandas",
+        "scipy",
+        "openpyxl",
     ],
     extras_require={
         "dev": ["black", "isort", "pre-commit"]

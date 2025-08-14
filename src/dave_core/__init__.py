@@ -8,8 +8,6 @@ __version__ = "1.3.1"
 from .archiv_io import archiv_inventory
 from .archiv_io import from_archiv
 from .archiv_io import to_archiv
-from .progressbar import create_tqdm
-from .progressbar import create_tqdm_dask
 
 # components
 from .components.gas_components import create_compressors
@@ -120,6 +118,8 @@ from .plotting.plot import plot_grid_data
 from .plotting.plot import plot_grid_data_osm
 from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
+from .progressbar import create_tqdm
+from .progressbar import create_tqdm_dask
 from .settings import dave_settings
 from .settings import set_dave_settings
 from .toolbox import adress_to_coords

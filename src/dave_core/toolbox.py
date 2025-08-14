@@ -16,9 +16,9 @@ from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
-from shapely.ops import unary_union
 from shapely.ops import linemerge
 from shapely.ops import polygonize
+from shapely.ops import unary_union
 
 from dave_core.settings import dave_settings
 

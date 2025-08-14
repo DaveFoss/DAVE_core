@@ -7,7 +7,8 @@ from geopandas import GeoDataFrame
 from geopandas import read_file
 from pandas import DataFrame
 from pandas import concat
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import MultiPolygon
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from dave_core.archiv_io import archiv_inventory

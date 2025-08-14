@@ -15,4 +15,3 @@ python:
       path: .
 versions:
     - latest
-    - v1.3.1

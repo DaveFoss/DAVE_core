@@ -15,7 +15,9 @@ project = "DAVE_core"
 year = "2025"
 author = "DAVE_core Developers"
 copyright = f"{year}, {author}"
-version = release = "v1.3.1"
+release = "latest"
+version = "latest"
+
 
 pygments_style = "trac"
 templates_path = ["."]

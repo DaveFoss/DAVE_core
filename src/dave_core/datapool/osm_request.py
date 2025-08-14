@@ -395,7 +395,7 @@ def render_ways(nodes, waynodes, waytags):
     # Series where the index is the way id and the value is the LineString.
     # Merge it with the waytags to get a single GeoDataFrame of ways
     waynodes = waynodes.merge(node_points, left_on="ref", right_on="id", suffixes=("", "_nodes"))
-    way_lines = waynodes.groupby("id").apply(wayline)
+    way_lines = waynodes.groupby("id").apply(wayline, include_groups=False)
     ways = waytags.set_index("id").set_geometry(way_lines, crs=_crs)
     ways.reset_index(inplace=True)
 

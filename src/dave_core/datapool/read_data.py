@@ -235,10 +235,7 @@ def read_scigridgas_iggielgn():
     pipe_segments = iggielgn_data.get("/scigridgas_iggielgn_pipe_segments")
     pipe_segments.lat = pipe_segments.lat.apply(eval)
     pipe_segments.long = pipe_segments.long.apply(eval)
-    geometry = [
-        LineString(list(zip(pipe.long, pipe.lat, strict=True)))
-        for i, pipe in pipe_segments.iterrows()
-    ]
+    geometry = [LineString(pipe[["long", "lat"]].values) for _, pipe in pipe_segments.iterrows()]
     pipe_segments = GeoDataFrame(
         pipe_segments, geometry=Series(geometry), crs=dave_settings["crs_main"]
     )

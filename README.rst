@@ -8,8 +8,7 @@ DAVE_core
     :stub-columns: 1
 
     * - package
-      - |version| |commits-since| |download| |licence|
-      - |wheel| |supported-versions| |supported-implementations|
+      - |version| |commits-since| |download| |licence| |wheel| |supported-versions| |supported-implementations|
     * - docs
       - |docs|
     * - tests

@@ -22,8 +22,7 @@ DAVE is an open source data fusion tool for automated energy network generation 
     :stub-columns: 1
 
     * - package
-      - |version| |commits-since| |download| |licence|
-      - |wheel| |supported-versions| |supported-implementations|
+      - |version| |commits-since| |download| |licence| |wheel| |supported-versions| |supported-implementations|
     * - docs
       - |docs|
     * - tests

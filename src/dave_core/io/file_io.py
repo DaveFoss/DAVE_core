@@ -116,7 +116,7 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     json_string = json_dumps(
         grid_data,
         cls=DAVEJSONEncoder,
-        indent=2,
+        # indent=2,  !!! hand over a int will throw an issue
         isinstance_func=isinstance_partial,
     )
     # encrypt json string

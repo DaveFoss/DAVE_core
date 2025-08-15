@@ -67,9 +67,9 @@ def wkt_to_wkb_dataset(grid_data):
     """
     dataset = deepcopy(grid_data)
     for key in dataset.keys():
-        if isinstance(dataset[key], davestructure):
+        if str(type(dataset[key])) == str(davestructure):
             for key_sec in dataset[key].keys():
-                if isinstance(dataset[key][key_sec], davestructure):
+                if str(type(dataset[key])) == str(davestructure):
                     for key_trd in dataset[key][key_sec].keys():
                         if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
                             dataset[key][key_sec][key_trd] = wkt_to_wkb(
@@ -94,9 +94,11 @@ def change_empty_gpd(grid_data):
     """
     dataset = deepcopy(grid_data)
     for key in dataset.keys():
-        if isinstance(dataset[key], davestructure):
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
             for key_sec in dataset[key].keys():
-                if isinstance(dataset[key][key_sec], davestructure):
+                if str(type(dataset[key][key_sec])) == str(davestructure):
                     for key_trd in dataset[key][key_sec].keys():
                         if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
                             if dataset[key][key_sec][key_trd].empty:

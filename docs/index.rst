@@ -1,3 +1,7 @@
+####################
+Welcome to DAVE_core
+####################
+
 .. image:: /images/dave_logo.png
 		:width: 50em
 		:align: center

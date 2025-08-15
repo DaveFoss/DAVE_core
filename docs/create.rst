@@ -16,8 +16,9 @@ Save dataset
 
 .. autofunction:: dave_core.create.save_dataset_to_user_folder
 
-.. autofunction:: dave_core.create.save_dataset_to_archiv
 
+
+.. dave_core.create.save_dataset_to_archiv
 
 .. dave_core.create.format_input_levels
 

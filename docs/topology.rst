@@ -9,10 +9,10 @@ DAVE_core provides functions for generating energy network models, with each net
 The following network topologies are covered from DAVE:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     topology/extra_high_voltage
-    topology/high_voltage
-    topology/medium_voltage
-    topology/low_voltage
-    topology/high_pressure
+    ..topology/high_voltage
+    ..topology/medium_voltage
+    ..topology/low_voltage
+    ..topology/high_pressure

@@ -20,7 +20,7 @@ More information about DAVE can be found on `www.databutler.energy <http://datab
     :maxdepth: 2
 
     about
-    .. topology
+    topology
     .. components
     .. converter
     .. datapool

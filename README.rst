@@ -7,13 +7,15 @@ DAVE_core
 .. list-table::
     :stub-columns: 1
 
+    * - package
+      - |version| |commits-since| |download| |licence|
+      - |wheel| |supported-versions| |supported-implementations|
     * - docs
       - |docs|
     * - tests
       - |github-actions| |coveralls| |codecov|
-    * - package
-      - |version| |download| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
-
+    * - code style
+      - |black| |isort| |ruff|
 
 .. |download| image:: https://pepy.tech/badge/dave-core
     :alt: pepy
@@ -64,6 +66,10 @@ DAVE_core
 
 .. |isort| image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
     :target: https://pycqa.github.io/isort/
+
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
 .. end-badges
 

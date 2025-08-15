@@ -58,7 +58,7 @@ def search_line_connections(road_geometry, all_nodes):
     road_points = MultiPoint(road_course)
     # find nodes on the considered road and sort them by their longitude to find start point
     grid_nodes = sorted(
-        [node.coords[:][0] for node in all_nodes if road_geometry.distance(node) < 1e-10]
+        [node.coords[:][0] for node in all_nodes.geometry if road_geometry.distance(node) < 1e-10]
     )
     if grid_nodes:  # check if their are grid nodes on the considered road
         # sort nodes by their nearest neighbor
@@ -106,7 +106,7 @@ def line_connections(grid_data):
             [],
         ),
         crs=dave_settings["crs_main"],
-    )  # Todo: TypeError: Non geometry data passed to GeoSeries constructor, received data of dtype 'object'
+    )
     # calculate line length
     line_connections_3035 = line_connect.to_crs(dave_settings["crs_meter"])
     lines_gdf = GeoDataFrame(
@@ -320,7 +320,7 @@ def create_lv_topology(grid_data):
                     lambda x, line_coords_from=line_coords_from: Point(line_coords_from).distance(x)
                 )
                 if distance.min() < 1e-04:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()]
+                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
                     # create lv_point for relevant road junction
                     dave_number = int(
                         grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")
@@ -362,7 +362,7 @@ def create_lv_topology(grid_data):
                     lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
                 )
                 if distance.min() < 1e-04:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()]
+                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
                     # create lv_point for relevant road junction
                     dave_number = int(
                         grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")

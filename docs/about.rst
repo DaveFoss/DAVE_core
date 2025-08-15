@@ -3,7 +3,7 @@ About DAVE_core
 ##########################
 
 .. image:: /images/dave_logo.png
-		:width: 250em
+		:width: 150em
 		:align: left
 
 .. |br| raw:: html

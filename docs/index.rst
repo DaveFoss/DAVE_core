@@ -1,6 +1,6 @@
 .. image:: /images/dave_logo.png
-		:width: 150em
-		:align: left
+		:width: 50em
+		:align: center
 
 .. |br| raw:: html
 

@@ -1,4 +1,4 @@
-.. _high_pressure:
+.. _gaslib:
 
 #############################
 High Pressure

@@ -17,6 +17,9 @@ Save dataset
 .. autofunction:: dave_core.create.save_dataset_to_user_folder
 
 
+.. autofunction:: dave_core.dave_structure.create_empty_dataset
+
+
 
 .. dave_core.create.save_dataset_to_archiv
 

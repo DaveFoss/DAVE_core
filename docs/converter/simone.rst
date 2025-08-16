@@ -1,9 +1,12 @@
-.. _high_pressure:
+.. _simone:
 
 #############################
-High Pressure
+Simone
 #############################
 
-The ``create_hp_topology`` function allows users to generate a high pressure (transport level) gas network topology.
+This DAVE converter provides the opportunaty translate data fram the SIMONE
+gas network simulation tool into DAVE format.
 
-.. autofunction:: dave_core.topology.create_hp_topology
+
+.. autofunction:: dave_core.topology.read_simone_file
+.. autofunction:: dave_core.topology.simone_to_dave

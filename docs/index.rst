@@ -26,9 +26,10 @@ More information about DAVE can be found on `www.databutler.energy <http://datab
     about
     create
     topology
+    converter
     .. structure Da dann structure, progressbar usw. mit rein nehmen
     .. components
-    .. converter
+
     .. datapool
     .. geography
     .. io

@@ -27,6 +27,7 @@ More information about DAVE can be found on `www.databutler.energy <http://datab
     create
     topology
     converter
+    plotting
     .. structure Da dann structure, progressbar usw. mit rein nehmen
     .. components
 

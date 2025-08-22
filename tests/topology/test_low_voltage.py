@@ -19,7 +19,7 @@ def test_lv_topo():
     """
     # test own polygon
     # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-    own_area_path = f"{Path(__file__).parent}\\..\\..\\examples\\hertingshausen.geojson"
+    own_area_path = Path(__file__).resolve().parents[3] / "examples" / "myfile.txt"
     own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
     # run topology generation
     grid_data = create_grid(

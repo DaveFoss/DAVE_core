@@ -1,7 +1,10 @@
+from json import loads
+
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandapipes import pandapipesNet
 from pandapipes import toolbox as ppi_toolbox
+from pandapower import __version__ as pp_version
 from pandapower import toolbox as pp_toolbox
 from pandapower.auxiliary import pandapowerNet
 from pandas import DataFrame
@@ -38,12 +41,16 @@ def get_grid_area(net, buffer=10, crs="epsg:4326", convex_hull=True):
     """
     # define grid area by calculating the convexx hull for the lines/pipes
     if isinstance(net, pandapowerNet):
+        if int(pp_version[0]) < 3:
+            geodata = net.line_geodata.coords.apply(lambda x: LineString(x))
+        elif int(pp_version[0]) == 3:
+            geodata = net.line.geo.apply(lambda x: LineString(loads(x)["coordinates"]))
         grid_lines = GeoDataFrame(
             net.line,
-            geometry=net.line_geodata.coords.apply(lambda x: LineString(x)),
+            geometry=geodata,
             crs=crs,
         )
-    if isinstance(net, pandapipesNet):
+    elif isinstance(net, pandapipesNet):
         grid_lines = GeoDataFrame(
             net.pipe,
             geometry=net.pipe_geodata.coords.apply(lambda x: LineString(x)),

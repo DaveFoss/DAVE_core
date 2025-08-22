@@ -2,6 +2,7 @@
 # Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from pandapower import __version__ as pp_version
 from pandapower import available_std_types
 from pandapower import create_buses
 from pandapower import create_empty_network
@@ -283,11 +284,12 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
         if all(net.trafo.shift_degree.isna())
         else net.trafo.shift_degree.apply(lambda x: float(0) if isna(x) else x)
     )
-    net.trafo["tap_phase_shifter"] = (
-        False
-        if all(net.trafo.tap_phase_shifter.isna())
-        else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
-    )
+    if int(pp_version[0]) < 3:
+        net.trafo["tap_phase_shifter"] = (
+            False
+            if all(net.trafo.tap_phase_shifter.isna())
+            else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
+        )
 
 
 def create_pp_sgens(net, sgens):

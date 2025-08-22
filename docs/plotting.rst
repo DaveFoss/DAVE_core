@@ -4,13 +4,32 @@
 Plotting
 #############################
 
-In the following some functions are described for
-The following network topologies are covered from DAVE:
+In the following some functions are described for plotting the result dataset
+of a DAVE genereation
 
-.. toctree::
-    :maxdepth: 1
+====================================
+Plot geographical model
+====================================
 
-    plot_geographical_data
-    plot_grid_data
-    plot_grid_data_osm
-    plot_landuse
+.. autofunction:: dave_core.plotting.plot_geographical_data
+
+====================================
+Plot grid data
+====================================
+
+.. autofunction:: dave_core.plotting.plot_grid_data
+
+.. autofunction:: dave_core.plotting.plot_grid_data_osm
+
+====================================
+Plot landuse
+====================================
+
+.. autofunction:: dave_core.plotting.plot_landuse
+
+
+
+
+
+
+.. Add some pictures of the resulting plots

@@ -1,7 +1,7 @@
 .. _mynts:
 
 #############################
-Mynts
+MYNTS
 #############################
 
 Mynts is a commercial tool designed for analysing energy networks. The converter

@@ -46,8 +46,11 @@ _nuts_4 = (["DE1"], "2021")  # nuts level 1 and other year
 
 # test own shape
 # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-own_area_path = f"{Path(__file__).parent}\\hertingshausen.geojson"
-own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
+own_area_polygon = (
+    gpd.read_file(f"{Path(__file__).parent}\\example_geodata.gpkg", layer="hertingshausen")
+    .iloc[0]
+    .geometry
+)
 
 
 ##################### test main function ##########################

@@ -13,7 +13,7 @@ from shapely.wkb import loads
 
 from dave_core.settings import dave_settings
 
-oep_url = "https://openenergy-platform.org"
+oep_url = "https://openenergyplatform.org"
 
 
 def request_to_df(request):

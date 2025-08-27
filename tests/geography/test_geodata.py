@@ -20,8 +20,8 @@ def test_geodata():
 
     # test own polygon
     # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-    own_area_path = Path(__file__).resolve().parents[2] / "examples" / "hertingshausen.geojson"
-    own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
+    own_area_path = Path(__file__).resolve().parents[2] / "examples" / "example_geodata.gpkg"
+    own_area_polygon = gpd.read_file(own_area_path, layer="hertingshausen").iloc[0].geometry
     # run topology generation
     grid_data = create_grid(
         own_area=own_area_polygon,

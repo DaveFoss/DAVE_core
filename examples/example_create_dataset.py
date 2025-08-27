@@ -79,7 +79,7 @@ grid_data = create_grid(
     convert_power=[],  # if True a second return variable must be defined
     convert_gas=[],  # if True a second return variable must be defined
     # power grid components
-    transformers=False,
+    transformers=True,
     renewable_powerplants=False,
     conventional_powerplants=False,
     loads=False,

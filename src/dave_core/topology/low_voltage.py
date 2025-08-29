@@ -13,6 +13,7 @@ from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import Series
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
@@ -194,7 +195,7 @@ def create_lv_topology(grid_data):
     roads = grid_data.roads.roads
     roads_geom_dask = from_geopandas(roads.geometry, npartitions=dave_settings["cpu_number"])
     roads_filter = roads[
-        roads_geom_dask.distance(grid_data.roads.road_junctions.unary_union).compute() < 1e-8
+        roads_geom_dask.distance(union_all(grid_data.roads.road_junctions)).compute() < 1e-8
     ]
     nearest_building_points = nearest_road_points(
         points=centroids,

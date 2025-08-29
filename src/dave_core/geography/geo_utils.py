@@ -6,6 +6,7 @@
 
 
 from dask_geopandas import from_geopandas
+from shapely import union_all
 from shapely.ops import nearest_points
 
 from dave_core.progressbar import create_tqdm_dask
@@ -25,7 +26,7 @@ def nearest_road_points(points, roads):
 
     """
     # create multistring of relevant roads and intersect radial lines with it
-    multiline_roads = roads.unary_union
+    multiline_roads = union_all(roads)
     # finding nearest connection between the building centroids and the roads
     points_dask = from_geopandas(points, npartitions=dave_settings["cpu_number"])
     with create_tqdm_dask(desc="Nearest building nodes", bar_type="sub_bar"):

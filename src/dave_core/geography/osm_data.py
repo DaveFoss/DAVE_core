@@ -9,6 +9,7 @@ from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
@@ -131,9 +132,9 @@ def from_osm(
             commercial = dave_settings["buildings_commercial"]
             # improve building tag with landuse parameter
             if landuse if isinstance(landuse, bool) else not landuse.empty:
-                landuse_retail = landuse[landuse.landuse == "retail"].geometry.unary_union
-                landuse_industrial = landuse[landuse.landuse == "industrial"].geometry.unary_union
-                landuse_commercial = landuse[landuse.landuse == "commercial"].geometry.unary_union
+                landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
+                landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
+                landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
                 for i, building in buildings.iterrows():
                     if building.building not in commercial:
                         if landuse_retail is not None and building.geometry.intersects(

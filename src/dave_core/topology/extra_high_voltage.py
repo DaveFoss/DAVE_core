@@ -10,6 +10,7 @@ from math import pi
 from geopandas import GeoDataFrame
 from pandas import Series
 from pandas import concat
+from shapely import union_all
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
@@ -93,7 +94,7 @@ def create_ehv_topology(grid_data):
     # filter lines which are currently availible
     ehvhv_lines = ehvhv_lines[
         (ehvhv_lines.ego_scn_name == "Status Quo")
-        & (ehvhv_lines.geometry.intersects(grid_data.area.geometry.unary_union))
+        & (ehvhv_lines.geometry.intersects(union_all(grid_data.area.geometry)))
     ]
     # consider data only if there are minimum one line in the target area
     if not ehvhv_lines.empty:

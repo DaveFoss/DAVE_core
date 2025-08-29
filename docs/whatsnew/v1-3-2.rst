@@ -1,0 +1,31 @@
+1.3.2 (August XX, 2025)
+==========================
+
+Added
+-----
+
+* support for python 3.13
+* support for pandapower 3
+
+Changed
+-------
+
+* moved example file hertingshausen.geojson as layer to example_geodata.gpkg
+* oep url to the new one
+
+Removed
+-------
+
+* deleted the substation functions from the MV topology script because there were allready in the components module
+
+Fixed
+-----
+
+* importing other python packages
+* creation of the docs and redesign them => https://dave-core.readthedocs.io
+* wrong identification of the dave-structure element
+
+Required
+--------
+
+* added openpyxl and scipy

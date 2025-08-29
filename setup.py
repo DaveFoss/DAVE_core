@@ -19,7 +19,7 @@ def read(*names, **kwargs):
 
 setup(
     name="dave_core",
-    version="1.3.1",
+    version="1.3.2",
     license="BSD-3-Clause",
     description="DAVE is a tool for automatic energy grid generation",
     long_description="{}\n{}".format(

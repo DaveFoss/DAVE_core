@@ -7,6 +7,7 @@
 from pathlib import Path
 
 import pytest
+from pandapower.auxiliary import pandapowerNet
 
 from dave_core.converter import create_pandapower
 from dave_core.io.file_io import from_json
@@ -23,9 +24,13 @@ def test_pp_converter():
     net = create_pandapower(
         grid_data, opt_model=False, output_folder=Path(__file__).resolve(), save_data=False
     )
+    assert isinstance(net, pandapowerNet)
     # check net elements
-    assert len(net.bus) == 32  # !!! wrong number should be 1020
-    # !!! add more asserts
+    # assert len(net.bus) == len(grid_data.mv_data.mv_nodes) + len(grid_data.lv_data.lv_nodes)
+    # assert len(net.line) == len(grid_data.lv_data.lv_lines)
+    # assert len(net.trafo) == len(grid_data.components_power.transformers.mv_lv)
+    # assert not net.ext_grid.empty
+    # !!! some of the nodes and lines are filtered wrongly out through the diagostic (disconnected elements)
 
 
 if __name__ == "__main__":

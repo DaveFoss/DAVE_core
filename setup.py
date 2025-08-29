@@ -27,7 +27,7 @@ setup(
         re.sub(
             ":[a-z]+:`~?(.*?)`",
             r"``\1``",
-            "https://dave-core.readthedocs.io/en/latest/changelog.html",
+            "https://dave-core.readthedocs.io/en/latest/about/changelog.html",
         ),
     ),
     long_description_content_type="text/x-rst",

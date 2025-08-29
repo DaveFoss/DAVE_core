@@ -88,11 +88,11 @@ Installation
 
 ::
 
-    pip install dave_core
+    pip install dave-core
 
 You can also install the in-development version with::
 
-    pip install https://github.com/DaveFoss/DAVE_core/archive/main.zip
+    pip install https://github.com/DaveFoss/DAVE_core/archive/develop.zip
 
 
 Documentation

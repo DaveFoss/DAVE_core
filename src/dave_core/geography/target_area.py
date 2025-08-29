@@ -371,11 +371,12 @@ def target_area(
         grid_data.landuse.reset_index(drop=True, inplace=True)
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)
-        # find road junctions
-        roads_highway_dask = from_geopandas(
-            grid_data.roads.roads.highway,
-            npartitions=dave_settings["cpu_number"],
-        )
+        if not grid_data.roads.roads.empty:
+            # find road junctions
+            roads_highway_dask = from_geopandas(
+                grid_data.roads.roads.highway,
+                npartitions=dave_settings["cpu_number"],
+            )
         if "lv" in grid_data.target_input.power_levels[0]:
             road_junctions(
                 grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_lv"]).compute()],

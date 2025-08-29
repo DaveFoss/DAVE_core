@@ -16,7 +16,7 @@ from dave_core.settings import dave_settings
 
 def disconnected_nodes(nodes, edges, min_number_nodes):
     """
-    converts nodes and lines to a networkX graph
+    converts nodes and lines to a networkX graph and checks connectivity
 
     INPUT:
         **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n

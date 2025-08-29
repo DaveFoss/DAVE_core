@@ -85,8 +85,8 @@ def create_ehv_topology(grid_data):
             "x": "x_ohm",
             "g": "g_s",
             "b": "b_s",
-            "bus0": "from_node",
-            "bus1": "to_node",
+            "bus0": "from_bus",
+            "bus1": "to_bus",
         },
         inplace=True,
     )
@@ -161,7 +161,7 @@ def create_ehv_topology(grid_data):
         # filter lines which are on the ehv level by check if both endpoints are on the ehv level
         ehv_bus_ids = ehv_buses.ego_bus_id.tolist()
         ehv_lines = ehvhv_lines[
-            (ehvhv_lines.from_node.isin(ehv_bus_ids)) & (ehvhv_lines.to_node.isin(ehv_bus_ids))
+            (ehvhv_lines.from_bus.isin(ehv_bus_ids)) & (ehvhv_lines.to_bus.isin(ehv_bus_ids))
         ]
         # --- add additional line parameter and change bus names
         ehv_lines.insert(ehv_lines.columns.get_loc("r_ohm") + 1, "r_ohm_per_km", None)
@@ -170,7 +170,7 @@ def create_ehv_topology(grid_data):
         ehv_lines.insert(ehv_lines.columns.get_loc("b_s") + 1, "c_nf", None)
         # update progress
         pbar.update(10)
-        ehv_lines["voltage_kv"] = ehv_lines.from_node.apply(
+        ehv_lines["voltage_kv"] = ehv_lines.from_bus.apply(
             lambda x: ehv_buses.loc[ehv_buses[ehv_buses.ego_bus_id == x].index[0]].voltage_kv
         )
         # calculate and add r,x,c per km
@@ -192,10 +192,10 @@ def create_ehv_topology(grid_data):
         # update progress
         pbar.update(20)
         # change line node names from ego id to dave name
-        ehv_lines["from_node"] = ehv_lines.from_node.apply(
+        ehv_lines["from_bus"] = ehv_lines.from_bus.apply(
             lambda x: ehv_buses[ehv_buses.ego_bus_id == x].iloc[0].dave_name
         )
-        ehv_lines["to_node"] = ehv_lines.to_node.apply(
+        ehv_lines["to_bus"] = ehv_lines.to_bus.apply(
             lambda x: ehv_buses[ehv_buses.ego_bus_id == x].iloc[0].dave_name
         )
         # add oep as source

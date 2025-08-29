@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from os import path
 
@@ -12,11 +15,11 @@ from numpy import append
 from numpy import array
 from pandas import concat
 from scipy.spatial import Voronoi
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
-from shapely.ops import unary_union
 from shapely.ops import linemerge
 from shapely.ops import polygonize
 
@@ -52,7 +55,8 @@ def create_interim_area(areas):
         **areas** (GeoDataFrame) - all considered grid areas
 
     OUTPUT:
-        **areas** (GeoDataFrame) - all considered grid areas extended with interim areas
+        **areas** (GeoDataFrame) - all considered grid areas extended with \
+            interim areas
     """
     # check if there are diffrent grid areas
     if len(areas) > 1:
@@ -71,7 +75,7 @@ def create_interim_area(areas):
                 geom1 = areas.loc[area_iso[0]].geometry
                 geom2 = areas.loc[area_iso[1]].geometry
                 # define diffrence area
-                combined = unary_union([geom1, geom2])
+                combined = union_all([geom1, geom2])
                 convex_hull = combined.convex_hull
                 difference = convex_hull.difference(geom1)
                 difference = difference.difference(geom2)
@@ -177,23 +181,24 @@ def get_data_path(filename=None, dirname=None):
 
 def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
-    This function intersects a given geodataframe with an area in consideration of mixed geometry
-    types at both input variables
+    This function intersects a given geodataframe with an area in consideration \
+        of mixed geometry types at both input variables
+
     INPUT:
         **gdf** (GeoDataFrame) - Data to be intersect with an area
         **area** (GeoDataFrame) - Considered Area
-        **remove_columns** (bool, default True) - If True the area parameters will deleted in the \
-            result
-        **only_limit** (bool, default True) - If True it will only considered if the data \
-            intersects the area instead of which part of the area they intersect if the area is \
-            split in multiple polygons
+        **remove_columns** (bool, default True) - If True the area parameters \
+            will deleted in the result
+        **only_limit** (bool, default True) - If True it will only considered \
+            if the data intersects the area instead of which part of the area \
+            they intersect if the area is split in multiple polygons
 
     OUTPUT:
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area
     """
     # reduce grid area geometries to one polygon
     if only_limit:
-        area = GeoDataFrame(geometry=[area.geometry.unary_union], crs=dave_settings["crs_main"])
+        area = GeoDataFrame(geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"])
     # check if geodataframe has mixed geometries
     geom_types_gdf = set(map(type, gdf.geometry))
     geom_types_area = set(map(type, area.geometry))
@@ -234,16 +239,18 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
 
 def intersect_with_composition(gdf1, gdf2, gdf1_name=None, area=None):
     """
-    This function intersects two GeoDataFrames with each other and calculates the composition how gdf1 will splitted to gdf2
+    This function intersects two GeoDataFrames with each other and calculates \
+        the composition how gdf1 will splitted to gdf2
 
     Hint: gdf1 and gdf2 must have "name" and "geometry" parameters
     INPUT:
         **gdf1** (GeoDataFrame) - Area with polygons to divide
-        **gdf2** (GeoDataFrame) - Area with polygons or nodes to which gdf1 should be divide
+        **gdf2** (GeoDataFrame) - Area with polygons or nodes to which gdf1 \
+            should be divide
 
     OPTIONAL:
-        **gdf1_name** (GeoDataFrame, default None) - Gdf1 parameter which includes the area name. \
-            Per default the first column will taken
+        **gdf1_name** (GeoDataFrame, default None) - Gdf1 parameter which \
+            includes the area name. Per default the first column will taken
         **grid_area** (GeoDataFrame, default None) - definition of the consider area
     """
     # reduce data to considered area
@@ -282,14 +289,16 @@ def related_sub(bus, substations):
         **substations** (DataFrame) - Table of the possible substations
 
     OUTPUT:
-        (Tuple) - Substation information for a given bus (ego_subst_id, subst_dave_name, subst_name)
+        (Tuple) - Substation information for a given bus (ego_subst_id, \
+                                                          subst_dave_name, subst_name)
     """
     substation_geom_dask = from_geopandas(
         substations.geometry, npartitions=dave_settings["cpu_number"]
     )
     sub_filtered = substations[
         substation_geom_dask.apply(
-            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05), meta=substation_geom_dask
+            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05),
+            meta=substation_geom_dask,
         ).compute()
     ]
     ego_subst_id = sub_filtered.ego_subst_id.to_list() if not sub_filtered.empty else []

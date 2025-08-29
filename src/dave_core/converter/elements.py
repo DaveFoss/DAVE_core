@@ -1,6 +1,10 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
+
 from pandas import Series
 
 
@@ -11,8 +15,8 @@ class Element:
     defines:
         attributes: dictionary of properties of the object as string pairs key:value
         key: the attribute's name, value: the attribute's value
-        type:       type of the attribute: n(ode) or p(ipe) or v(alve)  c(ompressor)
-        name:       name of the object
+        type: type of the attribute: n(ode) or p(ipe) or v(alve)  c(ompressor)
+        name: name of the object
 
     example usage: Element(type="p", name="Pipe_1")
     """
@@ -86,11 +90,11 @@ class Elements:
         """
         This function fills the dictionary with data elements from Dave;
         defines:
-            n_ele number of elements
-            type  short form for type of the Elements: n(ode) or p(ipe) or v(alve) or c(ompressor)
+            n_ele: number of elements
+            type: short form for type of the Elements: n(ode) or p(ipe) or v(alve) or c(ompressor)
 
         INPUT:
-            **element_type** (src)  -
+            **element_type** (src) - element type
             **data** (dict) - all Information's about the grid elements (e.g. pandas.core.series.Series)
         """
         self.type = element_type

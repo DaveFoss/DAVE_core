@@ -1,5 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -221,9 +223,8 @@ def create_loads(grid_data):
                         # check the case that the building centroid is outside building boundary
                         building_centroid = building_geom.centroid
                         centroid_distance = building_nodes.geometry.apply(
-                            lambda x, building_centroid=building_centroid: building_centroid.distance(
-                                x
-                            )
+                            lambda x,
+                            building_centroid=building_centroid: building_centroid.distance(x)
                         )
                         if centroid_distance.min() < 1e-04:
                             lv_node = building_nodes.loc[centroid_distance.idxmin()]

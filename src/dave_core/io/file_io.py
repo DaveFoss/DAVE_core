@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from functools import partial
 from json import dumps as json_dumps
@@ -116,7 +119,7 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     json_string = json_dumps(
         grid_data,
         cls=DAVEJSONEncoder,
-        indent=2,
+        # indent=2,  !!! hand over a int will throw an issue
         isinstance_func=isinstance_partial,
     )
     # encrypt json string

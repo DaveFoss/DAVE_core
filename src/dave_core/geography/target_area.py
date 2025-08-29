@@ -1,13 +1,17 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import read_file
 from pandas import DataFrame
 from pandas import concat
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import MultiPolygon
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from dave_core.archiv_io import archiv_inventory
@@ -367,10 +371,12 @@ def target_area(
         grid_data.landuse.reset_index(drop=True, inplace=True)
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)
-        # find road junctions
-        roads_highway_dask = from_geopandas(
-            grid_data.roads.roads.highway, npartitions=dave_settings["cpu_number"]
-        )
+        if not grid_data.roads.roads.empty:
+            # find road junctions
+            roads_highway_dask = from_geopandas(
+                grid_data.roads.roads.highway,
+                npartitions=dave_settings["cpu_number"],
+            )
         if "lv" in grid_data.target_input.power_levels[0]:
             road_junctions(
                 grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_lv"]).compute()],

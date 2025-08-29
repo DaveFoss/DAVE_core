@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from os.path import join
 from os.path import realpath
@@ -19,9 +22,7 @@ def read_gaslib_cs():
     schema = XMLSchema(join(filepath, "gaslib/CompressorStations.xsd"))
     gaslib_dict_cs = schema.to_dict(join(filepath, "gaslib/GasLib-582-v2.cs"))
     # create data dictionary
-    gaslib_data_cs = {
-        "compressor_station": gaslib_dict_cs["framework:compressorStation"]
-    }
+    gaslib_data_cs = {"compressor_station": gaslib_dict_cs["framework:compressorStation"]}
     # read meta data  # TODO: evt aus net nehmen
     # meta_data = gaslib_dict["framework:information"]
 

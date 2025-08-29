@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from copy import deepcopy
 
@@ -67,13 +70,11 @@ def wkt_to_wkb_dataset(grid_data):
     """
     dataset = deepcopy(grid_data)
     for key in dataset.keys():
-        if isinstance(dataset[key], davestructure):
+        if str(type(dataset[key])) == str(davestructure):
             for key_sec in dataset[key].keys():
-                if isinstance(dataset[key][key_sec], davestructure):
+                if str(type(dataset[key])) == str(davestructure):
                     for key_trd in dataset[key][key_sec].keys():
-                        if isinstance(
-                            dataset[key][key_sec][key_trd], GeoDataFrame
-                        ):
+                        if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
                             dataset[key][key_sec][key_trd] = wkt_to_wkb(
                                 dataset[key][key_sec][key_trd]
                             )
@@ -96,22 +97,18 @@ def change_empty_gpd(grid_data):
     """
     dataset = deepcopy(grid_data)
     for key in dataset.keys():
-        if isinstance(dataset[key], davestructure):
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
             for key_sec in dataset[key].keys():
-                if isinstance(dataset[key][key_sec], davestructure):
+                if str(type(dataset[key][key_sec])) == str(davestructure):
                     for key_trd in dataset[key][key_sec].keys():
-                        if isinstance(
-                            dataset[key][key_sec][key_trd], GeoDataFrame
-                        ):
+                        if isinstance(dataset[key][key_sec][key_trd], GeoDataFrame):
                             if dataset[key][key_sec][key_trd].empty:
                                 dataset[key][key_sec][key_trd] = DataFrame([])
-                        elif isinstance(
-                            dataset[key][key_sec][key_trd], GeoSeries
-                        ):
+                        elif isinstance(dataset[key][key_sec][key_trd], GeoSeries):
                             if dataset[key][key_sec][key_trd].empty:
-                                dataset[key][key_sec][key_trd] = Series(
-                                    [], dtype="object"
-                                )
+                                dataset[key][key_sec][key_trd] = Series([], dtype="object")
                 elif isinstance(dataset[key][key_sec], GeoDataFrame):
                     if dataset[key][key_sec].empty:
                         dataset[key][key_sec] = DataFrame([])

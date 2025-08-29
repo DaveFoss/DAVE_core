@@ -12,10 +12,12 @@ extensions = [
 source_suffix = ".rst"
 master_doc = "index"
 project = "DAVE_core"
-year = "2024"
+year = "2025"
 author = "DAVE_core Developers"
 copyright = f"{year}, {author}"
-version = release = "v1.3.1"
+release = "1.3.2"
+version = "1.3"
+
 
 pygments_style = "trac"
 templates_path = ["."]
@@ -25,10 +27,7 @@ extlinks = {
 }
 
 html_theme = "sphinx_rtd_theme"
-html_theme_options = {
-    "githuburl": "https://github.com/DaveFoss/DAVE_core/",
-}
-
+# html_theme_options = {"github_url": "https://github.com/DaveFoss/DAVE_core/"} raises a failure
 html_use_smartypants = True
 html_last_updated_fmt = "%b %d, %Y"
 html_split_index = False

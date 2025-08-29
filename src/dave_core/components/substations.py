@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from pandas import Series
 from pandas import concat
@@ -49,7 +52,10 @@ def create_hv_mv_substations(grid_data):
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
             grid_data.components_power.substations.hv_mv = concat(
-                [grid_data.components_power.substations.hv_mv, hvmv_substations]
+                [
+                    grid_data.components_power.substations.hv_mv,
+                    hvmv_substations,
+                ]
             )
     else:
         hvmv_substations = grid_data.components_power.substations.hv_mv.copy()
@@ -70,7 +76,11 @@ def create_mv_lv_substations(grid_data):
         ):
             grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         mvlv_substations.rename(
-            columns={"version": "ego_version", "mvlv_subst_id": "ego_subst_id"}, inplace=True
+            columns={
+                "version": "ego_version",
+                "mvlv_subst_id": "ego_subst_id",
+            },
+            inplace=True,
         )
         # change wrong crs from oep
         mvlv_substations.crs = dave_settings["crs_main"]
@@ -87,7 +97,11 @@ def create_mv_lv_substations(grid_data):
             )
             # add ehv substations to grid data
             grid_data.components_power.substations.mv_lv = concat(
-                [grid_data.components_power.substations.mv_lv, mvlv_substations], ignore_index=True
+                [
+                    grid_data.components_power.substations.mv_lv,
+                    mvlv_substations,
+                ],
+                ignore_index=True,
             )
     else:
         mvlv_substations = grid_data.components_power.substations.mv_lv.copy()

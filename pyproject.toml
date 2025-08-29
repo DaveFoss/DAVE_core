@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [tool.ruff]
 extend-exclude = ["static", "ci", "setup.py", "src_old_dave/"]
 force-exclude = true
-line-length = 79
+line-length = 100
 src = ["src", "tests"]
-target-version = "py38"
+target-version = "py312"
 
 [tool.ruff.lint.per-file-ignores]
 "ci/*" = ["S"]
@@ -21,6 +21,7 @@ ignore = [
     "S603", # flake8-bandit subprocess-without-shell-equals-true
     "S607", # flake8-bandit start-process-with-partial-path
     "E501", # pycodestyle line-too-long
+    "UP038", # isinstance (deprecated because slower code)
 ]
 select = [
     "B", # flake8-bugbear
@@ -56,7 +57,7 @@ quote-style = "double"
 
 [tool.black]
 line-length = 100
-target-version = ["py311"]
+target-version = ["py312"]
 
 [tool.isort]
 forced_separate = ["conftest"]

@@ -1,8 +1,11 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from numpy import isnan
+
+from pandapower import __version__ as pp_version
 from pandapower import available_std_types
 from pandapower import create_buses
 from pandapower import create_empty_network
@@ -65,8 +68,8 @@ def create_pp_ehvhv_lines(
     lines.rename(columns={"dave_name": "name"}, inplace=True)
     # search for node indices based on dave_name
     if isinstance(lines.iloc[0].from_node, str):
-        lines["from_bus"] = lines.from_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
-        lines["to_bus"] = lines.to_node.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
+        lines["from_bus"] = lines.from_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
+        lines["to_bus"] = lines.to_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
     lines["type"] = lines.type.apply(lambda x: "ol" if isna(x) else x)
     # geodata
     coords_ehvhv = DataFrame(
@@ -123,10 +126,10 @@ def create_pp_mvlv_lines(net, lines):
     # create lines
     create_lines(
         net,
-        from_buses=lines.from_node.apply(
+        from_buses=lines.from_bus.apply(
             lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
         ),
-        to_buses=lines.to_node.apply(
+        to_buses=lines.to_bus.apply(
             lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
         ),
         length_km=lines["length_km"],
@@ -142,7 +145,7 @@ def create_pp_mvlv_lines(net, lines):
             axis=1,
         ),
         name=lines["name"],
-        geodata=lines.geometry.apply(lambda x: [list(coords) for coords in x.coords[:]]),
+        geodata=lines.geometry.apply(lambda x: [list(coords) for coords in x.coords[:]]).to_list(),
         df=(
             float(1)
             if "df" not in lines.keys() or all(lines.df.isna())
@@ -258,9 +261,10 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
         trafos_mvlv["tap_step_percent"] = trafos_mvlv.std_type.apply(
             lambda x: std_trafo.loc[x].tap_step_percent
         )
-        trafos_mvlv["tap_phase_shifter"] = trafos_mvlv.std_type.apply(
-            lambda x: std_trafo.loc[x].tap_phase_shifter
-        )
+        if int(pp_version[0]) < 3:
+            trafos_mvlv["tap_phase_shifter"] = trafos_mvlv.std_type.apply(
+                lambda x: std_trafo.loc[x].tap_phase_shifter
+            )
     # write trafo data into pandapower structure
     net.trafo = concat([net.trafo, trafos_ehvhv, trafos_mvlv], ignore_index=True)
     # check necessary parameters and add pandapower standart if needed
@@ -284,11 +288,12 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
         if all(net.trafo.shift_degree.isna())
         else net.trafo.shift_degree.apply(lambda x: float(0) if isna(x) else x)
     )
-    net.trafo["tap_phase_shifter"] = (
-        False
-        if all(net.trafo.tap_phase_shifter.isna())
-        else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
-    )
+    if int(pp_version[0]) < 3:
+        net.trafo["tap_phase_shifter"] = (
+            False
+            if all(net.trafo.tap_phase_shifter.isna())
+            else net.trafo.tap_phase_shifter.apply(lambda x: False if isna(x) else x)
+        )
 
 
 def create_pp_sgens(net, sgens):

@@ -1,10 +1,12 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
-from geopandas import GeoSeries
 from pandas import Series
 from pandas import concat
 from shapely import wkb
@@ -135,7 +137,8 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
                         hv_bus0["voltage_level"] = 3
                         hv_bus0["source"] = "OEP"
                         grid_data.hv_data.hv_nodes = concat(
-                            [grid_data.hv_data.hv_nodes, hv_bus0], ignore_index=True
+                            [grid_data.hv_data.hv_nodes, hv_bus0],
+                            ignore_index=True,
                         )
                     elif grid_data.hv_data.hv_nodes[
                         grid_data.hv_data.hv_nodes.ego_bus_id == trafo.bus0
@@ -143,7 +146,8 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
                         hv_bus0["voltage_level"] = 3
                         hv_bus0["source"] = "OEP"
                         grid_data.hv_data.hv_nodes = concat(
-                            [grid_data.hv_data.hv_nodes, hv_bus0], ignore_index=True
+                            [grid_data.hv_data.hv_nodes, hv_bus0],
+                            ignore_index=True,
                         )
         if "hv" in power_levels:
             hv_bus0 = grid_data.hv_data.hv_nodes[
@@ -165,7 +169,8 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
                         ehv_bus1["voltage_level"] = 1
                         ehv_bus1["source"] = "OEP"
                         grid_data.ehv_data.ehv_nodes = concat(
-                            [grid_data.ehv_data.ehv_nodes, ehv_bus1], ignore_index=True
+                            [grid_data.ehv_data.ehv_nodes, ehv_bus1],
+                            ignore_index=True,
                         )
                     elif grid_data.ehv_data.ehv_nodes[
                         grid_data.ehv_data.ehv_nodes.ego_bus_id == trafo.bus1
@@ -173,7 +178,8 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
                         ehv_bus1["voltage_level"] = 1
                         ehv_bus1["source"] = "OEP"
                         grid_data.ehv_data.ehv_nodes = concat(
-                            [grid_data.ehv_data.ehv_nodes, ehv_bus1], ignore_index=True
+                            [grid_data.ehv_data.ehv_nodes, ehv_bus1],
+                            ignore_index=True,
                         )
         # update progress
         pbar.update(10 / len(hv_trafos))
@@ -204,7 +210,10 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
             ehv_ehv_trafos["substation_name"] = None
             ehv_ehv_trafos["tso_name"] = None
             ehv_ehv_trafos.reset_index(drop=True, inplace=True)
-            for i, trafo in ehv_ehv_trafos.iterrows():  # TODO: ersetzen durch apply functions
+            for (
+                i,
+                trafo,
+            ) in ehv_ehv_trafos.iterrows():  # TODO: ersetzen durch apply functions
                 ehv_ehv_trafos.at[trafo.name, "dave_name"] = f"trafo_1_{i}"
                 # search for bus dave name and replace ego id
                 bus0 = ehv_buses[ehv_buses.ego_bus_id == trafo.bus0].iloc[0]
@@ -220,7 +229,10 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
             ehv_ehv_trafos.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv/ehv trafos to grid data
             grid_data.components_power.transformers.ehv_ehv = concat(
-                [grid_data.components_power.transformers.ehv_ehv, ehv_ehv_trafos],
+                [
+                    grid_data.components_power.transformers.ehv_ehv,
+                    ehv_ehv_trafos,
+                ],
                 ignore_index=True,
             )
         ehv_hv_trafos = hv_trafos[hv_trafos.voltage_kv_lv == 110]
@@ -232,7 +244,10 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
         ehv_hv_trafos["substation_name"] = None
         ehv_hv_trafos["tso_name"] = None
         ehv_hv_trafos.reset_index(drop=True, inplace=True)
-        for i, trafo in ehv_hv_trafos.iterrows():  # TODO: ersetzen durch apply functions
+        for (
+            i,
+            trafo,
+        ) in ehv_hv_trafos.iterrows():  # TODO: ersetzen durch apply functions
             ehv_hv_trafos.at[trafo.name, "dave_name"] = f"trafo_2_{i}"
             # search for bus dave name and replace ego id
             bus0 = hv_buses[hv_buses.ego_bus_id == trafo.bus0].iloc[0]
@@ -249,7 +264,8 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
         ehv_hv_trafos.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv/ehv trafos to grid data
         grid_data.components_power.transformers.ehv_hv = concat(
-            [grid_data.components_power.transformers.ehv_hv, ehv_hv_trafos], ignore_index=True
+            [grid_data.components_power.transformers.ehv_hv, ehv_hv_trafos],
+            ignore_index=True,
         )
         # update progress
         pbar.update(10)
@@ -333,7 +349,8 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         hv_nodes["voltage_level"] = 3
         hv_nodes["source"] = "OEP"
         hv_nodes.drop(
-            columns=(["current_type", "v_mag_pu_min", "v_mag_pu_max", "geom"]), inplace=True
+            columns=(["current_type", "v_mag_pu_min", "v_mag_pu_max", "geom"]),
+            inplace=True,
         )
         # check for hv nodes within hv/mv substations
         substations_keys = substations.keys().tolist()
@@ -343,7 +360,11 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         # filter nodes which are within a substation
         hv_nodes = intersection_with_area(hv_nodes, substations_reduced, remove_columns=False)
         # add dave name
-        hv_nodes.insert(0, "dave_name", Series([f"node_3_{x}" for x in hv_nodes.index], dtype=str))
+        hv_nodes.insert(
+            0,
+            "dave_name",
+            Series([f"node_3_{x}" for x in hv_nodes.index], dtype=str),
+        )
         # set crs
         hv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -373,7 +394,11 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         mv_nodes["source"] = "OEP"
         # add dave name
         mv_nodes.reset_index(drop=True, inplace=True)
-        mv_nodes.insert(0, "dave_name", Series([f"node_5_{x}" for x in mv_nodes.index], dtype=str))
+        mv_nodes.insert(
+            0,
+            "dave_name",
+            Series([f"node_5_{x}" for x in mv_nodes.index], dtype=str),
+        )
         # set crs
         mv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -423,7 +448,8 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
             crs=dave_settings["crs_main"],
         )
         grid_data.components_power.transformers.hv_mv = concat(
-            [grid_data.components_power.transformers.hv_mv, trafo_df], ignore_index=True
+            [grid_data.components_power.transformers.hv_mv, trafo_df],
+            ignore_index=True,
         )
         # update progress
         pbar.update(9.98 / len(substations))
@@ -432,7 +458,8 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         0,
         "dave_name",
         Series(
-            [f"trafo_4_{x}" for x in grid_data.components_power.transformers.hv_mv.index], dtype=str
+            [f"trafo_4_{x}" for x in grid_data.components_power.transformers.hv_mv.index],
+            dtype=str,
         ),
     )
 
@@ -452,13 +479,20 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
         ):
             grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
         substations.rename(
-            columns={"version": "ego_version", "mvlv_subst_id": "ego_subst_id"}, inplace=True
+            columns={
+                "version": "ego_version",
+                "mvlv_subst_id": "ego_subst_id",
+            },
+            inplace=True,
         )
         # filter substations which are within the grid area
         substations = intersection_with_area(substations, grid_data.area)
     else:
         substations = grid_data.components_power.substations.mv_lv.copy()
-    substations.drop(columns=(["la_id", "geom", "subst_id", "is_dummy", "subst_cnt"]), inplace=True)
+    substations.drop(
+        columns=(["la_id", "geom", "subst_id", "is_dummy", "subst_cnt"]),
+        inplace=True,
+    )
     # update progress
     pbar.update(10)
 
@@ -478,7 +512,11 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
         mv_buses["source"] = "OEP"
         # add dave name
         mv_buses.reset_index(drop=True, inplace=True)
-        mv_buses.insert(0, "dave_name", Series([f"node_5_{x}" for x in mv_buses.index], dtype=str))
+        mv_buses.insert(
+            0,
+            "dave_name",
+            Series([f"node_5_{x}" for x in mv_buses.index], dtype=str),
+        )
         # set crs
         mv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -504,7 +542,11 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
         lv_buses["source"] = "OEP"
         # add dave name
         lv_buses.reset_index(drop=True, inplace=True)
-        lv_buses.insert(0, "dave_name", Series([f"node_7_{x}" for x in lv_buses.index], dtype=str))
+        lv_buses.insert(
+            0,
+            "dave_name",
+            Series([f"node_7_{x}" for x in lv_buses.index], dtype=str),
+        )
         # set crs
         lv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -549,7 +591,8 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
     ).compute()
     trafo_gdf.set_geometry("geometry", inplace=True, crs=dave_settings["crs_main"])
     grid_data.components_power.transformers.mv_lv = concat(
-        [grid_data.components_power.transformers.mv_lv, trafo_gdf], ignore_index=True
+        [grid_data.components_power.transformers.mv_lv, trafo_gdf],
+        ignore_index=True,
     )
     # add a synthetic tranformer on the first grid node if necessary
     if grid_data.components_power.transformers.mv_lv.empty:
@@ -587,7 +630,8 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
                 crs=dave_settings["crs_main"],
             )
             grid_data.components_power.transformers.mv_lv = concat(
-                [grid_data.components_power.transformers.mv_lv, trafo_df], ignore_index=True
+                [grid_data.components_power.transformers.mv_lv, trafo_df],
+                ignore_index=True,
             )
         elif "lv" not in power_levels:
             pass
@@ -598,7 +642,8 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
         0,
         "dave_name",
         Series(
-            [f"trafo_6_{x}" for x in grid_data.components_power.transformers.mv_lv.index], dtype=str
+            [f"trafo_6_{x}" for x in grid_data.components_power.transformers.mv_lv.index],
+            dtype=str,
         ),
     )
     # update progress
@@ -618,7 +663,7 @@ def create_transformers(grid_data):
     power_levels = grid_data.target_input.power_levels[0]
     # --- create ehv/ehv and ehv/hv trafos
     # check if power levels are requested and not all nodes are ampty
-    if any((x in power_levels for x in ["ehv", "hv"])) and not (
+    if any(x in power_levels for x in ["ehv", "hv"]) and not (
         grid_data.ehv_data.ehv_nodes.empty and grid_data.hv_data.hv_nodes.empty
     ):
         create_ehv_hv_trafos(grid_data, power_levels, pbar)
@@ -629,7 +674,7 @@ def create_transformers(grid_data):
     # --- create hv/mv trafos
     # check if power levels are requested and not all nodes are ampty
     if (
-        any((x in power_levels for x in ["hv", "mv"]))
+        any(x in power_levels for x in ["hv", "mv"])
         and not (grid_data.hv_data.hv_nodes.empty and grid_data.mv_data.mv_nodes.empty)
         and grid_data.components_power.transformers.hv_mv.empty
     ):
@@ -641,7 +686,7 @@ def create_transformers(grid_data):
     # --- create mv/lv trafos
     # check if power levels are requested and not all nodes are ampty
     if (
-        any((x in power_levels for x in ["mv", "lv"]))
+        any(x in power_levels for x in ["mv", "lv"])
         and grid_data.components_power.transformers.mv_lv.empty
     ):  # and not (grid_data.mv_data.mv_nodes.empty and grid_data.lv_data.lv_nodes.empty):
         create_mv_lv_trafos(grid_data, power_levels, pbar)

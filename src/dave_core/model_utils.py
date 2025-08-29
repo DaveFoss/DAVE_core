@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from networkx import Graph
 from networkx import connected_components
@@ -13,7 +16,7 @@ from dave_core.settings import dave_settings
 
 def disconnected_nodes(nodes, edges, min_number_nodes):
     """
-    converts nodes and lines to a networkX graph
+    converts nodes and lines to a networkX graph and checks connectivity
 
     INPUT:
         **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n

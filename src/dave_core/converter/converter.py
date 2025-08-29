@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from abc import ABC
 from abc import abstractmethod
@@ -39,9 +42,7 @@ class Converter:
         text = self.strategy.execute(element_types)
         return text
 
-    def __init__(
-        self, grid_data, infilename: str = "", basefilepath: str = ""
-    ):
+    def __init__(self, grid_data, infilename: str = "", basefilepath: str = ""):
         if infilename:  # is not empty
             self.infilename = (
                 infilename.strip()

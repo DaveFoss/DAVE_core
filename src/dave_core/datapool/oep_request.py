@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from geopandas import GeoDataFrame
 from pandas import DataFrame
@@ -10,7 +13,7 @@ from shapely.wkb import loads
 
 from dave_core.settings import dave_settings
 
-oep_url = "https://openenergy-platform.org"
+oep_url = "https://openenergyplatform.org"
 
 
 def request_to_df(request):
@@ -39,8 +42,8 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     OPTIONAL:
         **schema** (string, default None) - schema name of the searched data. By default DAVE \
             search for the schema in the settings file via table name example: 'postcode=34225'
-        **where** (string, default None) - filter the table of the searched data
-                             example: 'postcode=34225'
+        **where** (string, default None) - filter the table of the searched \
+            data. example: 'postcode=34225'
         **geometry** (string, default None) - name of the geometry parameter in the OEP dataset to \
             transform it from WKB to WKT
         **db_update** (boolean, default False) - If True in every case the data will be related \
@@ -49,6 +52,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     OUTPUT:
         **requested_data** (DataFrame) - table of the requested data
     """
+
     if schema is None:
         schema = dave_settings["oep_tables"][table][0]
     # request data directly from oep
@@ -138,7 +142,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                     "Titel": request_meta["title"],
                     "Description": request_meta["description"],
                     "Spatial": request_meta["resources"][0]["spatial"],
-                    "Licenses": request_meta["metaMetadata"]['metadataLicense'],
+                    "Licenses": request_meta["metaMetadata"]["metadataLicense"],
                     "metadata_version": request_meta["metaMetadata"]["metadataVersion"],
                 },
                 index=[0],

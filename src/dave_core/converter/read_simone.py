@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from defusedxml.ElementTree import parse
 from geopandas import GeoDataFrame
@@ -14,9 +17,7 @@ from dave_core.dave_structure import create_empty_dataset
 from dave_core.settings import dave_settings
 
 
-def read_simone_file(
-    topology_path, scenario_path=None, result_path=None, crs="epsg:4326"
-):
+def read_simone_file(topology_path, scenario_path=None, result_path=None, crs="epsg:4326"):
     """
     This function reads given simone files in xml format
 
@@ -43,12 +44,8 @@ def read_simone_file(
             for elm in child:
                 data_nodes[elm.attrib["id"]] = {
                     "source_name": elm.attrib["name"],
-                    "type": elm.attrib["alias"]
-                    if len(elm.attrib["alias"]) > 0
-                    else float("nan"),
-                    "geometry": Point(
-                        float(elm.attrib["x"]), float(elm.attrib["y"])
-                    ),
+                    "type": elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan"),
+                    "geometry": Point(float(elm.attrib["x"]), float(elm.attrib["y"])),
                     "height_m": float(elm.attrib["height"]),
                     "source_id": elm.attrib[
                         "id"
@@ -67,9 +64,7 @@ def read_simone_file(
                         "to_junction": elm[1].attrib["id"],
                         "source_name": elm.attrib["name"],
                         "type": (
-                            elm.attrib["alias"]
-                            if len(elm.attrib["alias"]) > 0
-                            else float("nan")
+                            elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan")
                         ),
                         "pwm": elm.attrib["pwm"],
                         "dm": elm.attrib["dm"],
@@ -105,9 +100,7 @@ def read_simone_file(
                         "to_junction": elm[1].attrib["id"],
                         "source_name": elm.attrib["name"],
                         "type": (
-                            elm.attrib["alias"]
-                            if len(elm.attrib["alias"]) > 0
-                            else float("nan")
+                            elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan")
                         ),
                         "Rin": elm.attrib["Rin"],
                         "PIMin": elm.attrib["PIMin"],
@@ -131,9 +124,7 @@ def read_simone_file(
                         "to_junction": elm[1].attrib["id"],
                         "source_name": elm.attrib["name"],
                         "type": (
-                            elm.attrib["alias"]
-                            if len(elm.attrib["alias"]) > 0
-                            else float("nan")
+                            elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan")
                         ),
                         "Rin": elm.attrib["Rin"],
                         "PIMin": elm.attrib["PIMin"],
@@ -157,9 +148,7 @@ def read_simone_file(
                         "to_junction": elm[1].attrib["id"],
                         "source_name": elm.attrib["name"],
                         "type": (
-                            elm.attrib["alias"]
-                            if len(elm.attrib["alias"]) > 0
-                            else float("nan")
+                            elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan")
                         ),
                         "pwm": elm.attrib["pwm"],
                         "dm": elm.attrib["dm"],
@@ -178,9 +167,7 @@ def read_simone_file(
                         "to_junction": elm[1].attrib["id"],
                         "source_name": elm.attrib["name"],
                         "type": (
-                            elm.attrib["alias"]
-                            if len(elm.attrib["alias"]) > 0
-                            else float("nan")
+                            elm.attrib["alias"] if len(elm.attrib["alias"]) > 0 else float("nan")
                         ),
                         "pwm": elm.attrib["pwm"],
                         "dm": elm.attrib["dm"],
@@ -204,12 +191,8 @@ def read_simone_file(
     data_compressor = DataFrame(data_compressor).T
     data_valve = DataFrame(data_valve).T
     data = {
-        "node": GeoDataFrame(
-            data_nodes, geometry=data_nodes["geometry"], crs=crs
-        ),
-        "pipe": GeoDataFrame(
-            data_pipes, geometry=data_pipes.geometry, crs=crs
-        ),
+        "node": GeoDataFrame(data_nodes, geometry=data_nodes["geometry"], crs=crs),
+        "pipe": GeoDataFrame(data_pipes, geometry=data_pipes.geometry, crs=crs),
         "compressor station": data_compressor,
         "valve": data_valve,
         # 'joint': data_elements[data_elements.type == 'joint'],
@@ -221,15 +204,11 @@ def read_simone_file(
 
     # read scenario data from file
     if scenario_path:
-        data["node_parameter"], data["element_parameter"] = read_json_simone(
-            scenario_path
-        )
+        data["node_parameter"], data["element_parameter"] = read_json_simone(scenario_path)
 
     # read result data from file
     if result_path:
-        data["node_results"], data["element_results"] = read_json_simone(
-            result_path
-        )
+        data["node_results"], data["element_results"] = read_json_simone(result_path)
     return data
 
 
@@ -259,19 +238,13 @@ def simone_to_dave(data_simone):
     grid_data.components_gas.valves = data_simone["valve"]
 
     # add dave name
-    grid_data.hp_data.hp_junctions = (
-        grid_data.hp_data.hp_junctions.reset_index(drop=True)
-    )
+    grid_data.hp_data.hp_junctions = grid_data.hp_data.hp_junctions.reset_index(drop=True)
     grid_data.hp_data.hp_junctions.insert(
         0,
         "dave_name",
-        Series(
-            [f"junction_1_{x}" for x in grid_data.hp_data.hp_junctions.index]
-        ),
+        Series([f"junction_1_{x}" for x in grid_data.hp_data.hp_junctions.index]),
     )
-    grid_data.hp_data.hp_pipes = grid_data.hp_data.hp_pipes.reset_index(
-        drop=True
-    )
+    grid_data.hp_data.hp_pipes = grid_data.hp_data.hp_pipes.reset_index(drop=True)
     grid_data.hp_data.hp_pipes.insert(
         0,
         "dave_name",
@@ -281,10 +254,7 @@ def simone_to_dave(data_simone):
     # auch noch dave name für valve und cs
 
     # write scenario data into dave dataset
-    if (
-        "node_parameter" in data_simone.keys()
-        and "element_parameter" in data_simone.keys()
-    ):
+    if "node_parameter" in data_simone.keys() and "element_parameter" in data_simone.keys():
         # filter scenario data
         n_par = data_simone["node_parameter"]
         e_par = data_simone["element_parameter"]
@@ -292,55 +262,38 @@ def simone_to_dave(data_simone):
         factor_mw_to_kb_per_s = dave_settings["factor_mw_to_kb_per_s"]
         grid_data.components_gas.sources = n_par[
             (n_par["supply"] == 1)
-            & (
-                n_par["parameters"].apply(
-                    lambda x: "Q" in x and "PSET" not in x
-                )
-            )
+            & (n_par["parameters"].apply(lambda x: "Q" in x and "PSET" not in x))
         ]
-        grid_data.components_gas.sources["mdot_kg_per_s"] = (
-            grid_data.components_gas.sources[
-                "values"
-            ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
-        )
-        grid_data.components_gas.sources.rename(
-            columns={"name": "source_name"}, inplace=True
-        )
-        grid_data.components_gas.sources["junction"] = (
-            grid_data.components_gas.sources[
-                "source_name"
-            ].apply(
-                lambda x: grid_data.hp_data.hp_junctions[
-                    grid_data.hp_data.hp_junctions.source_name == x
-                ]
-                .iloc[0]
-                .source_id
-            )
+        grid_data.components_gas.sources["mdot_kg_per_s"] = grid_data.components_gas.sources[
+            "values"
+        ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
+        grid_data.components_gas.sources.rename(columns={"name": "source_name"}, inplace=True)
+        grid_data.components_gas.sources["junction"] = grid_data.components_gas.sources[
+            "source_name"
+        ].apply(
+            lambda x: grid_data.hp_data.hp_junctions[
+                grid_data.hp_data.hp_junctions.source_name == x
+            ]
+            .iloc[0]
+            .source_id
         )
 
         # create sinks
         grid_data.components_gas.sinks = n_par[
-            (n_par["supply"] == 0)
-            & (n_par["parameters"].apply(lambda x: "Q" in x))
+            (n_par["supply"] == 0) & (n_par["parameters"].apply(lambda x: "Q" in x))
         ]
-        grid_data.components_gas.sinks["mdot_kg_per_s"] = (
-            grid_data.components_gas.sinks[
-                "values"
-            ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
-        )
-        grid_data.components_gas.sinks.rename(
-            columns={"name": "source_name"}, inplace=True
-        )
-        grid_data.components_gas.sinks["junction"] = (
-            grid_data.components_gas.sinks[
-                "source_name"
-            ].apply(
-                lambda x: grid_data.hp_data.hp_junctions[
-                    grid_data.hp_data.hp_junctions.source_name == x
-                ]
-                .iloc[0]
-                .source_id
-            )
+        grid_data.components_gas.sinks["mdot_kg_per_s"] = grid_data.components_gas.sinks[
+            "values"
+        ].apply(lambda x: x[0] * factor_mw_to_kb_per_s)
+        grid_data.components_gas.sinks.rename(columns={"name": "source_name"}, inplace=True)
+        grid_data.components_gas.sinks["junction"] = grid_data.components_gas.sinks[
+            "source_name"
+        ].apply(
+            lambda x: grid_data.hp_data.hp_junctions[
+                grid_data.hp_data.hp_junctions.source_name == x
+            ]
+            .iloc[0]
+            .source_id
         )
 
         # adjust valve data
@@ -348,8 +301,7 @@ def simone_to_dave(data_simone):
             grid_data.components_gas.valves.source_name.apply(
                 lambda x: (
                     True
-                    if e_par[e_par["name"] == x].iloc[0]["values"][0]
-                    in ["BP", "ON"]
+                    if e_par[e_par["name"] == x].iloc[0]["values"][0] in ["BP", "ON"]
                     else False
                 )
             )
@@ -360,22 +312,18 @@ def simone_to_dave(data_simone):
 
         # adjust junction data for external grid junctions
         ext_grid = n_par[
-            (n_par["supply"] == 1)
-            & (n_par["parameters"].apply(lambda x: "PSET" in x))
+            (n_par["supply"] == 1) & (n_par["parameters"].apply(lambda x: "PSET" in x))
         ]
         for _, junc in ext_grid.iterrows():
             junction_idx = grid_data.hp_data.hp_junctions[
                 grid_data.hp_data.hp_junctions.source_name == junc["name"]
             ].index[0]
-            grid_data.hp_data.hp_junctions.at[
-                junction_idx, f"Pset_{ext_grid.units.iloc[0][1]}"
-            ] = junc["values"][1]
+            grid_data.hp_data.hp_junctions.at[junction_idx, f"Pset_{ext_grid.units.iloc[0][1]}"] = (
+                junc["values"][1]
+            )
 
     # write result data into dave dataset
-    if (
-        "node_results" in data_simone.keys()
-        and "element_results" in data_simone.keys()
-    ):
+    if "node_results" in data_simone.keys() and "element_results" in data_simone.keys():
         # filter scenario data
         n_res = data_simone["node_results"]
         e_res = data_simone["element_results"]

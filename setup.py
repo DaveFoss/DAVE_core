@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 import re
 from pathlib import Path
@@ -16,8 +19,8 @@ def read(*names, **kwargs):
 
 setup(
     name="dave_core",
-    version="1.3.1",
-    license="BSD 3-cluase",
+    version="1.3.2",
+    license="BSD-3-Clause",
     description="DAVE is a tool for automatic energy grid generation",
     long_description="{}\n{}".format(
         re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub("", read("README.rst")),
@@ -29,7 +32,7 @@ setup(
     ),
     long_description_content_type="text/x-rst",
     author="DAVE_core Developers",
-    author_email="EMAIL@IS.MISSING.DE",
+    author_email="tobias.banze@iee.fraunhofer.de",
     url="https://github.com/DaveFoss/DAVE_core",
     packages=find_packages("src"),
     package_dir={"": "src"},
@@ -40,7 +43,6 @@ setup(
         # http://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: Unix",
         "Operating System :: POSIX",
         "Operating System :: Microsoft :: Windows",
@@ -50,6 +52,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         # "Programming Language :: Python :: Implementation :: CPython",
         # "Programming Language :: Python :: Implementation :: PyPy",
         # uncomment if you test on these interpreters:
@@ -67,7 +70,7 @@ setup(
     keywords=[
         # eg: "keyword1", "keyword2", "keyword3",
     ],
-    python_requires=">=3.8,<3.13.0",
+    python_requires=">=3.10",
     install_requires=[
         "pandas",
         "Shapely",
@@ -88,6 +91,8 @@ setup(
         "pandapipes",
         "defusedxml",
         "dask_geopandas",
+        "scipy",
+        "openpyxl",
     ],
     extras_require={
         "dev": ["black", "isort", "pre-commit"]

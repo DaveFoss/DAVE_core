@@ -1,5 +1,11 @@
+# Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
+
 from geopandas import GeoDataFrame
-from geopandas import GeoSeries
 from pandapower.auxiliary import ADict
 from pandas import DataFrame
 
@@ -24,16 +30,15 @@ class davestructure(ADict):
         for key in list(self.keys()):
             if isinstance(self[key], DataFrame) and not self[key].empty:
                 length = len(self[key])
-                titel += f'\n   - {key} ({length} {"elements" if length > 1 else "element"})'
+                titel += f"\n   - {key} ({length} {'elements' if length > 1 else 'element'})"
             if isinstance(self[key], davestructure):
                 titel += f"\n   - {key}:"
                 for key2 in list(self[key].keys()):
-                    if (
-                        isinstance(self[key][key2], DataFrame)
-                        and not self[key][key2].empty
-                    ):
+                    if isinstance(self[key][key2], DataFrame) and not self[key][key2].empty:
                         length = len(self[key][key2])
-                        titel += f'\n\t   - {key2} ({length} {"elements" if length > 1 else "element"})'
+                        titel += (
+                            f"\n\t   - {key2} ({length} {'elements' if length > 1 else 'element'})"
+                        )
                     if isinstance(self[key][key2], davestructure):
                         titel += f"\n\t   - {key2}:"
                         for key3 in list(self[key][key2].keys()):
@@ -42,7 +47,7 @@ class davestructure(ADict):
                                 and not self[key][key2][key3].empty
                             ):
                                 length = len(self[key][key2][key3])
-                                titel += f'\n\t\t   - {key3} ({length} {"elements" if length > 1 else "element"})'
+                                titel += f"\n\t\t   - {key3} ({length} {'elements' if length > 1 else 'element'})"
         return titel
 
 
@@ -83,15 +88,9 @@ def create_empty_dataset():
             "ehv_data": davestructure(
                 {"ehv_nodes": GeoDataFrame([]), "ehv_lines": GeoDataFrame([])}
             ),
-            "hv_data": davestructure(
-                {"hv_nodes": GeoDataFrame([]), "hv_lines": GeoDataFrame([])}
-            ),
-            "mv_data": davestructure(
-                {"mv_nodes": GeoDataFrame([]), "mv_lines": GeoDataFrame([])}
-            ),
-            "lv_data": davestructure(
-                {"lv_nodes": GeoDataFrame([]), "lv_lines": GeoDataFrame([])}
-            ),
+            "hv_data": davestructure({"hv_nodes": GeoDataFrame([]), "hv_lines": GeoDataFrame([])}),
+            "mv_data": davestructure({"mv_nodes": GeoDataFrame([]), "mv_lines": GeoDataFrame([])}),
+            "lv_data": davestructure({"lv_nodes": GeoDataFrame([]), "lv_lines": GeoDataFrame([])}),
             "components_power": davestructure(
                 {
                     "loads": GeoDataFrame([]),

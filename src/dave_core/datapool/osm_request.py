@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from collections import namedtuple
 from time import sleep
@@ -68,9 +71,7 @@ def osm_request(data_type, area):
 # SOFTWARE.
 
 
-OSMData = namedtuple(
-    "OSMData", ("nodes", "waynodes", "waytags", "relmembers", "reltags")
-)
+OSMData = namedtuple("OSMData", ("nodes", "waynodes", "waytags", "relmembers", "reltags"))
 _crs = "epsg:4326"
 
 # Tags to remove so we don't clobber the output. This list comes from
@@ -89,9 +90,7 @@ uninteresting_tags = {
 
 
 # http://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide
-def query_osm(
-    typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kwargs
-):
+def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kwargs):
     """
     Query the Overpass API to obtain OpenStreetMap data.
 
@@ -169,9 +168,7 @@ def query_osm(
             sleep(time_delay)
 
     # get meta informations
-    meta_data = read_excel(
-        get_data_path("osm_meta.xlsx", "data"), sheet_name=None
-    )
+    meta_data = read_excel(get_data_path("osm_meta.xlsx", "data"), sheet_name=None)
 
     if raw:
         return content, meta_data
@@ -192,8 +189,7 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
             recursestr = recurse_map[recurse]
         except KeyError as e:
             raise ValueError(
-                "Unrecognized recurse value '{}'. "
-                "Must be one of: {}.".format(
+                "Unrecognized recurse value '{}'. Must be one of: {}.".format(
                     recurse, ", ".join(recurse_map.keys())
                 )
             ) from e
@@ -210,9 +206,7 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
     else:
         # bboxstr = "({})".format(
         #','.join(str(b) for b in (bbox[1], bbox[0], bbox[3], bbox[2])))
-        bboxstr = '(poly:"{}")'.format(
-            " ".join(f"{c[1]} {c[0]}" for c in bbox.exterior.coords)
-        )
+        bboxstr = '(poly:"{}")'.format(" ".join(f"{c[1]} {c[0]}" for c in bbox.exterior.coords))
 
     metastr = "meta" if meta else ""
 
@@ -358,16 +352,10 @@ def render_to_gdf(osmdata, drop_untagged=True):
     ways = render_ways(osmdata.nodes, osmdata.waynodes, osmdata.waytags)
 
     # set landuse tag from origin relation at relation members who has no landuse tag
-    if (
-        (ways is not None)
-        and ("landuse" in ways.keys())
-        and (not osmdata.relmembers.empty)
-    ):
+    if (ways is not None) and ("landuse" in ways.keys()) and (not osmdata.relmembers.empty):
         for i, way in ways.iterrows():
             # get and add origin relation id
-            rel_id = (
-                osmdata.relmembers[osmdata.relmembers.ref == way.id].iloc[0].id
-            )
+            rel_id = osmdata.relmembers[osmdata.relmembers.ref == way.id].iloc[0].id
             ways.at[i, "relation_id"] = rel_id
             # get and add origin relation landuse if needed
             osm_reltag = osmdata.reltags[osmdata.reltags.id == rel_id].iloc[0]
@@ -386,9 +374,7 @@ def render_nodes(nodes, drop_untagged=True):
     if not nodes.empty:
         # Drop nodes that have no tags, convert lon/lat to points
         if drop_untagged:
-            nodes = nodes.dropna(
-                subset=nodes.columns.drop(["id", "lon", "lat"]), how="all"
-            )
+            nodes = nodes.dropna(subset=nodes.columns.drop(["id", "lon", "lat"]), how="all")
         points = [Point(x["lon"], x["lat"]) for i, x in nodes.iterrows()]
         nodes = nodes.drop(["lon", "lat"], axis=1)
         nodes = nodes.set_geometry(points, crs=_crs)
@@ -411,10 +397,8 @@ def render_ways(nodes, waynodes, waytags):
     # Group the ways and create a LineString for each one.  way_lines is a
     # Series where the index is the way id and the value is the LineString.
     # Merge it with the waytags to get a single GeoDataFrame of ways
-    waynodes = waynodes.merge(
-        node_points, left_on="ref", right_on="id", suffixes=("", "_nodes")
-    )
-    way_lines = waynodes.groupby("id").apply(wayline)
+    waynodes = waynodes.merge(node_points, left_on="ref", right_on="id", suffixes=("", "_nodes"))
+    way_lines = waynodes.groupby("id").apply(wayline, include_groups=False)
     ways = waytags.set_index("id").set_geometry(way_lines, crs=_crs)
     ways.reset_index(inplace=True)
 

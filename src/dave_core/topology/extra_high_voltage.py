@@ -1,12 +1,16 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from math import pi
 
 from geopandas import GeoDataFrame
 from pandas import Series
 from pandas import concat
+from shapely import union_all
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
@@ -82,15 +86,15 @@ def create_ehv_topology(grid_data):
             "x": "x_ohm",
             "g": "g_s",
             "b": "b_s",
-            "bus0": "from_node",
-            "bus1": "to_node",
+            "bus0": "from_bus",
+            "bus1": "to_bus",
         },
         inplace=True,
     )
     # filter lines which are currently availible
     ehvhv_lines = ehvhv_lines[
         (ehvhv_lines.ego_scn_name == "Status Quo")
-        & (ehvhv_lines.geometry.intersects(grid_data.area.geometry.unary_union))
+        & (ehvhv_lines.geometry.intersects(union_all(grid_data.area.geometry)))
     ]
     # consider data only if there are minimum one line in the target area
     if not ehvhv_lines.empty:
@@ -158,7 +162,7 @@ def create_ehv_topology(grid_data):
         # filter lines which are on the ehv level by check if both endpoints are on the ehv level
         ehv_bus_ids = ehv_buses.ego_bus_id.tolist()
         ehv_lines = ehvhv_lines[
-            (ehvhv_lines.from_node.isin(ehv_bus_ids)) & (ehvhv_lines.to_node.isin(ehv_bus_ids))
+            (ehvhv_lines.from_bus.isin(ehv_bus_ids)) & (ehvhv_lines.to_bus.isin(ehv_bus_ids))
         ]
         # --- add additional line parameter and change bus names
         ehv_lines.insert(ehv_lines.columns.get_loc("r_ohm") + 1, "r_ohm_per_km", None)
@@ -167,30 +171,32 @@ def create_ehv_topology(grid_data):
         ehv_lines.insert(ehv_lines.columns.get_loc("b_s") + 1, "c_nf", None)
         # update progress
         pbar.update(10)
-        ehv_lines["voltage_kv"] = ehv_lines.from_node.apply(
+        ehv_lines["voltage_kv"] = ehv_lines.from_bus.apply(
             lambda x: ehv_buses.loc[ehv_buses[ehv_buses.ego_bus_id == x].index[0]].voltage_kv
         )
         # calculate and add r,x,c per km
         ehv_lines["r_ohm_per_km"] = ehv_lines.apply(lambda x: float(x.r_ohm) / x.length_km, axis=1)
         ehv_lines["x_ohm_per_km"] = ehv_lines.apply(lambda x: float(x.x_ohm) / x.length_km, axis=1)
         ehv_lines["c_nf"] = ehv_lines.apply(
-            lambda x: float(x.b_s) / (2 * pi * float(x.frequency)) * 1e09, axis=1
+            lambda x: float(x.b_s) / (2 * pi * float(x.frequency)) * 1e09,
+            axis=1,
         )
         ehv_lines["c_nf_per_km"] = ehv_lines.apply(lambda x: x.c_nf / x.length_km, axis=1)
         ehv_lines["c_nf_per_km"] = ehv_lines.apply(lambda x: x.c_nf / x.length_km, axis=1)
         # calculate and add max i
         ehv_lines["max_i_ka"] = ehv_lines.apply(
-            lambda x: ((float(x.s_nom_mva) * 1e06) / (x.voltage_kv * 1e03)) * 1e-03, axis=1
+            lambda x: ((float(x.s_nom_mva) * 1e06) / (x.voltage_kv * 1e03)) * 1e-03,
+            axis=1,
         )
         # parallel lines
         ehv_lines["parallel"] = ehv_lines.cables.apply(lambda x: x / 3)
         # update progress
         pbar.update(20)
         # change line node names from ego id to dave name
-        ehv_lines["from_node"] = ehv_lines.from_node.apply(
+        ehv_lines["from_bus"] = ehv_lines.from_bus.apply(
             lambda x: ehv_buses[ehv_buses.ego_bus_id == x].iloc[0].dave_name
         )
-        ehv_lines["to_node"] = ehv_lines.to_node.apply(
+        ehv_lines["to_bus"] = ehv_lines.to_bus.apply(
             lambda x: ehv_buses[ehv_buses.ego_bus_id == x].iloc[0].dave_name
         )
         # add oep as source

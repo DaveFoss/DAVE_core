@@ -1,8 +1,12 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from os import environ, name as osname
+
+from os import environ
+from os import name as osname
 from pathlib import Path
 from timeit import default_timer
 from warnings import catch_warnings
@@ -305,25 +309,41 @@ def create_grid(
                 create_ehv_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             elif level == "hv":
                 create_hv_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             elif level == "mv":
                 create_mv_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             elif level == "lv":
                 create_lv_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             else:
                 print("no voltage level was choosen or their is a failure in the input value.")
@@ -339,35 +359,55 @@ def create_grid(
                 create_transformers(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             # add renewable powerplants
             if renewable_powerplants:
                 create_renewable_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             # add conventional powerplants
             if conventional_powerplants:
                 create_conventional_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             # create lines for power plants with a grid node far away
             if renewable_powerplants or conventional_powerplants:
                 create_power_plant_lines(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             # add loads
             if loads:
                 create_loads(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
         # --- create desired gas grid levels
         for level in gas_levels:
@@ -379,7 +419,11 @@ def create_grid(
                 create_hp_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
-                    grid_data, output_format, output_folder, filename, save_data
+                    grid_data,
+                    output_format,
+                    output_folder,
+                    filename,
+                    save_data,
                 )
             else:
                 print("no gas level was choosen or their is a failure in the input value.")

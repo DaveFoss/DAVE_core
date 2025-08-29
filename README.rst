@@ -7,13 +7,14 @@ DAVE_core
 .. list-table::
     :stub-columns: 1
 
+    * - package
+      - |version| |commits-since| |download| |licence| |wheel| |supported-versions| |supported-implementations|
     * - docs
       - |docs|
     * - tests
       - |github-actions| |coveralls| |codecov|
-    * - package
-      - |version| |download| |licence| |wheel| |supported-versions| |supported-implementations| |commits-since| |black| |isort|
-
+    * - code style
+      - |black| |isort| |ruff|
 
 .. |download| image:: https://pepy.tech/badge/dave-core
     :alt: pepy
@@ -51,9 +52,9 @@ DAVE_core
     :alt: Coverage Status
     :target: https://app.codecov.io/github/DaveFoss/DAVE_core
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.1.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.2.svg
     :alt: Commits since latest release
-    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.1...main
+    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.2...main
 
 .. |licence| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/DaveFoss/DAVE_core/blob/main/LICENSE
@@ -64,6 +65,10 @@ DAVE_core
 
 .. |isort| image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
     :target: https://pycqa.github.io/isort/
+
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
 .. end-badges
 

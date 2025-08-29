@@ -1,8 +1,11 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-__version__ = "1.3.1"
+
+__version__ = "1.3.2"
 
 # modules in src folder
 from .archiv_io import archiv_inventory
@@ -119,6 +122,7 @@ from .plotting.plot import plot_grid_data_osm
 from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
 from .progressbar import create_tqdm
+from .progressbar import create_tqdm_dask
 from .settings import dave_settings
 from .settings import set_dave_settings
 from .toolbox import adress_to_coords
@@ -142,6 +146,9 @@ from .topology.medium_voltage import create_mv_topology
 from .topology.medium_voltage import search_connection_line
 
 __all__ = [
+    # main
+    "create_tqdm",
+    "create_tqdm_dask",
     # components
     "create_sources",
     "create_compressors",

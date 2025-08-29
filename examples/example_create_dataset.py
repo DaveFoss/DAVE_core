@@ -1,5 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pathlib import Path
@@ -44,8 +46,11 @@ _nuts_4 = (["DE1"], "2021")  # nuts level 1 and other year
 
 # test own shape
 # Hertingshausen is a part from the Town Baunatal. (ca. 500 relevant Buildings)
-own_area_path = f"{Path(__file__).parent}\\hertingshausen.geojson"
-own_area_polygon = gpd.read_file(own_area_path).iloc[0].geometry
+own_area_polygon = (
+    gpd.read_file(f"{Path(__file__).parent}\\example_geodata.gpkg", layer="hertingshausen")
+    .iloc[0]
+    .geometry
+)
 
 
 ##################### test main function ##########################
@@ -74,7 +79,7 @@ grid_data = create_grid(
     convert_power=[],  # if True a second return variable must be defined
     convert_gas=[],  # if True a second return variable must be defined
     # power grid components
-    transformers=False,
+    transformers=True,
     renewable_powerplants=False,
     conventional_powerplants=False,
     loads=False,

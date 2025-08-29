@@ -1,11 +1,15 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
@@ -128,20 +132,20 @@ def from_osm(
             commercial = dave_settings["buildings_commercial"]
             # improve building tag with landuse parameter
             if landuse if isinstance(landuse, bool) else not landuse.empty:
-                landuse_retail = landuse[landuse.landuse == "retail"].geometry.unary_union
-                landuse_industrial = landuse[landuse.landuse == "industrial"].geometry.unary_union
-                landuse_commercial = landuse[landuse.landuse == "commercial"].geometry.unary_union
+                landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
+                landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
+                landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
                 for i, building in buildings.iterrows():
                     if building.building not in commercial:
-                        if not landuse_retail is None and building.geometry.intersects(
+                        if landuse_retail is not None and building.geometry.intersects(
                             landuse_retail
                         ):
                             buildings.at[i, "building"] = "retail"
-                        elif not landuse_industrial is None and building.geometry.intersects(
+                        elif landuse_industrial is not None and building.geometry.intersects(
                             landuse_industrial
                         ):
                             buildings.at[i, "building"] = "industrial"
-                        elif not landuse_commercial is None and building.geometry.intersects(
+                        elif landuse_commercial is not None and building.geometry.intersects(
                             landuse_commercial
                         ):
                             buildings.at[i, "building"] = "commercial"
@@ -212,7 +216,11 @@ def road_junctions(roads, grid_data):
         junctions.set_crs(dave_settings["crs_meter"], inplace=True)
         junctions = junctions.to_crs(dave_settings["crs_main"])
         road_junctions = GeoDataFrame(
-            {"node_type": "road_junction", "source": "dave internal", "geometry": junctions},
+            {
+                "node_type": "road_junction",
+                "source": "dave internal",
+                "geometry": junctions,
+            },
             crs="EPSG:4326",
         )
         grid_data.roads.road_junctions = concat(

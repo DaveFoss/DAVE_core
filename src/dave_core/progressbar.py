@@ -1,6 +1,9 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
-# Kassel and individual contributors (see AUTHORS file for details). All rights reserved.
+# Kassel and individual contributors (see AUTHORS file for details).
+# All rights reserved.
+# Copyright (c) 2024-2025 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 
 from tqdm import tqdm
 from tqdm.dask import TqdmCallback
@@ -11,12 +14,13 @@ from dave_core.settings import dave_settings
 def create_tqdm(desc, bar_type="main_bar"):
     """
     This function creates a tqdm progress bar object
+
     INPUT:
         **desc** (str) - Name of the task (max 33 signs)
 
     OPTIONAL:
-        **bar_type** (str, default "main_bar") - Which style of progress bar should be used \
-            Options: "main_bar, "sub_bar"
+        **bar_type** (str, default "main_bar") - Which style of progress bar \
+            should be used. Options: "main_bar, "sub_bar"
 
     OUTPUT:
         **tqdm_object** (tqdm object) - tqdm object suitale to the usage in DAVE code
@@ -47,13 +51,15 @@ def create_tqdm(desc, bar_type="main_bar"):
 def create_tqdm_dask(desc, bar_type):
     """
     This function creates a tqdm progress bar object for dask functions
+
     INPUT:
         **desc** (str) - Name of the task (max 33 signs)
         **bar_type** (str) - Which style of progress bar should be used \
             Options: "main_bar, "sub_bar"
 
     OUTPUT:
-        **tqdm_object_dask** (tqdm object) - tqdm object suitale to the usage in DAVE code
+        **tqdm_object_dask** (tqdm object) - tqdm object suitale to the usage \
+            in DAVE code
     """
     # limit desc string to 34 signs
     desc = desc[:33]

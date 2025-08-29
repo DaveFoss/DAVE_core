@@ -16,6 +16,8 @@ tqdm
 tables
 defusedxml
 dask_geopandas
+scipy
+openpyxl
 # via pip
 #pandapower
 #pandapipes

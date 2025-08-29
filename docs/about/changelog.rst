@@ -6,10 +6,9 @@ What's new in DAVE_core
 
 These are new features and improvements of note in each release.
 
-Unreleased
-==========
 
 .. implement the whats new files for each release
+.. include::  ../whatsnew/v1-3-2.rst
 .. include::  ../whatsnew/v1-3-1.rst
 .. include::  ../whatsnew/v1-3-0.rst
 .. include::  ../whatsnew/v1-2-0.rst

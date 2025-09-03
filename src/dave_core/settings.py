@@ -19,6 +19,7 @@ def set_dave_settings():
         "dave_dir": Path(path.realpath(__file__)).parent,
         "dave_output_dir": Path.home().joinpath("Desktop", "DAVE_output"),
         "cpu_number": cpu_count(),
+        "fhg_oc_url": "https://owncloud.fraunhofer.de/index.php/s/Y5J1lBxeau3N48p",
         # structural definitions:
         "bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
         "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",

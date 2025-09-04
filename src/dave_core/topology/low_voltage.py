@@ -195,7 +195,8 @@ def create_lv_topology(grid_data):
     roads = grid_data.roads.roads
     roads_geom_dask = from_geopandas(roads.geometry, npartitions=dave_settings["cpu_number"])
     roads_filter = roads[
-        roads_geom_dask.distance(union_all(grid_data.roads.road_junctions)).compute() < 1e-8
+        roads_geom_dask.distance(union_all(grid_data.roads.road_junctions.geometry)).compute()
+        < 1e-8
     ]
     nearest_building_points = nearest_road_points(
         points=centroids,

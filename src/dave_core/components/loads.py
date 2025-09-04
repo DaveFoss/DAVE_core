@@ -87,6 +87,7 @@ def create_loads(grid_data):
             grid_data.buildings.residential,
             federal_states,
             remove_columns=False,
+            only_limit=False,
         )
         buildings_feds.drop(
             columns=federal_states.keys().drop("federal state").drop("geometry"),

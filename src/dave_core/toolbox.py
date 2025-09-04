@@ -6,11 +6,15 @@
 
 
 from os import path
+from time import sleep
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import overlay
+from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderUnavailable
 from geopy.geocoders import ArcGIS
+from geopy.geocoders import Nominatim
 from numpy import append
 from numpy import array
 from pandas import concat
@@ -160,11 +164,25 @@ def adress_to_coords(adress, geolocator=None):
     OUTPUT:
         **geocoordinates** (tuple) - geocoordinates for the adress in format (longitude, latitude)
     """
+    retries = 3
     if not geolocator:
         geolocator = ArcGIS(timeout=None)
     if adress:
-        location = geolocator.geocode(adress)
-        return (location.longitude, location.latitude)
+        for i in range(retries):
+            try:
+                location = geolocator.geocode(adress)
+                return (location.longitude, location.latitude)
+            except (GeocoderTimedOut, GeocoderUnavailable):
+                sleep(1)
+            # try with another geolocator
+            if i == retries - 1:
+                for _ in range(retries):
+                    try:
+                        geolocator = Nominatim(user_agent="myGeocoder")
+                        location = geolocator.geocode(adress)
+                        return (location.longitude, location.latitude)
+                    except (GeocoderTimedOut, GeocoderUnavailable):
+                        sleep(1)
 
 
 def get_data_path(filename=None, dirname=None):

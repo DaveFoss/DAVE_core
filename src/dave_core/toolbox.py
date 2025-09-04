@@ -209,7 +209,7 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
             will deleted in the result
         **only_limit** (bool, default True) - If True it will only considered \
             if the data intersects the area instead of which part of the area \
-            they intersect if the area is split in multiple polygons
+            they intersect, in case the area is split in multiple polygons
 
     OUTPUT:
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area

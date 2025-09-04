@@ -12,11 +12,11 @@ from geopandas import GeoDataFrame
 from numpy import array
 from numpy import random
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import Polygon
 from shapely.ops import polygonize
-from shapely.ops import unary_union
 
 from dave_core.datapool.osm_request import query_osm
 from dave_core.datapool.read_data import read_federal_states
@@ -126,6 +126,7 @@ def create_loads(grid_data):
                 grid_data.landuse,
                 postal_own_intersection,
                 remove_columns=False,
+                only_limit=False,
             )
             for i, postal in postal_own_intersection.iterrows():
                 # --- calculate full plz residential area
@@ -149,15 +150,13 @@ def create_loads(grid_data):
                     if not isinstance(obj.geometry, LineString)
                 ]
                 plz_residential.drop(drop_objects, inplace=True)
-                plz_residential = unary_union(
-                    list(polygonize(plz_residential.geometry))
-                )  # !!! replace unary union function
+                plz_residential = union_all(list(polygonize(plz_residential.geometry)))
                 # calculate plz  residential area for grid area
                 plz_own_landuse = postal_own_landuse[
                     postal_own_landuse.postalcode == postal.postalcode
                 ]
                 plz_own_residential = plz_own_landuse[plz_own_landuse.landuse == "residential"]
-                plz_own_residential = plz_own_residential.geometry.unary_union
+                plz_own_residential = union_all(plz_own_residential.geometry)
                 # calculate population for proportion of postal area
                 pop_own = (
                     plz_own_residential.area / plz_residential.area
@@ -252,7 +251,7 @@ def create_loads(grid_data):
         industrial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building == "industrial"
         ]
-        industrial_polygons_sum = unary_union(
+        industrial_polygons_sum = union_all(
             array(list(polygonize(industrial_buildings.geometry)))
         )  # !!! replace unary union function
         industrial_area_full = industrial_polygons_sum.area
@@ -287,9 +286,7 @@ def create_loads(grid_data):
         commercial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building != "industrial"
         ]
-        commercial_polygons_sum = unary_union(
-            array(list(polygonize(commercial_buildings.geometry)))
-        )
+        commercial_polygons_sum = union_all(array(list(polygonize(commercial_buildings.geometry))))
         commercial_area_full = commercial_polygons_sum.area
         for _, commercial_poly in commercial_buildings.iterrows():
             building_poly = next(iter(polygonize(commercial_poly.geometry)))

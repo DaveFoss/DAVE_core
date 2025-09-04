@@ -27,7 +27,7 @@ def download_data(filename):
     """
     Download data from DAVE_data ownCloud storage
     """
-    url = f'{dave_settings["fhg_oc_url"]}/download?path=%2F&files=core/{filename}'
+    url = f'{dave_settings["fhg_oc_url"]}/download?path=%2F&files={filename}'
     file_path = os.path.join(get_data_path(dirname="data"), filename)
     r = requests.get(url, stream=True, timeout=30)
     if r.ok:

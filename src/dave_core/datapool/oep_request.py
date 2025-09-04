@@ -70,6 +70,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                 ]
             ),
             timeout=30,
+            verify=False,
         )
     elif dave_settings["oep_tables"][table][2] is not None:
         request = get(
@@ -85,6 +86,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                 ]
             ),
             timeout=30,
+            verify=False,
         )
     else:
         request = get(
@@ -99,6 +101,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
                 ]
             ),
             timeout=30,
+            verify=False,
         )
     # convert data to dataframe
     request_data = request_to_df(request)
@@ -131,6 +134,7 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
     request = get(
         "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
         timeout=30,
+        verify=False,
     )
     # convert data to meta dict  # !!! When getting data from database the meta informations should also came from db
     if request.status_code == 200:  # 200 is the code of a successful request

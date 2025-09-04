@@ -7,7 +7,6 @@
 
 from pathlib import Path
 
-import certifi
 import pytest
 import requests
 from geopandas import GeoDataFrame
@@ -28,7 +27,7 @@ def test_fhg_data_availability():
 
 def test_oep_availability():
     response = requests.head(
-        dave_settings["oep_url"], verify=certifi.where(), timeout=10
+        dave_settings["oep_url"], verify=False, timeout=10
     )  # Verwende HEAD, um nur die Header abzurufen
     assert response.status_code == 200, f"Data Repo is not available: {response.status_code}"
 

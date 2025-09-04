@@ -19,7 +19,6 @@ def set_dave_settings():
         "dave_dir": Path(path.realpath(__file__)).parent,
         "dave_output_dir": Path.home().joinpath("Desktop", "DAVE_output"),
         "cpu_number": cpu_count(),
-        "fhg_oc_url": "https://owncloud.fraunhofer.de/index.php/s/Y5J1lBxeau3N48p",
         # structural definitions:
         "bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
         "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
@@ -27,7 +26,10 @@ def set_dave_settings():
         "crs_main": "EPSG:4326",  # crs which is based on the unit degree
         "crs_meter": "EPSG:3035",  # crs which is based on the unit meter
         # --- data request
+        # fraunhofer ownCloud datapool
+        "fhg_oc_url": "https://owncloud.fraunhofer.de/index.php/s/Y5J1lBxeau3N48p",
         # OEP tables (oep_name:(schema, geometry_parameter, latest_version))
+        "oep_url": "https://openenergyplatform.org",
         "oep_tables": {
             "ego_pf_hv_bus": ("grid", "geom", "version=v0.4.6"),
             "ego_pf_hv_line": ("grid", "geom", "version=v0.4.6"),

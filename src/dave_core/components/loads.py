@@ -257,18 +257,21 @@ def create_loads(grid_data):
         industrial_area_full = industrial_polygons_sum.area
         for _, industrial_poly in industrial_buildings.iterrows():
             building_poly = next(iter(polygonize(industrial_poly.geometry)))
-            # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
             ]
+
             if not building_point.empty:
+                # compute load values for this polygon
+                p_mw = industrial_load_full * (building_poly.area / industrial_area_full)
+                q_mvar = p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial
+
                 if p_mw != 0:
                     load_df = GeoDataFrame(
                         {
                             "bus": building_point.iloc[0].dave_name,
-                            "p_mw": industrial_load_full
-                            * (building_poly.area / industrial_area_full),
-                            "q_mvar": p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial,
+                            "p_mw": p_mw,
+                            "q_mvar": q_mvar,
                             "landuse": "industrial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -278,8 +281,8 @@ def create_loads(grid_data):
                         [grid_data.components_power.loads, load_df],
                         ignore_index=True,
                     )
-            # update progress
             pbar.update(20 / len(industrial_buildings))
+
         # create lv loads for commercial
         commercial_polygons = grid_data.landuse[grid_data.landuse.landuse == "commercial"]
         commercial_load_full = commercial_polygons.area_km2.sum() * commercial_load  # in MW
@@ -290,18 +293,21 @@ def create_loads(grid_data):
         commercial_area_full = commercial_polygons_sum.area
         for _, commercial_poly in commercial_buildings.iterrows():
             building_poly = next(iter(polygonize(commercial_poly.geometry)))
-            # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
             ]
+
             if not building_point.empty:
+                # compute load values for this polygon
+                p_mw = commercial_load_full * (building_poly.area / commercial_area_full)
+                q_mvar = p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial
+
                 if p_mw != 0:
                     load_df = GeoDataFrame(
                         {
                             "bus": building_point.iloc[0].dave_name,
-                            "p_mw": commercial_load_full
-                            * (building_poly.area / commercial_area_full),
-                            "q_mvar": p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial,
+                            "p_mw": p_mw,
+                            "q_mvar": q_mvar,
                             "landuse": "commercial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -311,8 +317,8 @@ def create_loads(grid_data):
                         [grid_data.components_power.loads, load_df],
                         ignore_index=True,
                     )
-            # update progress
             pbar.update(19.8 / len(commercial_buildings))
+
     # create loads for non grid level 7
     elif any(x in power_levels for x in ["ehv", "hv", "mv"]) and not (
         grid_data.components_power.transformers.ehv_hv.empty

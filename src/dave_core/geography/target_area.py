@@ -128,9 +128,12 @@ def _target_by_federal_state(grid_data, federal_state):
         target = states
     else:
         # bring federal state names in right format and filter data
+        if isinstance(federal_state, str):
+            federal_state = [federal_state]
         federal_state = [
             "-".join([part.capitalize() for part in state.split("-")]) for state in federal_state
         ]
+
         target = states[states["name"].isin(federal_state)].reset_index(drop=True)
         if len(target) != len(federal_state):
             raise ValueError("federal state name wasn`t found. Please check your input")

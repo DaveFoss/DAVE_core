@@ -652,50 +652,54 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
 
 def create_transformers(grid_data):
     """
-    This function collects the transformers.
-    EHV/EHV and EHV/HV trafos are based on ego_pf_hv_transformer from OEP
-    HV/MV trafos are based on ego_dp_hvmv_substation from OEP
-    MV/LV trafos are based on ego_dp_mvlv_substation from OEP
+    Collect transformers for different voltage levels.
+
+    - EHV/EHV and EHV/HV trafos → ego_pf_hv_transformer from OEP
+    - HV/MV trafos              → ego_dp_hvmv_substation from OEP
+    - MV/LV trafos              → ego_dp_mvlv_substation from OEP
     """
-    # set progress bar
     pbar = create_tqdm(desc="create transformers")
-    # define power_levels
-    power_levels = grid_data.target_input.power_levels[0]
-    # --- create ehv/ehv and ehv/hv trafos
-    # check if power levels are requested and not all nodes are ampty
+
+    # --- normalize power_levels ---
+    raw = grid_data.target_input.power_levels
+    power_levels = [
+        str(level).lower()
+        for sub in raw
+        for level in (sub if isinstance(sub, list) else [sub])
+    ]
+
+    # --- EHV/HV transformers ---
     if any(x in power_levels for x in ["ehv", "hv"]) and not (
         grid_data.ehv_data.ehv_nodes.empty and grid_data.hv_data.hv_nodes.empty
     ):
         create_ehv_hv_trafos(grid_data, power_levels, pbar)
     else:
-        # update progress
         pbar.update(30)
 
-    # --- create hv/mv trafos
-    # check if power levels are requested and not all nodes are ampty
+    # --- HV/MV transformers ---
     if (
         any(x in power_levels for x in ["hv", "mv"])
-        and not (grid_data.hv_data.hv_nodes.empty and grid_data.mv_data.mv_nodes.empty)
+        and not (grid_data.hv_data.hv_nodes.empty or grid_data.mv_data.mv_nodes.empty)
         and grid_data.components_power.transformers.hv_mv.empty
     ):
         create_hv_mv_trafos(grid_data, power_levels, pbar)
     else:
-        # update progress
         pbar.update(30)
 
-    # --- create mv/lv trafos
-    # check if power levels are requested and not all nodes are ampty
+    # --- MV/LV transformers ---
     if (
         any(x in power_levels for x in ["mv", "lv"])
+        and not (grid_data.mv_data.mv_nodes.empty or grid_data.lv_data.lv_nodes.empty)
         and grid_data.components_power.transformers.mv_lv.empty
-    ):  # and not (grid_data.mv_data.mv_nodes.empty and grid_data.lv_data.lv_nodes.empty):
+    ):
         create_mv_lv_trafos(grid_data, power_levels, pbar)
     else:
-        # update progress
         pbar.update(30)
-    # close progress bar
+
+    # --- finish ---
     pbar.update(10)
     pbar.close()
+
 
     # lv_nodes find closest node, hierbei wenn distanz mehr als 50 m dann leitung erstellen auf
     # lv ebene. schauen ob bereits ein Knoten existiert (distance <=10E-05?) da die bei mv ebene

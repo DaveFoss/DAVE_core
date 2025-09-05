@@ -54,7 +54,7 @@ def create_hv_topology(grid_data):
         )
         # filter ehv/hv substations
         ehvhv_substations = ehvhv_substations[
-            Series([bool("110000" in x) for x in ehvhv_substations.voltage_kv]),
+            Series([bool("110000" in x) for x in ehvhv_substations.voltage_kv])
         ]
         # filter substations which are within the grid area
         ehvhv_substations = intersection_with_area(ehvhv_substations, grid_data.area)

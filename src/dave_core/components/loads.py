@@ -12,11 +12,11 @@ from geopandas import GeoDataFrame
 from numpy import array
 from numpy import random
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import Polygon
 from shapely.ops import polygonize
-from shapely.ops import unary_union
 
 from dave_core.datapool.osm_request import query_osm
 from dave_core.datapool.read_data import read_federal_states
@@ -87,6 +87,7 @@ def create_loads(grid_data):
             grid_data.buildings.residential,
             federal_states,
             remove_columns=False,
+            only_limit=False,
         )
         buildings_feds.drop(
             columns=federal_states.keys().drop("federal state").drop("geometry"),
@@ -125,6 +126,7 @@ def create_loads(grid_data):
                 grid_data.landuse,
                 postal_own_intersection,
                 remove_columns=False,
+                only_limit=False,
             )
             for i, postal in postal_own_intersection.iterrows():
                 # --- calculate full plz residential area
@@ -148,15 +150,13 @@ def create_loads(grid_data):
                     if not isinstance(obj.geometry, LineString)
                 ]
                 plz_residential.drop(drop_objects, inplace=True)
-                plz_residential = unary_union(
-                    list(polygonize(plz_residential.geometry))
-                )  # !!! replace unary union function
+                plz_residential = union_all(list(polygonize(plz_residential.geometry)))
                 # calculate plz  residential area for grid area
                 plz_own_landuse = postal_own_landuse[
                     postal_own_landuse.postalcode == postal.postalcode
                 ]
                 plz_own_residential = plz_own_landuse[plz_own_landuse.landuse == "residential"]
-                plz_own_residential = plz_own_residential.geometry.unary_union
+                plz_own_residential = union_all(plz_own_residential.geometry)
                 # calculate population for proportion of postal area
                 pop_own = (
                     plz_own_residential.area / plz_residential.area
@@ -251,24 +251,27 @@ def create_loads(grid_data):
         industrial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building == "industrial"
         ]
-        industrial_polygons_sum = unary_union(
+        industrial_polygons_sum = union_all(
             array(list(polygonize(industrial_buildings.geometry)))
         )  # !!! replace unary union function
         industrial_area_full = industrial_polygons_sum.area
         for _, industrial_poly in industrial_buildings.iterrows():
             building_poly = next(iter(polygonize(industrial_poly.geometry)))
-            # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
             ]
+
             if not building_point.empty:
+                # compute load values for this polygon
+                p_mw = industrial_load_full * (building_poly.area / industrial_area_full)
+                q_mvar = p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial
+
                 if p_mw != 0:
                     load_df = GeoDataFrame(
                         {
                             "bus": building_point.iloc[0].dave_name,
-                            "p_mw": industrial_load_full
-                            * (building_poly.area / industrial_area_full),
-                            "q_mvar": p_mw * sin(acos(cos_phi_industrial)) / cos_phi_industrial,
+                            "p_mw": p_mw,
+                            "q_mvar": q_mvar,
                             "landuse": "industrial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -278,32 +281,33 @@ def create_loads(grid_data):
                         [grid_data.components_power.loads, load_df],
                         ignore_index=True,
                     )
-            # update progress
             pbar.update(20 / len(industrial_buildings))
+
         # create lv loads for commercial
         commercial_polygons = grid_data.landuse[grid_data.landuse.landuse == "commercial"]
         commercial_load_full = commercial_polygons.area_km2.sum() * commercial_load  # in MW
         commercial_buildings = grid_data.buildings.commercial[
             grid_data.buildings.commercial.building != "industrial"
         ]
-        commercial_polygons_sum = unary_union(
-            array(list(polygonize(commercial_buildings.geometry)))
-        )
+        commercial_polygons_sum = union_all(array(list(polygonize(commercial_buildings.geometry))))
         commercial_area_full = commercial_polygons_sum.area
         for _, commercial_poly in commercial_buildings.iterrows():
             building_poly = next(iter(polygonize(commercial_poly.geometry)))
-            # check for builing bus for load connection
             building_point = grid_data.lv_data.lv_nodes[
                 grid_data.lv_data.lv_nodes.geometry.within(building_poly)
             ]
+
             if not building_point.empty:
+                # compute load values for this polygon
+                p_mw = commercial_load_full * (building_poly.area / commercial_area_full)
+                q_mvar = p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial
+
                 if p_mw != 0:
                     load_df = GeoDataFrame(
                         {
                             "bus": building_point.iloc[0].dave_name,
-                            "p_mw": commercial_load_full
-                            * (building_poly.area / commercial_area_full),
-                            "q_mvar": p_mw * sin(acos(cos_phi_commercial)) / cos_phi_commercial,
+                            "p_mw": p_mw,
+                            "q_mvar": q_mvar,
                             "landuse": "commercial",
                             "voltage_level": [7],
                             "geometry": building_point.iloc[0].geometry,
@@ -313,8 +317,8 @@ def create_loads(grid_data):
                         [grid_data.components_power.loads, load_df],
                         ignore_index=True,
                     )
-            # update progress
             pbar.update(19.8 / len(commercial_buildings))
+
     # create loads for non grid level 7
     elif any(x in power_levels for x in ["ehv", "hv", "mv"]) and not (
         grid_data.components_power.transformers.ehv_hv.empty

@@ -72,6 +72,7 @@ def create_mv_topology(grid_data):
             ]
         ),
         inplace=True,
+        errors="ignore",
     )
     mvlv_buses["node_type"] = "mvlv_substation"
     # update progress
@@ -105,6 +106,7 @@ def create_mv_topology(grid_data):
                 ]
             ),
             inplace=True,
+            errors="ignore",
         )
         hvmv_buses["node_type"] = "hvmv_substation"
         # change geometry to point

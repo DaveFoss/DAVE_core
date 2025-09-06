@@ -3,26 +3,26 @@ channels:
   - conda-forge
 dependencies:
   - python=3.13.5
-  - pandas
-  - shapely
-  - geopandas
-  - matplotlib
-  - geopy
-  - fiona
-  - networkx
-  - contextily
-  - pytest
-  - pytest-cov
-  - pytest-xdist
-  - openpyxl
-  - xmlschema
-  - lxml
-  - tqdm
-  - tables
-  - defusedxml
-  - dask_geopandas
-  - scipy
+  - pandas>=2.3
+  - shapely>=2.1
+  - geopandas>=1.1
+  - matplotlib>=3.10
+  - geopy>=2.4
+  - fiona>=1.10
+  - networkx>=3.5
+  - contextily>=1.6
+  - pytest>=8.4
+  - pytest-cov>=6.2
+  - pytest-xdist>=3.8
+  - openpyxl>=3.1
+  - xmlschema>=4.1
+  - lxml>=6.0
+  - tqdm>=4.67
+  - tables>=3.10
+  - defusedxml>=0.7
+  - dask_geopandas>=0.5
+  - scipy>=1.1
   - pip
   - pip:
-      - pandapower
-      - pandapipes
+      - pandapower>=3.1
+      - pandapipes>=0.12

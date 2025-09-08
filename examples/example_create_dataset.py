@@ -89,6 +89,6 @@ grid_data = create_grid(
     sources=False,
     # output settings
     output_folder=dave_settings["dave_output_dir"],
-    output_format="json",
+    output_format="GPKG",
     save_data=True,
 )

@@ -18,10 +18,18 @@ from dave_core.settings import dave_settings
 def disconnected_nodes(nodes, edges, min_number_nodes):
     """
     Identify disconnected nodes in a network.
-    """
-    import networkx as nx
+    converts nodes and lines to a networkX graph and checks connectivity
+    
+    INPUT:
+    -        **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n
+    -        **edges** (DataFrame) - Dataset of edges (lines, pipelines) with DaVe name \n
+    OUTPUT:
+    -        **nodes** (set) - all dave names for nodes which are not connected to a grid with a minumum
+    -        number of nodes \n
 
-    graph = nx.Graph()
+    """
+
+    graph = Graph()
     
     # Add all nodes
     if 'dave_name' not in nodes.columns:
@@ -48,7 +56,7 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
 
     # Find disconnected nodes
     disconnected = set()
-    for component in nx.connected_components(graph):
+    for component in connected_components(graph):
         if len(component) < min_number_nodes:
             disconnected.update(component)
     

@@ -78,7 +78,7 @@ setup(
         "matplotlib>=3.10",
         "geopy>=2.4",
         "fiona>=1.10",
-        "networkx>=3.5",
+        "networkx>=3.4",
         "contextily>=1.6",
         "pytest>=8.4",
         "pytest-cov>=6.2",

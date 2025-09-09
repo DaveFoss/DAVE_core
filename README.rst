@@ -44,6 +44,7 @@ DAVE_core
     :alt: GitHub Actions Build Status
     :target: https://github.com/DaveFoss/DAVE_core/actions
 
+
 .. |coveralls| image:: https://coveralls.io/repos/github/DaveFoss/DAVE_core/badge.svg?branch=main
     :alt: Coverage Status
     :target: https://coveralls.io/github/DaveFoss/DAVE_core?branch=main

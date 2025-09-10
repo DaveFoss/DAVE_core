@@ -9,7 +9,7 @@ authors = [
     { name = "Tobias Banze", email = "tobias.banze@iee.fraunhofer.de" },
 ]
 maintainers = [
-    { name = "DAVE_core Developers", email = "" }
+    { name = "DAVE_core Developers", email = "tobias.banze@iee.fraunhofer.de" }
 ]
 description = "DAVE is a tool for automatic energy grid generation"
 readme = "README.rst"

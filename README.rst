@@ -13,7 +13,7 @@ DAVE_core
       - |docs|
     * - tests
       - |github-actions| |coveralls| |codecov|
-    * - code style
+    * - code
       - |black| |isort| |ruff|
 
 .. |download| image:: https://pepy.tech/badge/dave-core

@@ -8,7 +8,7 @@ DAVE_core
     :stub-columns: 1
 
     * - package
-      - |version| |commits-since| |download| |licence| |wheel| |supported-versions| |supported-implementations|
+      - |version| |commits-since| |download| |licence| |wheel| |supported-versions|
     * - docs
       - |docs|
     * - tests
@@ -32,9 +32,6 @@ DAVE_core
     :alt: Supported versions
     :target: https://pypi.org/project/dave_core
 
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/dave_core.svg
-    :alt: Supported implementations
-    :target: https://pypi.org/project/dave_core
 
 .. |docs| image:: https://readthedocs.org/projects/dave-core/badge/?version=latest
     :target: https://dave-core.readthedocs.io/en/latest/?badge=latest

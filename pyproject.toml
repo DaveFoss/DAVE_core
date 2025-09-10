@@ -54,6 +54,7 @@ dependencies = [
     "dask_geopandas>=0.5",
     "scipy>=1.16",
     "openpyxl>=3.1",
+    "libxml2>=2.14",
 ]
 keywords = [
     "power system", "gas system", "network", "modeling", "automation", "grid", "energy", "DAVE"

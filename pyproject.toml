@@ -14,7 +14,7 @@ maintainers = [
 description = "DAVE is a tool for automatic energy grid generation"
 readme = "README.rst"
 license-files = ["LICENSE", "AUTHORS"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
@@ -28,7 +28,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     # Add the specific Python versions supported here, e.g.:
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13"

@@ -79,11 +79,9 @@ all = ["dave_core[docs,dev]"]
 version = {attr = "dave_core.__version__"}
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = [
     "dave_core*",
-]
-exclude = [
-    "test*",
 ]
 
 [tool.setuptools.package-data]

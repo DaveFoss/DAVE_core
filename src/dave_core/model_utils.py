@@ -34,10 +34,12 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
     # check for disconnected nodes
     disconnected_nodes = set()
     connected_elements = list(connected_components(graph))
-    for elements in connected_elements:
-        if len(elements) < min_number_nodes:
-            for node in elements:
-                disconnected_nodes.add(node)
+    disconnected_nodes.update(
+        node
+        for elements in connected_elements
+        if len(elements) < min_number_nodes
+        for node in elements
+    )
     return disconnected_nodes
 
 

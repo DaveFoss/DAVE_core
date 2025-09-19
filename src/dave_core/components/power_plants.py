@@ -270,9 +270,10 @@ def create_power_plant_lines(grid_data):
                         + 1
                     )
                     # check if there is a line neighbor and take the first one
+
                     line_neighbor = lines[
-                        (lines.from_node == bus_origin.dave_name)
-                        | (lines.to_node == bus_origin.dave_name)
+                        (lines["from_bus"] == bus_origin.dave_name)
+                        | (lines["to_bus"] == bus_origin.dave_name)
                     ]
                     if not line_neighbor.empty:
                         line_neighbor = line_neighbor.iloc[0]

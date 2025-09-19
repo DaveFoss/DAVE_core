@@ -39,6 +39,24 @@ from dave_core.io.io_utils import encrypt_string
 from dave_core.io.io_utils import isinstance_partial
 from dave_core.settings import dave_settings
 
+import pandapower.file_io as pp_io
+import json
+
+def safe_to_json(net, filename, encryption_key=None, store_index_names=True):
+    # identisch zu Original, aber indent als String
+    json_string = json.dumps(net, cls=pp_io.PPJSONEncoder, indent="  ")
+    if encryption_key is not None:
+        json_string = pp_io.encrypt_string(json_string, encryption_key)
+    if filename is None:
+        return json_string
+    if hasattr(filename, "write"):
+        filename.write(json_string)
+    else:
+        with open(filename, "w") as f:
+            f.write(json_string)
+
+pp_io.to_json = safe_to_json
+
 
 # --- JSON
 def from_json(file_path, encryption_key=None):
@@ -119,7 +137,7 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     json_string = json_dumps(
         grid_data,
         cls=DAVEJSONEncoder,
-        # indent=2,  !!! hand over a int will throw an issue
+        indent="  ",  #!!! hand over a int will throw an issue
         isinstance_func=isinstance_partial,
     )
     # encrypt json string
@@ -395,7 +413,7 @@ def pp_to_json(net, file_path):
     ):
         net_conv.landuse["geometry"] = net_conv.landuse.geometry.apply(lambda x: dumps(x, hex=True))
     # convert pp model to json and save the file
-    to_json_pp(net_conv, filename=file_path)
+    pp_io.to_json(net_conv, filename=file_path)
 
 
 def json_to_pp(file_path):
@@ -461,7 +479,7 @@ def ppi_to_json(net, file_path):
             df["geometry"] = df.geometry.apply(lambda x: dumps(x, hex=True))
 
     # Convert ppi model to json and save the file
-    to_json_ppi(net_conv, filename=file_path)
+    pp_io.to_jsoni(net_conv, filename=file_path)
 
 
 def json_to_ppi(file_path):

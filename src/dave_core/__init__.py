@@ -5,7 +5,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-__version__ = "1.3.2"
+__version__ = "1.3.3"
 
 # modules in src folder
 from .archiv_io import archiv_inventory

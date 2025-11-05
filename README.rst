@@ -50,9 +50,9 @@ DAVE_core
     :alt: Coverage Status
     :target: https://app.codecov.io/github/DaveFoss/DAVE_core
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.2.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.3.svg
     :alt: Commits since latest release
-    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.2...main
+    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.3...main
 
 .. |licence| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/DaveFoss/DAVE_core/blob/main/LICENSE

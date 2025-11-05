@@ -5,11 +5,10 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from geopandas import GeoDataFrame
 from networkx import Graph
 from networkx import connected_components
 from pandas import concat
-from pandas import isnull
-from geopandas import GeoDataFrame
 
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
@@ -19,35 +18,30 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
     """
     Identify disconnected nodes in a network.
     converts nodes and lines to a networkX graph and checks connectivity
-    
+
     INPUT:
-    -        **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n
-    -        **edges** (DataFrame) - Dataset of edges (lines, pipelines) with DaVe name \n
+             **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n
+             **edges** (DataFrame) - Dataset of edges (lines, pipelines) with DaVe name \n
     OUTPUT:
-    -        **nodes** (set) - all dave names for nodes which are not connected to a grid with a minumum
-    -        number of nodes \n
+             **nodes** (set) - all dave names for nodes which are not connected to a grid with a minumum
+             number of nodes \n
 
     """
 
     graph = Graph()
-    
+
     # Add all nodes
-    if 'dave_name' not in nodes.columns:
+    if "dave_name" not in nodes.columns:
         print("Warning: 'dave_name' column not found in nodes")
         print(nodes.head())
     graph.add_nodes_from(nodes.dave_name.to_list())
 
-    # Print edges columns for debugging
-    print("Edges columns:", edges.columns)
-    print("First 5 edges rows:")
-    print(edges.head())
-
     # Create edges safely
-    if 'from_node' in edges.columns and 'to_node' in edges.columns:
-        edge_list = edges.apply(lambda x: (x['from_node'], x['to_node']), axis=1).to_list()
+    if "from_node" in edges.columns and "to_node" in edges.columns:
+        edge_list = edges.apply(lambda x: (x["from_node"], x["to_node"]), axis=1).to_list()
         graph.add_edges_from(edge_list)
-    elif 'from_bus' in edges.columns and 'to_bus' in edges.columns:
-        edge_list = edges.apply(lambda x: (x['from_bus'], x['to_bus']), axis=1).to_list()
+    elif "from_bus" in edges.columns and "to_bus" in edges.columns:
+        edge_list = edges.apply(lambda x: (x["from_bus"], x["to_bus"]), axis=1).to_list()
         graph.add_edges_from(edge_list)
     else:
         print("Error: edges DataFrame does not contain 'from_node/to_node' or 'from_bus/to_bus'")
@@ -59,10 +53,9 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
     for component in connected_components(graph):
         if len(component) < min_number_nodes:
             disconnected.update(component)
-    
+
     print(f"Disconnected nodes ({len(disconnected)}):", list(disconnected)[:10])
     return disconnected
-
 
 
 def find_open_ends(nodes, edges):
@@ -86,42 +79,53 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
     Handles missing columns like 'dave_name', 'from_bus', 'to_bus' gracefully.
     """
     # --- collect all nodes and lines
-    nodes_all = concat([
-        grid_data.ehv_data.ehv_nodes,
-        grid_data.hv_data.hv_nodes,
-        grid_data.mv_data.mv_nodes,
-        grid_data.lv_data.lv_nodes
-    ], ignore_index=True)
+    nodes_all = concat(
+        [
+            grid_data.ehv_data.ehv_nodes,
+            grid_data.hv_data.hv_nodes,
+            grid_data.mv_data.mv_nodes,
+            grid_data.lv_data.lv_nodes,
+        ],
+        ignore_index=True,
+    )
 
-    lines_all = concat([
-        grid_data.ehv_data.ehv_lines,
-        grid_data.hv_data.hv_lines,
-        grid_data.mv_data.mv_lines,
-        grid_data.lv_data.lv_lines
-    ], ignore_index=True)
+    lines_all = concat(
+        [
+            grid_data.ehv_data.ehv_lines,
+            grid_data.hv_data.hv_lines,
+            grid_data.mv_data.mv_lines,
+            grid_data.lv_data.lv_lines,
+        ],
+        ignore_index=True,
+    )
 
     # ensure standard column names exist
-    if 'from_bus' not in lines_all.columns:
-        lines_all.rename(columns={'from_node': 'from_bus'}, inplace=True)
-    if 'to_bus' not in lines_all.columns:
-        lines_all.rename(columns={'to_node': 'to_bus'}, inplace=True)
+    if "from_bus" not in lines_all.columns:
+        lines_all.rename(columns={"from_node": "from_bus"}, inplace=True)
+    if "to_bus" not in lines_all.columns:
+        lines_all.rename(columns={"to_node": "to_bus"}, inplace=True)
 
-    trafos_all = concat([
-        grid_data.components_power.transformers.ehv_ehv,
-        grid_data.components_power.transformers.ehv_hv,
-        grid_data.components_power.transformers.hv_mv,
-        grid_data.components_power.transformers.mv_lv
-    ], ignore_index=True)
+    trafos_all = concat(
+        [
+            grid_data.components_power.transformers.ehv_ehv,
+            grid_data.components_power.transformers.ehv_hv,
+            grid_data.components_power.transformers.hv_mv,
+            grid_data.components_power.transformers.mv_lv,
+        ],
+        ignore_index=True,
+    )
 
-    if 'bus_hv' in trafos_all.columns:
-        trafos_all.rename(columns={'bus_hv': 'from_bus', 'bus_lv': 'to_bus'}, inplace=True)
+    if "bus_hv" in trafos_all.columns:
+        trafos_all.rename(columns={"bus_hv": "from_bus", "bus_lv": "to_bus"}, inplace=True)
 
     # ensure 'dave_name' exists for all nodes
     for level in grid_data.target_input.power_levels.iloc[0]:
         nodes = grid_data[f"{level}_data"][f"{level}_nodes"]
-        if 'dave_name' not in nodes.columns:
+        if "dave_name" not in nodes.columns:
             nodes = nodes.copy()
-            nodes['dave_name'] = nodes.index.to_series().apply(lambda x: f"{level}_node_{x}")
+            nodes["dave_name"] = nodes.index.to_series().apply(
+                lambda x, level=level: f"{level}_node_{x}"
+            )
             grid_data[f"{level}_data"][f"{level}_nodes"] = nodes
 
     # get disconnected nodes
@@ -130,7 +134,7 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
             disconnected_nodes(
                 nodes=nodes_all,
                 edges=concat([lines_all, trafos_all], ignore_index=True),
-                min_number_nodes=min_number_nodes
+                min_number_nodes=min_number_nodes,
             )
         )
 
@@ -139,7 +143,7 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
             lines = grid_data[f"{level}_data"][f"{level}_lines"]
 
             # safe filtering of disconnected lines
-            if 'from_bus' in lines.columns:
+            if "from_bus" in lines.columns:
                 lines_dis = lines[lines.from_bus.isin(nodes_dis)]
             else:
                 lines_dis = GeoDataFrame(columns=lines.columns)
@@ -149,28 +153,38 @@ def clean_disconnected_elements_power(grid_data, min_number_nodes):
                 if component_typ not in ["transformers", "substations"]:
                     if not grid_data.components_power[component_typ].empty:
                         comp = grid_data.components_power[component_typ]
-                        if 'bus' in comp.columns:
+                        if "bus" in comp.columns:
                             to_drop = comp[comp.bus.isin(nodes_dis)].index
                             grid_data.components_power[component_typ].drop(to_drop, inplace=True)
-                            grid_data.components_power[component_typ].reset_index(drop=True, inplace=True)
+                            grid_data.components_power[component_typ].reset_index(
+                                drop=True, inplace=True
+                            )
 
                 elif component_typ == "transformers":
                     for subtyp, comp in grid_data.components_power[component_typ].items():
-                        if not comp.empty and 'bus_hv' in comp.columns and 'bus_lv' in comp.columns:
+                        if not comp.empty and "bus_hv" in comp.columns and "bus_lv" in comp.columns:
                             to_drop = comp[
                                 comp.bus_hv.isin(nodes_dis) & comp.bus_lv.isin(nodes_dis)
                             ].index
-                            grid_data.components_power[component_typ][subtyp].drop(to_drop, inplace=True)
-                            grid_data.components_power[component_typ][subtyp].reset_index(drop=True, inplace=True)
+                            grid_data.components_power[component_typ][subtyp].drop(
+                                to_drop, inplace=True
+                            )
+                            grid_data.components_power[component_typ][subtyp].reset_index(
+                                drop=True, inplace=True
+                            )
 
                 elif component_typ == "substations":
                     for subtyp, comp in grid_data.components_power[component_typ].items():
-                        if not comp.empty and 'dave_name' in nodes.columns:
+                        if not comp.empty and "dave_name" in nodes.columns:
                             subst_to_drop = nodes[nodes.dave_name.isin(nodes_dis)].subst_dave_name
                             if not subst_to_drop.isnull().all():
                                 to_drop = comp[comp.dave_name.isin(nodes_dis)].index
-                                grid_data.components_power[component_typ][subtyp].drop(to_drop, inplace=True)
-                                grid_data.components_power[component_typ][subtyp].reset_index(drop=True, inplace=True)
+                                grid_data.components_power[component_typ][subtyp].drop(
+                                    to_drop, inplace=True
+                                )
+                                grid_data.components_power[component_typ][subtyp].reset_index(
+                                    drop=True, inplace=True
+                                )
 
             # --- drop disconnected nodes and lines
             grid_data[f"{level}_data"][f"{level}_nodes"].drop(
@@ -202,7 +216,7 @@ def clean_disconnected_elements_gas(grid_data, min_number_nodes):
             grid_data.lp_data.lp_pipes,
         ],
         ignore_index=True,
-    )  # !!! Todo: Verbindung der Netzebenen mit einbeziehen z.B. Trafos
+    )  # TODO Verbindung der Netzebenen mit einbeziehen z.B. Trafos
     pipelines_all.rename(
         columns={"from_junction": "from_node", "to_junction": "to_node"},
         inplace=True,

@@ -2,6 +2,112 @@
 requires = ["build", "wheel", "setuptools"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "dave_core"
+dynamic = ["version"]
+maintainers = [
+    { name = "DAVE_core Developers", email = "tobias.banze@iee.fraunhofer.de" }
+]
+description = "DAVE is a tool for automatic energy grid generation"
+readme = "README.rst"
+license-files = ["LICENSE*", "AUTHORS*"]
+requires-python = ">=3.11"
+classifiers = [
+    # http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    # Add the specific Python versions supported here, e.g.:
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13"
+]
+dependencies = [
+    "pandas>=2.3",
+    "Shapely>=2.1",
+    "geopandas>=1.1",
+    "matplotlib>=3.10",
+    "geopy>=2.4",
+    "fiona>=1.10",
+    "networkx>=3.5",
+    "contextily>=1.6",
+    "pytest>=8.4",
+    "pytest-cov>=6.2",
+    "pytest-xdist>=3.8",
+    "xmlschema>=4.1",
+    "lxml>=6.0",
+    "tables>=3.10",
+    "tqdm>=4.67",
+    "pandapower>=3.1",
+    "pandapipes>=0.12",
+    "defusedxml>=0.7",
+    "dask_geopandas>=0.5",
+    "scipy>=1.16",
+    "openpyxl>=3.1",
+]
+keywords = [
+    "power system", "gas system", "network", "modeling", "automation", "grid", "energy", "DAVE"
+]
+
+[project.urls]
+Homepage = "http://databutler.energy/"
+Documentation = "https://dave-core.readthedocs.io"
+Source = "https://github.com/DaveFoss/DAVE_core"
+Repository = "https://github.com/DaveFoss/DAVE_core.git"
+Issues = "https://github.com/DaveFoss/DAVE_core/issues"
+Download = "https://pypi.org/project/dave-core/#files"
+Changelog = "https://dave-core.readthedocs.io/en/latest/about/changelog.html"
+
+[project.optional-dependencies]
+docs = ["sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinx-pyproject"]
+dev = ["black", "isort>=6.0", "pre-commit>=4.3"]
+
+all = ["dave_core[docs,dev]"]
+
+[tool.setuptools.dynamic]
+version = {attr = "dave_core.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = [
+    "dave_core*",
+]
+
+[tool.setuptools.package-data]
+"*" = [
+    "*.p",
+    "*.m",
+    "*.mat",
+    "*.json",
+    "*.jl",
+    "*.csv"
+]
+
+
+[tool.pytest.ini_options]
+addopts = ["--strict-markers"]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"'), e.g. in run_fast_tests"
+]
+
+[tool.coverage.run]
+omit = [
+    "test/*"
+]
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "if __name__ == .__main__.:"
+]
+
 [tool.ruff]
 extend-exclude = ["static", "ci", "setup.py", "src_old_dave/"]
 force-exclude = true

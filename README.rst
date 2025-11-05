@@ -8,12 +8,12 @@ DAVE_core
     :stub-columns: 1
 
     * - package
-      - |version| |commits-since| |download| |licence| |wheel| |supported-versions| |supported-implementations|
+      - |version| |commits-since| |download| |licence| |wheel| |supported-versions|
     * - docs
       - |docs|
     * - tests
       - |github-actions| |coveralls| |codecov|
-    * - code style
+    * - code
       - |black| |isort| |ruff|
 
 .. |download| image:: https://pepy.tech/badge/dave-core
@@ -32,9 +32,6 @@ DAVE_core
     :alt: Supported versions
     :target: https://pypi.org/project/dave_core
 
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/dave_core.svg
-    :alt: Supported implementations
-    :target: https://pypi.org/project/dave_core
 
 .. |docs| image:: https://readthedocs.org/projects/dave-core/badge/?version=latest
     :target: https://dave-core.readthedocs.io/en/latest/?badge=latest
@@ -44,6 +41,7 @@ DAVE_core
     :alt: GitHub Actions Build Status
     :target: https://github.com/DaveFoss/DAVE_core/actions
 
+
 .. |coveralls| image:: https://coveralls.io/repos/github/DaveFoss/DAVE_core/badge.svg?branch=main
     :alt: Coverage Status
     :target: https://coveralls.io/github/DaveFoss/DAVE_core?branch=main
@@ -52,9 +50,9 @@ DAVE_core
     :alt: Coverage Status
     :target: https://app.codecov.io/github/DaveFoss/DAVE_core
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.2.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/DaveFoss/DAVE_core/v1.3.3.svg
     :alt: Commits since latest release
-    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.2...main
+    :target: https://github.com/DaveFoss/DAVE_core/compare/v1.3.3...main
 
 .. |licence| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/DaveFoss/DAVE_core/blob/main/LICENSE

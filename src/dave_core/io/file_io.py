@@ -5,17 +5,17 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+import json
 from functools import partial
 from json import dumps as json_dumps
 from json import loads as json_loads
 from pathlib import Path
 
+import pandapower.file_io as pp_io
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandapipes.io.file_io import from_json as from_json_ppi
-from pandapipes.io.file_io import to_json as to_json_ppi
 from pandapower.file_io import from_json as from_json_pp
-from pandapower.file_io import to_json as to_json_pp
 from pandas import DataFrame
 from pandas import HDFStore
 from shapely.geometry import LineString
@@ -39,8 +39,6 @@ from dave_core.io.io_utils import encrypt_string
 from dave_core.io.io_utils import isinstance_partial
 from dave_core.settings import dave_settings
 
-import pandapower.file_io as pp_io
-import json
 
 def safe_to_json(net, filename, encryption_key=None, store_index_names=True):
     # identisch zu Original, aber indent als String
@@ -52,8 +50,9 @@ def safe_to_json(net, filename, encryption_key=None, store_index_names=True):
     if hasattr(filename, "write"):
         filename.write(json_string)
     else:
-        with open(filename, "w") as f:
+        with Path(filename).open("w") as f:
             f.write(json_string)
+
 
 pp_io.to_json = safe_to_json
 
@@ -137,7 +136,7 @@ def to_json(grid_data, file_path=None, encryption_key=None):
     json_string = json_dumps(
         grid_data,
         cls=DAVEJSONEncoder,
-        indent="  ",  #!!! hand over a int will throw an issue
+        indent="  ",  # TODO hand over a int will throw an issue
         isinstance_func=isinstance_partial,
     )
     # encrypt json string

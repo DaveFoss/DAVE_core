@@ -5,15 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dave_core"
 dynamic = ["version"]
-authors = [
-    { name = "Tobias Banze", email = "tobias.banze@iee.fraunhofer.de" },
-]
 maintainers = [
     { name = "DAVE_core Developers", email = "tobias.banze@iee.fraunhofer.de" }
 ]
 description = "DAVE is a tool for automatic energy grid generation"
 readme = "README.rst"
-license-files = ["LICENSE", "AUTHORS"]
+license-files = ["LICENSE*", "AUTHORS*"]
 requires-python = ">=3.11"
 classifiers = [
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -22,7 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
@@ -92,6 +88,7 @@ include = [
     "*.jl",
     "*.csv"
 ]
+
 
 [tool.pytest.ini_options]
 addopts = ["--strict-markers"]

@@ -216,7 +216,7 @@ def clean_disconnected_elements_gas(grid_data, min_number_nodes):
             grid_data.lp_data.lp_pipes,
         ],
         ignore_index=True,
-    )  # !!! Todo: Verbindung der Netzebenen mit einbeziehen z.B. Trafos
+    )  # TODO Verbindung der Netzebenen mit einbeziehen z.B. Trafos
     pipelines_all.rename(
         columns={"from_junction": "from_node", "to_junction": "to_node"},
         inplace=True,

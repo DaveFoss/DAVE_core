@@ -99,6 +99,7 @@ jobs:
       run: >
         tox -e ${{ matrix.tox_env }} -v
     - name: Coveralls Parallel
+      if: runner.os == 'Linux'
       uses: coverallsapp/github-action@v2
       with:
         flag-name: run-${{ join(matrix.*, '-') }}

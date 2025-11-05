@@ -8,6 +8,7 @@ These are new features and improvements of note in each release.
 
 
 .. implement the whats new files for each release
+.. include::  ../whatsnew/v1-3-3.rst
 .. include::  ../whatsnew/v1-3-2.rst
 .. include::  ../whatsnew/v1-3-1.rst
 .. include::  ../whatsnew/v1-3-0.rst

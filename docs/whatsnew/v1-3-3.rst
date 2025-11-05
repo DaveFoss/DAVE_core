@@ -1,0 +1,25 @@
+1.3.3 (November 05, 2025)
+==========================
+
+Added
+-----
+
+* backup geocoder for searching the geolocation of addresses
+* versions of required packages
+
+Changed
+-------
+
+* merge the requirement file and the setup information into the pyproject.toml file.
+
+Removed
+-------
+
+* support for python 3.10
+
+Fixed
+-----
+
+* broken connection to data repository
+* improve federal_state handling and imports
+* issue with indent type in json conversion

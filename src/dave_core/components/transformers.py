@@ -663,9 +663,7 @@ def create_transformers(grid_data):
     # --- normalize power_levels ---
     raw = grid_data.target_input.power_levels
     power_levels = [
-        str(level).lower()
-        for sub in raw
-        for level in (sub if isinstance(sub, list) else [sub])
+        str(level).lower() for sub in raw for level in (sub if isinstance(sub, list) else [sub])
     ]
 
     # --- EHV/HV transformers ---
@@ -699,7 +697,6 @@ def create_transformers(grid_data):
     # --- finish ---
     pbar.update(10)
     pbar.close()
-
 
     # lv_nodes find closest node, hierbei wenn distanz mehr als 50 m dann leitung erstellen auf
     # lv ebene. schauen ob bereits ein Knoten existiert (distance <=10E-05?) da die bei mv ebene

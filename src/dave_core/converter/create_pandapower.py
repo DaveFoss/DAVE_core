@@ -12,6 +12,7 @@ from pandapower import create_empty_network
 from pandapower import create_ext_grid
 from pandapower import create_gens
 from pandapower import create_lines
+from pandapower import create_lines_from_parameters
 from pandapower import create_loads
 from pandapower import create_replacement_switch_for_branch
 from pandapower import create_sgens
@@ -62,56 +63,38 @@ def create_pp_buses(net, buses):
     )
 
 
-def create_pp_ehvhv_lines(
-    net, lines
-):  # TODO: Umschreiben auf pp.create_lines und evt mit mvlv script (unten) mergen
-    lines.rename(columns={"dave_name": "name"}, inplace=True)
-    # search for node indices based on dave_name
-    if isinstance(lines.iloc[0].from_node, str):
-        lines["from_bus"] = lines.from_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
-        lines["to_bus"] = lines.to_bus.apply(lambda x: net.bus[net.bus["name"] == x].index[0])
-    lines["type"] = lines.type.apply(lambda x: "ol" if isna(x) else x)
-    # geodata
-    coords_ehvhv = DataFrame(
-        {
-            "coords": lines.geometry.apply(
-                lambda x: [
-                    list(coords)
-                    for coords in (
-                        multiline_coords(x) if isinstance(x, MultiLineString) else x.coords[:]
-                    )
-                ]
-            )
-        }
-    )
-    # write line data into pandapower structure
-    net.line = concat([net.line, lines], ignore_index=True)
-    net.line_geodata = concat([net.line_geodata, coords_ehvhv], ignore_index=True)
-    # check necessary parameters and add pandapower standard if needed  #TODO Der Teil kann raus, wenn die ehvhv lines auch über create lines gemacht werden
-    net.line["in_service"] = (
-        True
-        if all(net.line.in_service.isna())
-        else net.line.in_service.apply(lambda x: True if isna(x) else x)
-    )
-    net.line["df"] = (
-        float(1)
-        if all(net.line.df.isna())
-        else net.line.df.apply(lambda x: float(1) if isna(x) else x)
-    )
-    net.line["parallel"] = (
-        1
-        if all(net.line.parallel.isna())
-        else net.line.parallel.apply(lambda x: 1 if isna(x) else x)
-    )
-    net.line["std_type"] = (
-        None
-        if all(net.line.std_type.isna())
-        else net.line.std_type.apply(lambda x: None if isna(x) else x)
-    )
-    net.line["g_us_per_km"] = (
-        float(0)
-        if all(net.line.g_us_per_km.isna())
-        else net.line.g_us_per_km.apply(lambda x: float(0) if isna(x) else x)
+def create_pp_ehvhv_lines(net, lines):
+    # create line names
+    if "dave_name" in lines.keys():
+        lines.rename(columns={"dave_name": "name"}, inplace=True)
+    else:
+        lines.insert(
+            0, "name", Series([f"line_{x}" for x in lines.index])
+        )  # TODO: hier fehlt noch das voltage level
+    # create lines
+    create_lines_from_parameters(
+        net,
+        from_buses=lines.from_bus.apply(
+            lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
+        ),
+        to_buses=lines.to_bus.apply(
+            lambda x: net.bus[net.bus["name"] == x].index[0] if isinstance(x, str) else x
+        ),
+        length_km=lines["length_km"],
+        type=lines.type.apply(lambda x: "ol" if isna(x) else x),
+        r_ohm_per_km=lines["r_ohm_per_km"],
+        x_ohm_per_km=lines["x_ohm_per_km"],
+        c_nf_per_km=lines["c_nf_per_km"],
+        max_i_ka=lines["max_i_ka"],
+        name=lines["name"],
+        geodata=lines.geometry.apply(
+            lambda x: [
+                list(coords)
+                for coords in (
+                    multiline_coords(x) if isinstance(x, MultiLineString) else x.coords[:]
+                )
+            ]
+        ),
     )
 
 

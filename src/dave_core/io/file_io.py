@@ -291,6 +291,8 @@ def to_gpkg(grid_data, file_path):
                             and not grid_data[key][key_sec][key_trd].empty
                         ):
                             data = df_lists_to_str(grid_data[key][key_sec][key_trd])
+                            if "geom" in data.keys():
+                                data.drop(columns=["geom"], inplace=True)
                             data.to_file(
                                 file_path,
                                 layer=f"{key}/{key_sec}/{key_trd}",
@@ -302,6 +304,9 @@ def to_gpkg(grid_data, file_path):
                     and not grid_data[key][key_sec].empty
                 ):
                     data = df_lists_to_str(grid_data[key][key_sec])
+                    # delete duplicated geometry information
+                    if "geom" in data.keys():
+                        data.drop(columns=["geom"], inplace=True)
                     data.to_file(file_path, layer=f"{key}/{key_sec}", driver="GPKG")
                 # case GeoSeries
                 elif (

@@ -354,7 +354,7 @@ def create_loads(grid_data):
         # --- create loads for the lowest considered voltage level
         # filter landuses which are within the voronoi regions
         intersection = intersection_with_area(
-            grid_data.landuse, voronoi_polygons, remove_columns=False
+            grid_data.landuse, voronoi_polygons, remove_columns=False, only_limit=False
         )
         intersection.drop(columns=["area_km2"], inplace=True)
         # calculate area from intersected polygons

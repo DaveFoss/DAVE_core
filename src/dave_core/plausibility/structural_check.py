@@ -14,10 +14,62 @@ from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 
 
+def correct_wrong_wording(edges):
+    """
+    In DAVE the naming of the nodes is incosistant. This function is for correcting the name if it is wrong
+
+    INPUT:
+        **edges** (GeoDataFrame) - List of lines which should be connected via steiner tree
+
+    OUTPUT:
+        **edges** (GeoDataFrame) - List of lines with corrected names
+    """
+    if "from_node" in edges.keys():
+        edges["from_bus"] = edges.apply(
+            lambda x: x.from_bus if isinstance(x.from_bus, str) else x.from_node, axis=1
+        )
+        edges["to_bus"] = edges.apply(
+            lambda x: x.to_bus if isinstance(x.to_bus, str) else x.to_node, axis=1
+        )
+    return edges
+
+
+def create_graph(nodes, edges, weight_parameter=None):
+    """
+    Create network x graph
+
+    INPUT:
+        **nodes** (GeoDataFrame) - all nodes which can be considered (including auxillary nodes like road junctions)
+        **edges** (GeoDataFrame) - List of lines which should be connected via steiner tree
+        **weight_parameter** (String) - Name of the parameter in edges which defines the weight factor
+
+    OUTPUT:
+        **graph** (networkx graph element) - resulting networkx graph
+    """
+    # create empty graph
+    graph = Graph()
+
+    # create nodes
+    graph.add_nodes_from(nodes.index.to_list())
+
+    # correct bus/node wording
+    edges = correct_wrong_wording(edges)
+    # create edges
+    if weight_parameter:
+        graph.add_weighted_edges_from(
+            edges.apply(
+                lambda x: (x["from_bus"], x["to_bus"], x[weight_parameter]), axis=1
+            ).to_list()
+        )
+    else:
+        graph.add_edges_from(edges.apply(lambda x: (x["from_bus"], x["to_bus"]), axis=1).to_list())
+    return graph
+
+
 def disconnected_nodes(nodes, edges, min_number_nodes):
     """
-    Identify disconnected nodes in a network.
-    converts nodes and lines to a networkX graph and checks connectivity
+    Identify disconnected nodes in a network by converting data to a networkX \
+        graph and checks connectivity
 
     INPUT:
              **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n
@@ -28,25 +80,8 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
 
     """
 
-    graph = Graph()
-
-    # Add all nodes
-    if "dave_name" not in nodes.columns:
-        print("Warning: 'dave_name' column not found in nodes")
-        print(nodes.head())
-    graph.add_nodes_from(nodes.dave_name.to_list())
-
-    # Create edges safely
-    if "from_node" in edges.columns and "to_node" in edges.columns:
-        edge_list = edges.apply(lambda x: (x["from_node"], x["to_node"]), axis=1).to_list()
-        graph.add_edges_from(edge_list)
-    elif "from_bus" in edges.columns and "to_bus" in edges.columns:
-        edge_list = edges.apply(lambda x: (x["from_bus"], x["to_bus"]), axis=1).to_list()
-        graph.add_edges_from(edge_list)
-    else:
-        print("Error: edges DataFrame does not contain 'from_node/to_node' or 'from_bus/to_bus'")
-        print(edges.head())
-        return []
+    # create graph
+    graph = create_graph(nodes, edges)
 
     # Find disconnected nodes
     disconnected = set()
@@ -63,12 +98,8 @@ def find_open_ends(nodes, edges):
     This functions searches for open ends in a network topology e.g. for localization of external \
         grids and network equivalents
     """
-    # create empty graph
-    graph = Graph()
-    # create nodes
-    graph.add_nodes_from(nodes.dave_name.to_list())
-    # create edges
-    graph.add_edges_from(edges.apply(lambda x: (x["from_node"], x["to_node"]), axis=1).to_list())
+    # create graph
+    graph = create_graph(nodes, edges)
     # find open ends in graph
     return [node for node in graph.nodes() if graph.degree(node) == 1]
 
@@ -294,7 +325,7 @@ def clean_wrong_lines(grid_data):
 
 def clean_up_data(grid_data, min_number_nodes=dave_settings["min_number_nodes"]):
     """
-    This function clean up the DaVe Dataset for diffrent kinds of failures
+    This function clean up the DAVE Dataset for diffrent kinds of failures
     """
     # set progress bar
     pbar = create_tqdm(desc="clean up dave dataset")

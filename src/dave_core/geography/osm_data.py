@@ -49,6 +49,45 @@ def get_osm_data(grid_data, key, border, target_geom):
     return data
 
 
+def calculate_road_junctions(roads):
+    """
+    This function searches junctions for the relevant roads in the target area
+    """
+    roads_3035 = roads.to_crs(dave_settings["crs_meter"])
+    if not roads_3035.empty:
+        junction_points = []
+        while len(roads_3035) > 1:
+            # considered line
+            line_geometry = roads_3035.iloc[0].geometry
+            # check considered line surrounding for possible intersectionpoints with other lines
+            lines_cross = roads_3035[roads_3035.geometry.crosses(line_geometry.buffer(1))]
+            if not lines_cross.empty:
+                # find line intersections between considered line and other lines
+                line_junctions = line_geometry.intersection(lines_cross.geometry.unary_union)
+                if line_junctions.geom_type == "Point":
+                    junction_points.append(line_junctions)
+                elif line_junctions.geom_type == "MultiPoint":
+                    for point in line_junctions.geoms:
+                        junction_points.append(point)
+            # set new roads quantity for the next iterationstep
+            roads_3035 = roads_3035.iloc[1:, :]
+            roads_3035.reset_index(drop=True, inplace=True)
+        # delet duplicates
+        junctions = GeoSeries(junction_points).drop_duplicates()
+        # write road junctions into grid_data
+        junctions.set_crs(dave_settings["crs_meter"], inplace=True)
+        junctions = junctions.to_crs(dave_settings["crs_main"])
+        road_junctions = GeoDataFrame(
+            {
+                "node_type": "road_junction",
+                "source": "dave internal",
+                "geometry": junctions,
+            },
+            crs="EPSG:4326",
+        )
+        return road_junctions
+
+
 def from_osm(
     grid_data,
     pbar,
@@ -79,8 +118,26 @@ def from_osm(
     border_buffer = target_geom_buff.convex_hull
     # search relevant road informations in the target area
     if roads:
+        # collect road data from osm
         roads = get_osm_data(grid_data, "road", border_buffer, target_geom_buff)
-        grid_data.roads.roads = concat([grid_data.roads.roads, roads], ignore_index=True)
+        if not roads.empty:
+            # filter relevant roads
+            roads_highway_dask = from_geopandas(
+                roads.highway,
+                npartitions=dave_settings["cpu_number"],
+            )
+            roads_relevant = roads[
+                roads_highway_dask.isin(dave_settings["roads_relevant"]).compute()
+            ]
+            grid_data.roads.roads = concat(
+                [grid_data.roads.roads, roads_relevant], ignore_index=True
+            )
+            # calculate road junctions for relevant roads
+            road_junctions = calculate_road_junctions(roads_relevant)
+            grid_data.roads.road_junctions = concat(
+                [grid_data.roads.road_junctions, road_junctions], ignore_index=True
+            )
+            grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
         # update progress
         pbar.update(progress_step / objects_con)
     # search landuse informations in the target area
@@ -185,45 +242,3 @@ def from_osm(
         grid_data.waterways = concat([grid_data.waterways, waterways], ignore_index=True)
         # update progress
         pbar.update(progress_step / objects_con)
-
-
-def road_junctions(roads, grid_data):
-    """
-    This function searches junctions for the relevant roads in the target area
-    """
-    roads_3035 = roads.to_crs(dave_settings["crs_meter"])
-    if not roads_3035.empty:
-        junction_points = []
-        while len(roads_3035) > 1:
-            # considered line
-            line_geometry = roads_3035.iloc[0].geometry
-            # check considered line surrounding for possible intersectionpoints with other lines
-            lines_cross = roads_3035[roads_3035.geometry.crosses(line_geometry.buffer(1))]
-            if not lines_cross.empty:
-                # find line intersections between considered line and other lines
-                line_junctions = line_geometry.intersection(lines_cross.geometry.unary_union)
-                if line_junctions.geom_type == "Point":
-                    junction_points.append(line_junctions)
-                elif line_junctions.geom_type == "MultiPoint":
-                    for point in line_junctions.geoms:
-                        junction_points.append(point)
-            # set new roads quantity for the next iterationstep
-            roads_3035 = roads_3035.iloc[1:, :]
-            roads_3035.reset_index(drop=True, inplace=True)
-        # delet duplicates
-        junctions = GeoSeries(junction_points).drop_duplicates()
-        # write road junctions into grid_data
-        junctions.set_crs(dave_settings["crs_meter"], inplace=True)
-        junctions = junctions.to_crs(dave_settings["crs_main"])
-        road_junctions = GeoDataFrame(
-            {
-                "node_type": "road_junction",
-                "source": "dave internal",
-                "geometry": junctions,
-            },
-            crs="EPSG:4326",
-        )
-        grid_data.roads.road_junctions = concat(
-            [grid_data.roads.road_junctions, road_junctions], ignore_index=True
-        )
-        grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)

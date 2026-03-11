@@ -788,6 +788,8 @@ def power_processing(
         # update progress
         pbar.update(10)
         pbar.refresh()
+
+        # !!! optimierung in seperate funktion packen
         # optimize grid with opf
         if use_opf:
             # --- try opf to find optimized network to network constraints

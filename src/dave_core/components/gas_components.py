@@ -8,12 +8,12 @@
 from ast import literal_eval
 
 from geopandas import overlay
-from pandas import Series
 from pandas import concat
 
 from dave_core.datapool.read_data import read_scigridgas_iggielgn
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 
 
 def create_sources(grid_data, scigrid_productions):
@@ -55,12 +55,7 @@ def create_sources(grid_data, scigrid_productions):
         # update progress
         pbar.update(40)
         # add dave name
-        sources.reset_index(drop=True, inplace=True)
-        sources.insert(
-            0,
-            "dave_name",
-            Series([f"source_1_{x}" for x in sources.index]),
-        )
+        sources = add_dave_name(sources, "source_1")
         # set crs
         sources.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data
@@ -112,12 +107,7 @@ def create_compressors(grid_data, scigrid_compressors):
         # update progress
         pbar.update(40)
         # add dave name
-        compressors.reset_index(drop=True, inplace=True)
-        compressors.insert(
-            0,
-            "dave_name",
-            Series([f"compressor_1_{x}" for x in compressors.index]),
-        )
+        compressors = add_dave_name(compressors, "compressor_1")
         # set crs
         compressors.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data
@@ -173,12 +163,7 @@ def create_sinks(grid_data, scigrid_consumers):
         # update progress
         pbar.update(40)
         # add dave name
-        sinks.reset_index(drop=True, inplace=True)
-        sinks.insert(
-            0,
-            "dave_name",
-            Series([f"sink_1_{x}" for x in sinks.index]),
-        )
+        sinks = add_dave_name(sinks, "sink_1")
         # set crs
         sinks.set_crs(dave_settings["crs_main"], inplace=True)
         # add hp junctions to grid data

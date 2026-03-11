@@ -15,6 +15,7 @@ from shapely import union_all
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
 
@@ -205,12 +206,8 @@ def create_ehv_topology(grid_data):
         # update progress
         pbar.update(30)
         # add dave name
-        ehv_lines.reset_index(drop=True, inplace=True)
-        ehv_lines.insert(
-            0,
-            "dave_name",
-            Series([f"line_1_{x}" for x in ehv_lines.index]),
-        )
+        ehv_lines = add_dave_name(ehv_lines, "line_1")
+
         # set crs
         ehv_lines.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv lines to grid data

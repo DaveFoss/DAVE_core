@@ -7,7 +7,7 @@
 
 __version__ = "1.3.3"
 
-# modules in src folder
+# root
 from .archiv_io import archiv_inventory
 from .archiv_io import from_archiv
 from .archiv_io import to_archiv
@@ -126,8 +126,8 @@ from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
 from .progressbar import create_tqdm
 from .progressbar import create_tqdm_dask
-from .settings import dave_settings
 from .settings import set_dave_settings
+from .toolbox import add_dave_name
 from .toolbox import adress_to_coords
 from .toolbox import create_interim_area
 from .toolbox import get_data_path
@@ -265,7 +265,7 @@ __all__ = [
     "create_mv_lv_substations",
     "search_connection_line",
     "create_mv_topology",
-    # modules
+    # root
     "archiv_inventory",
     "from_archiv",
     "to_archiv",
@@ -279,6 +279,7 @@ __all__ = [
     "set_dave_settings",
     "dave_settings",
     "multiline_coords",
+    "add_dave_name",
     "create_interim_area",
     "voronoi",
     "adress_to_coords",

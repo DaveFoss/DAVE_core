@@ -31,7 +31,7 @@ def request_to_df(request):
     return request_data
 
 
-def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
+def oep_request(table, schema=None, where=None, geometry=None):
     """
     This function is to requesting data from the open energy platform.\
     The available data is to find on https://openenergy-platform.org/dataedit/schemas
@@ -46,8 +46,6 @@ def oep_request(table, schema=None, where=None, geometry=None, db_update=False):
             data. example: 'postcode=34225'
         **geometry** (string, default None) - name of the geometry parameter in the OEP dataset to \
             transform it from WKB to WKT
-        **db_update** (boolean, default False) - If True in every case the data will be related \
-            from the oep
 
     OUTPUT:
         **requested_data** (DataFrame) - table of the requested data

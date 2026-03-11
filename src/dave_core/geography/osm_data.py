@@ -6,6 +6,7 @@
 
 
 from dask_geopandas import from_geopandas
+from dave_pro.topology.topology_utils import generate_road_endings
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import concat
@@ -138,6 +139,12 @@ def from_osm(
                 [grid_data.roads.road_junctions, road_junctions], ignore_index=True
             )
             grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
+            # calculate road endings wich are not coresspond to a rodad junction
+            road_endings = generate_road_endings(roads_relevant, road_junctions)
+            grid_data.roads.road_endings = concat(
+                [grid_data.roads.road_endings, road_endings], ignore_index=True
+            )
+            grid_data.roads.road_endings.set_geometry("geometry", inplace=True)
         # update progress
         pbar.update(progress_step / objects_con)
     # search landuse informations in the target area

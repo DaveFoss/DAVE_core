@@ -16,6 +16,7 @@ from shapely.geometry import Point
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
 
@@ -61,12 +62,7 @@ def create_hv_topology(grid_data):
         if not ehvhv_substations.empty:
             ehvhv_substations["voltage_level"] = 2
             # add dave name
-            ehvhv_substations.reset_index(drop=True, inplace=True)
-            ehvhv_substations.insert(
-                0,
-                "dave_name",
-                Series([f"substation_2_{x}" for x in ehvhv_substations.index]),
-            )
+            ehvhv_substations = add_dave_name(ehvhv_substations, "substation_2")
             # set crs
             ehvhv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
@@ -113,12 +109,7 @@ def create_hv_topology(grid_data):
         if not hvmv_substations.empty:
             hvmv_substations["voltage_level"] = 4
             # add dave name
-            hvmv_substations.reset_index(drop=True, inplace=True)
-            hvmv_substations.insert(
-                0,
-                "dave_name",
-                Series([f"substation_4_{x}" for x in hvmv_substations.index]),
-            )
+            hvmv_substations = add_dave_name(hvmv_substations, "substation_4")
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
@@ -265,9 +256,7 @@ def create_hv_topology(grid_data):
         # update progress
         pbar.update(10)
         # add dave name
-        hv_lines.reset_index(drop=True, inplace=True)
-        name = Series([f"line_3_{x}" for x in hv_lines.index])
-        hv_lines.insert(0, "dave_name", name)
+        hv_lines = add_dave_name(hvmv_substations, "line_3")
         # set crs
         hv_lines.set_crs(dave_settings["crs_main"], inplace=True)
         # add hv lines to grid data

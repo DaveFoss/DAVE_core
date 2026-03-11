@@ -17,6 +17,7 @@ from geopy.geocoders import ArcGIS
 from geopy.geocoders import Nominatim
 from numpy import append
 from numpy import array
+from pandas import Series
 from pandas import concat
 from scipy.spatial import Voronoi
 from shapely import union_all
@@ -49,6 +50,29 @@ def multiline_coords(line_geometry):
     else:
         line_coords += merged_line.coords[:]
     return line_coords
+
+
+def add_dave_name(df, name):
+    """
+    This function creats a new column in a DataFrame to label the entries with \
+        an ongoing dave name
+
+    INPUT:
+        **df** (DataFrame) - DataFrame to which the name must be added
+        **name** (String) - Name of the element as part of the dave name
+
+    OUTPUT:
+        **df** (DataFrame) - DataFrame including the new parameter for dave name \
+    """
+    # delet existing dave name to avoid confusion with names
+    if "dave_name" in df.keys():
+        df.drop(columns=["dave_name"], inplace=True)
+    df.insert(
+        0,
+        "dave_name",
+        Series([f"{name}_{x}" for x in df.index]),
+    )
+    return df
 
 
 def create_interim_area(areas):
@@ -216,7 +240,9 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
     """
     # reduce grid area geometries to one polygon
     if only_limit:
-        area = GeoDataFrame(geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"])
+        area = GeoDataFrame(
+            geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"]
+        )  # !!! Problem: this will delet area parameter and avoid remove_columns parameter
     # check if geodataframe has mixed geometries
     geom_types_gdf = set(map(type, gdf.geometry))
     geom_types_area = set(map(type, area.geometry))

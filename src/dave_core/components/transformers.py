@@ -490,7 +490,9 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
     else:
         substations = grid_data.components_power.substations.mv_lv.copy()
     substations.drop(
-        columns=(["la_id", "geom", "subst_id", "is_dummy", "subst_cnt"]),
+        columns=(
+            list({"la_id", "geom", "subst_id", "is_dummy", "subst_cnt"} & set(substations.keys()))
+        ),
         inplace=True,
     )
     # update progress
@@ -677,8 +679,7 @@ def create_transformers(grid_data):
     # --- HV/MV transformers ---
     if (
         any(x in power_levels for x in ["hv", "mv"])
-        and not (grid_data.hv_data.hv_nodes.empty or grid_data.mv_data.mv_nodes.empty)
-        and grid_data.components_power.transformers.hv_mv.empty
+        and grid_data.components_power.transformers.hv_mv.empty  # TODO: wird das benötigt?? and not (grid_data.hv_data.hv_nodes.empty or grid_data.mv_data.mv_nodes.empty)
     ):
         create_hv_mv_trafos(grid_data, power_levels, pbar)
     else:
@@ -687,8 +688,7 @@ def create_transformers(grid_data):
     # --- MV/LV transformers ---
     if (
         any(x in power_levels for x in ["mv", "lv"])
-        and not (grid_data.mv_data.mv_nodes.empty or grid_data.lv_data.lv_nodes.empty)
-        and grid_data.components_power.transformers.mv_lv.empty
+        and grid_data.components_power.transformers.mv_lv.empty  # TODO: wird das benötigt?? and not (grid_data.mv_data.mv_nodes.empty or grid_data.lv_data.lv_nodes.empty)
     ):
         create_mv_lv_trafos(grid_data, power_levels, pbar)
     else:

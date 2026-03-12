@@ -77,9 +77,9 @@ from .dave_structure import create_empty_dataset
 from .geography.geo_utils import nearest_road_points
 
 # geography
+from .geography.osm_data import calculate_road_junctions
 from .geography.osm_data import from_osm
 from .geography.osm_data import get_osm_data
-from .geography.osm_data import road_junctions
 from .geography.target_area import target_area
 
 # io
@@ -210,7 +210,7 @@ __all__ = [
     "target_area",
     "get_osm_data",
     "from_osm",
-    "road_junctions",
+    "calculate_road_junctions",
     "nearest_road_points",
     # io
     "wkb_to_wkt",

@@ -5,8 +5,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from pandapower import from_json
-
 # funktionen um die Netzmodelle aus elektrotechnischer sicht zu plausibilisieren
 
 # funktioniert LAstfluss (iterativ über die einzelnen netzgruppen
@@ -16,9 +14,9 @@ from pandapower import from_json
 
 # convert to pandapower
 # read pandapower
-net = from_json(
-    r"C:\Users\tbanze\Eigene Datein\SimBench Sektor\Netzmodell Düsseldorf\duesseldorf_dave_pandapower.json"
-)
+# net = from_json(
+#     r"C:\Users\tbanze\Eigene Datein\SimBench Sektor\Netzmodell Düsseldorf\duesseldorf_dave_pandapower.json"
+# )
 # !!! in dem net sind keine Gruppen, das muss im Converter angepasst werden. Es sind auch keine  ext grids drin
 
 

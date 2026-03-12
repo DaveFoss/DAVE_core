@@ -6,6 +6,7 @@
 
 
 from dask_geopandas import from_geopandas
+from dave_pro.topology.topology_utils import generate_road_endings
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import concat
@@ -49,145 +50,7 @@ def get_osm_data(grid_data, key, border, target_geom):
     return data
 
 
-def from_osm(
-    grid_data,
-    pbar,
-    roads,
-    buildings,
-    landuse,
-    railways,
-    waterways,
-    target_geom,
-    progress_step=None,
-):
-    """
-    This function searches for data on OpenStreetMap (OSM) and filters the relevant paramerters
-    for grid modeling
-
-    target = geometry of the considerd target
-    """
-    # count object types to consider for progress bar
-    objects_list = [roads, buildings, landuse, railways, waterways]
-    objects_con = len([x for x in objects_list if x is True])
-    if objects_con == 0:
-        # update progress
-        pbar.update(progress_step)
-    # add a buffer to target to get a bigger view for some geographical informations
-    target_geom_buff = target_geom.buffer(dave_settings["osm_area_buffer"])
-    # create border for osm query
-    border = target_geom.convex_hull
-    border_buffer = target_geom_buff.convex_hull
-    # search relevant road informations in the target area
-    if roads:
-        roads = get_osm_data(grid_data, "road", border_buffer, target_geom_buff)
-        grid_data.roads.roads = concat([grid_data.roads.roads, roads], ignore_index=True)
-        # update progress
-        pbar.update(progress_step / objects_con)
-    # search landuse informations in the target area
-    if landuse:
-        # request landuse information
-        landuse = get_osm_data(grid_data, "landuse", border_buffer, target_geom_buff)
-        # request some leisure place information which are relevant as landuse area
-        leisure = get_osm_data(grid_data, "leisure", border_buffer, target_geom_buff)
-        # request some natural place information which are relevant as landuse area
-        natural = get_osm_data(
-            grid_data, "natural", border.buffer(0.01), target_geom
-        )  # !!! Fehler landuse attribute
-        # natural parameter in landuse umbenennen und zu landuse hinzufügen?
-        landuse = concat([landuse, leisure, natural], ignore_index=True)
-        # check if there are data for landuse
-        if not landuse.empty:
-            # convert geometry to polygon
-            for _, land in landuse.iterrows():
-                if isinstance(land.geometry, LineString):
-                    # A LinearRing must have at least 3 coordinate tuples
-                    if len(land.geometry.coords[:]) >= 3:
-                        landuse.at[land.name, "geometry"] = Polygon(land.geometry)
-                    else:
-                        landuse.drop([land.name], inplace=True)
-                elif isinstance(land.geometry, Point):
-                    # delet landuse if geometry is a point
-                    landuse.drop([land.name], inplace=True)
-            # intersect landuses with the target area
-            area = grid_data.area.rename(columns={"name": "bundesland"})
-            # filter landuses which are within the grid area
-            landuse = intersection_with_area(
-                landuse, area
-            )  # !!! duplicated with intersection before?
-            # calculate polygon area in km²
-            landuse_3035 = landuse.to_crs(dave_settings["crs_meter"])
-            landuse["area_km2"] = landuse_3035.area / 1e06
-            # write landuse into grid_data
-            grid_data.landuse = concat([grid_data.landuse, landuse], ignore_index=True)
-            grid_data.landuse.set_crs(dave_settings["crs_main"], inplace=True)
-        # update progress
-        pbar.update(progress_step / objects_con)
-    # search building informations in the target area
-    if buildings:
-        buildings = get_osm_data(grid_data, "building", border, target_geom)
-        # check if there are data for buildings
-        if not buildings.empty:
-            # create building categories
-            residential = dave_settings["buildings_residential"]
-            commercial = dave_settings["buildings_commercial"]
-            # improve building tag with landuse parameter
-            if landuse if isinstance(landuse, bool) else not landuse.empty:
-                landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
-                landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
-                landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
-                for i, building in buildings.iterrows():
-                    if building.building not in commercial:
-                        if landuse_retail is not None and building.geometry.intersects(
-                            landuse_retail
-                        ):
-                            buildings.at[i, "building"] = "retail"
-                        elif landuse_industrial is not None and building.geometry.intersects(
-                            landuse_industrial
-                        ):
-                            buildings.at[i, "building"] = "industrial"
-                        elif landuse_commercial is not None and building.geometry.intersects(
-                            landuse_commercial
-                        ):
-                            buildings.at[i, "building"] = "commercial"
-            # write buildings into grid_data
-            grid_data.buildings.residential = concat(
-                [
-                    grid_data.buildings.residential,
-                    buildings[buildings.building.isin(residential)],
-                ],
-                ignore_index=True,
-            )
-            grid_data.buildings.commercial = concat(
-                [
-                    grid_data.buildings.commercial,
-                    buildings[buildings.building.isin(commercial)],
-                ],
-                ignore_index=True,
-            )
-            grid_data.buildings.other = concat(
-                [
-                    grid_data.buildings.other,
-                    buildings[~buildings.building.isin(residential + commercial)],
-                ],
-                ignore_index=True,
-            )
-        # update progress
-        pbar.update(progress_step / objects_con)
-    # search railway informations in the target area
-    if railways:
-        railways = get_osm_data(grid_data, "railway", border_buffer, target_geom_buff)
-        grid_data.railways = concat([grid_data.railways, railways], ignore_index=True)
-        # update progress
-        pbar.update(progress_step / objects_con)
-    # search waterway informations in the target area
-    if waterways:
-        waterways = get_osm_data(grid_data, "waterway", border_buffer, target_geom_buff)
-        grid_data.waterways = concat([grid_data.waterways, waterways], ignore_index=True)
-        # update progress
-        pbar.update(progress_step / objects_con)
-
-
-def road_junctions(roads, grid_data):
+def calculate_road_junctions(roads):
     """
     This function searches junctions for the relevant roads in the target area
     """
@@ -223,7 +86,170 @@ def road_junctions(roads, grid_data):
             },
             crs="EPSG:4326",
         )
-        grid_data.roads.road_junctions = concat(
-            [grid_data.roads.road_junctions, road_junctions], ignore_index=True
-        )
-        grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
+        return road_junctions
+
+
+def road_processing(grid_data, roads):
+    # filter relevant roads
+    roads_highway_dask = from_geopandas(
+        roads.highway,
+        npartitions=dave_settings["cpu_number"],
+    )
+    roads_relevant = roads[roads_highway_dask.isin(dave_settings["roads_relevant"]).compute()]
+    grid_data.roads.roads = concat([grid_data.roads.roads, roads_relevant], ignore_index=True)
+    # calculate road junctions for relevant roads
+    road_junctions = calculate_road_junctions(roads_relevant)
+    grid_data.roads.road_junctions = concat(
+        [grid_data.roads.road_junctions, road_junctions], ignore_index=True
+    )
+    grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
+    # calculate road endings wich are not coresspond to a rodad junction
+    road_endings = generate_road_endings(roads_relevant, road_junctions)
+    grid_data.roads.road_endings = concat(
+        [grid_data.roads.road_endings, road_endings], ignore_index=True
+    )
+    grid_data.roads.road_endings.set_geometry("geometry", inplace=True)
+
+
+def landuse_processing(grid_data, landuse):
+    # convert geometry to polygon
+    for _, land in landuse.iterrows():
+        if isinstance(land.geometry, LineString):
+            # A LinearRing must have at least 3 coordinate tuples
+            if len(land.geometry.coords[:]) >= 3:
+                landuse.at[land.name, "geometry"] = Polygon(land.geometry)
+            else:
+                landuse.drop([land.name], inplace=True)
+        elif isinstance(land.geometry, Point):
+            # delet landuse if geometry is a point
+            landuse.drop([land.name], inplace=True)
+    # intersect landuses with the target area
+    area = grid_data.area.rename(columns={"name": "bundesland"})
+    # filter landuses which are within the grid area
+    landuse = intersection_with_area(landuse, area)  # !!! duplicated with intersection before?
+    # calculate polygon area in km²
+    landuse_3035 = landuse.to_crs(dave_settings["crs_meter"])
+    landuse["area_km2"] = landuse_3035.area / 1e06
+    # write landuse into grid_data
+    grid_data.landuse = concat([grid_data.landuse, landuse], ignore_index=True)
+    grid_data.landuse.set_crs(dave_settings["crs_main"], inplace=True)
+
+
+def building_processing(grid_data, buildings, landuse):
+    # create building categories
+    residential = dave_settings["buildings_residential"]
+    commercial = dave_settings["buildings_commercial"]
+    # improve building tag with landuse parameter
+    if landuse if isinstance(landuse, bool) else not landuse.empty:
+        landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
+        landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
+        landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
+        for i, building in buildings.iterrows():
+            if building.building not in commercial:
+                if landuse_retail is not None and building.geometry.intersects(landuse_retail):
+                    buildings.at[i, "building"] = "retail"
+                elif landuse_industrial is not None and building.geometry.intersects(
+                    landuse_industrial
+                ):
+                    buildings.at[i, "building"] = "industrial"
+                elif landuse_commercial is not None and building.geometry.intersects(
+                    landuse_commercial
+                ):
+                    buildings.at[i, "building"] = "commercial"
+    # write buildings into grid_data
+    grid_data.buildings.residential = concat(
+        [
+            grid_data.buildings.residential,
+            buildings[buildings.building.isin(residential)],
+        ],
+        ignore_index=True,
+    )
+    grid_data.buildings.commercial = concat(
+        [
+            grid_data.buildings.commercial,
+            buildings[buildings.building.isin(commercial)],
+        ],
+        ignore_index=True,
+    )
+    grid_data.buildings.other = concat(
+        [
+            grid_data.buildings.other,
+            buildings[~buildings.building.isin(residential + commercial)],
+        ],
+        ignore_index=True,
+    )
+
+
+def from_osm(
+    grid_data,
+    pbar,
+    roads,
+    buildings,
+    landuse,
+    railways,
+    waterways,
+    target_geom,
+    progress_step=None,
+):
+    """
+    This function searches for data on OpenStreetMap (OSM) and filters the relevant paramerters
+    for grid modeling
+
+    target = geometry of the considerd target
+    """
+    # count object types to consider for progress bar
+    objects_list = [roads, buildings, landuse, railways, waterways]
+    objects_con = len([x for x in objects_list if x is True])
+    if objects_con == 0:
+        # update progress
+        pbar.update(progress_step)
+    # add a buffer to target to get a bigger view for some geographical informations
+    target_geom_buff = target_geom.buffer(dave_settings["osm_area_buffer"])
+    # create border for osm query
+    border = target_geom.convex_hull
+    border_buffer = target_geom_buff.convex_hull
+    # search relevant road informations in the target area
+    if roads:
+        # collect road data from osm
+        roads = get_osm_data(grid_data, "road", border_buffer, target_geom_buff)
+        if not roads.empty:
+            road_processing(grid_data, roads)
+        # update progress
+        pbar.update(progress_step / objects_con)
+    # search landuse informations in the target area
+    if landuse:
+        # request landuse information
+        landuse = get_osm_data(grid_data, "landuse", border_buffer, target_geom_buff)
+        # request some leisure place information which are relevant as landuse area
+        leisure = get_osm_data(grid_data, "leisure", border_buffer, target_geom_buff)
+        # request some natural place information which are relevant as landuse area
+        natural = get_osm_data(
+            grid_data, "natural", border.buffer(0.01), target_geom
+        )  # !!! Fehler landuse attribute
+        # natural parameter in landuse umbenennen und zu landuse hinzufügen?
+        landuse = concat([landuse, leisure, natural], ignore_index=True)
+        # check if there are data for landuse
+        if not landuse.empty:
+            landuse_processing(grid_data, landuse)
+        # update progress
+        pbar.update(progress_step / objects_con)
+    # search building informations in the target area
+    if buildings:
+        buildings = get_osm_data(grid_data, "building", border, target_geom)
+        # check if there are data for buildings
+        if not buildings.empty:
+            building_processing(grid_data, buildings, landuse)
+        # update progress
+        pbar.update(progress_step / objects_con)
+    # search railway informations in the target area
+    if railways:
+        railways = get_osm_data(grid_data, "railway", border_buffer, target_geom_buff)
+        grid_data.railways = concat([grid_data.railways, railways], ignore_index=True)
+        # update progress
+        pbar.update(progress_step / objects_con)
+    # search waterway informations in the target area
+    if waterways:
+        waterways = get_osm_data(grid_data, "waterway", border_buffer, target_geom_buff)
+        grid_data.waterways = concat([grid_data.waterways, waterways], ignore_index=True)
+        # update progress
+        pbar.update(progress_step / objects_con)

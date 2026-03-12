@@ -171,20 +171,7 @@ def set_dave_settings():
             "warehouse",
         ],
         # roads relevant for power grids
-        "roads_lv": [
-            "primary",
-            "secondary",
-            "tertiary",
-            "unclassified",
-            "residential",
-            "living_street",
-            "footway",
-            "steps",
-            "track",
-            "path",
-            "service",
-        ],
-        "roads_mv": [
+        "roads_relevant": [
             "primary",
             "secondary",
             "tertiary",

@@ -5,7 +5,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import read_file
 from pandas import DataFrame
@@ -19,7 +18,6 @@ from dave_core.datapool.read_data import read_federal_states
 from dave_core.datapool.read_data import read_nuts_regions
 from dave_core.datapool.read_data import read_postal
 from dave_core.geography.osm_data import from_osm
-from dave_core.geography.osm_data import road_junctions
 from dave_core.io.file_io import from_json_string
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
@@ -194,65 +192,9 @@ def _target_by_nuts_region(grid_data, nuts_region):
     return target, nuts_region_postal
 
 
-def target_area(
-    grid_data,
-    power_levels,
-    gas_levels,
-    postalcode=None,
-    town_name=None,
-    federal_state=None,
-    nuts_region=None,
-    own_area=None,
-    buffer=0,
-    roads=True,
-    buildings=True,
-    landuse=True,
-    railways=True,
-    waterways=True,
+def target_data(
+    grid_data, postalcode, town_name, federal_state, nuts_region, own_area, power_levels, gas_levels
 ):
-    """
-    This function calculate all relevant geographical informations for the target area and add it \
-        to the grid_data
-
-    INPUT:
-        **grid_data** (attrdict) - grid_data as a attrdict in dave structure
-        **power_levels** (list)  - this parameter defines which power levels should be considered \
-                                   options: 'ehv','hv','mv','lv', []. \
-                                   there could be choose: one level, multiple levels or 'ALL'
-        **gas_levels** (list)    - this parameter defines which gas levels should be considered \
-                                   options: 'hp','mp','lp', []. \
-                                   there could be choose: one level, multiple levels or 'ALL'
-        One of these parameters must be set:
-        **postalcode** (List of strings) - numbers of the target postalcode areas. \
-                                           it could also be choose ['ALL'] for all postalcode areas \
-                                           in germany
-        **town_name** (List of strings) - names of the target towns \
-                                          it could also be choose ['ALL'] for all citys in germany
-        **federal_state** (List of strings) - names of the target federal states \
-                                              it could also be choose ['ALL'] for all federal \
-                                              states in germany
-        **nuts_region** (List of strings) - codes of the target nuts regions \
-                                            it could also be choose ['ALL'] for all nuts regions \
-                                            in europe
-        **own_area** (string) - full path to a shape file which includes own target area \
-                                (e.g. "C:/Users/name/test/test.shp") or Geodataframe as string
-
-    OPTIONAL:
-        **buffer** (float, default 0) - buffer for the target area
-        **roads** (boolean, default True) - obtain informations about roads which are relevant for \
-                                            the grid model
-        **buildings** (boolean, default True) - obtain informations about buildings
-        **landuse** (boolean, default True) - obtain informations about landuses
-        **railway** (boolean, default True) - obtain informations about railways
-        **waterways** (boolean, default True) - obtain informations about waterways
-
-    EXAMPLE:
-            from dave.topology import target_area
-            target_area(town_name = ['Kassel'], buffer=0)
-    """
-    # set progress bar
-    pbar = create_tqdm(desc="collect geographical data")
-
     # check wich input parameter is given
     if postalcode:
         target = _target_by_postalcode(
@@ -318,6 +260,80 @@ def target_area(
         grid_data.target_input = target_input
     else:
         raise SyntaxError("target area wasn`t defined")
+    return target
+
+
+def target_area(
+    grid_data,
+    power_levels,
+    gas_levels,
+    postalcode=None,
+    town_name=None,
+    federal_state=None,
+    nuts_region=None,
+    own_area=None,
+    buffer=0,
+    roads=True,
+    buildings=True,
+    landuse=True,
+    railways=True,
+    waterways=True,
+):
+    """
+    This function calculate all relevant geographical informations for the target area and add it \
+        to the grid_data
+
+    INPUT:
+        **grid_data** (attrdict) - grid_data as a attrdict in dave structure
+        **power_levels** (list)  - this parameter defines which power levels should be considered \
+                                   options: 'ehv','hv','mv','lv', []. \
+                                   there could be choose: one level, multiple levels or 'ALL'
+        **gas_levels** (list)    - this parameter defines which gas levels should be considered \
+                                   options: 'hp','mp','lp', []. \
+                                   there could be choose: one level, multiple levels or 'ALL'
+        One of these parameters must be set:
+        **postalcode** (List of strings) - numbers of the target postalcode areas. \
+                                           it could also be choose ['ALL'] for all postalcode areas \
+                                           in germany
+        **town_name** (List of strings) - names of the target towns \
+                                          it could also be choose ['ALL'] for all citys in germany
+        **federal_state** (List of strings) - names of the target federal states \
+                                              it could also be choose ['ALL'] for all federal \
+                                              states in germany
+        **nuts_region** (List of strings) - codes of the target nuts regions \
+                                            it could also be choose ['ALL'] for all nuts regions \
+                                            in europe
+        **own_area** (string) - full path to a shape file which includes own target area \
+                                (e.g. "C:/Users/name/test/test.shp") or Geodataframe as string
+
+    OPTIONAL:
+        **buffer** (float, default 0) - buffer for the target area
+        **roads** (boolean, default True) - obtain informations about roads which are relevant for \
+                                            the grid model
+        **buildings** (boolean, default True) - obtain informations about buildings
+        **landuse** (boolean, default True) - obtain informations about landuses
+        **railway** (boolean, default True) - obtain informations about railways
+        **waterways** (boolean, default True) - obtain informations about waterways
+
+    EXAMPLE:
+            from dave.topology import target_area
+            target_area(town_name = ['Kassel'], buffer=0)
+    """
+    # set progress bar
+    pbar = create_tqdm(desc="collect geographical data")
+
+    # create target data based on input parameter
+    target = target_data(
+        grid_data,
+        postalcode,
+        town_name,
+        federal_state,
+        nuts_region,
+        own_area,
+        power_levels,
+        gas_levels,
+    )
+
     # write area informations into grid_data
     grid_data.area = concat([grid_data.area, target], ignore_index=True)
     if grid_data.area.crs is None:
@@ -374,22 +390,7 @@ def target_area(
         grid_data.landuse.reset_index(drop=True, inplace=True)
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)
-        if not grid_data.roads.roads.empty:
-            # find road junctions
-            roads_highway_dask = from_geopandas(
-                grid_data.roads.roads.highway,
-                npartitions=dave_settings["cpu_number"],
-            )
-        if "lv" in grid_data.target_input.power_levels[0]:
-            road_junctions(
-                grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_lv"]).compute()],
-                grid_data,
-            )
-        elif "mv" in grid_data.target_input.power_levels[0]:
-            road_junctions(
-                grid_data.roads.roads[roads_highway_dask.isin(dave_settings["roads_mv"]).compute()],
-                grid_data,
-            )
+
         # close progress bar
         pbar.update(9.99)
         pbar.close()

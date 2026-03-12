@@ -32,7 +32,7 @@ from dave_core.geography import target_area
 from dave_core.io.file_io import to_gpkg
 from dave_core.io.file_io import to_hdf
 from dave_core.io.file_io import to_json
-from dave_core.model_utils import clean_up_data
+from dave_core.plausibility.structural_check import clean_up_data
 from dave_core.settings import dave_settings
 from dave_core.toolbox import create_interim_area
 from dave_core.topology.extra_high_voltage import create_ehv_topology

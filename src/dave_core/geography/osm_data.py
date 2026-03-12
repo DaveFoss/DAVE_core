@@ -6,7 +6,6 @@
 
 
 from dask_geopandas import from_geopandas
-from dave_pro.topology.topology_utils import generate_road_endings
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import concat
@@ -16,6 +15,7 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from dave_core.datapool.osm_request import osm_request
+from dave_core.geography.geo_utils import generate_road_endings
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
 

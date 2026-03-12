@@ -77,9 +77,9 @@ from .dave_structure import create_empty_dataset
 from .geography.geo_utils import nearest_road_points
 
 # geography
+from .geography.osm_data import calculate_road_junctions
 from .geography.osm_data import from_osm
 from .geography.osm_data import get_osm_data
-from .geography.osm_data import road_junctions
 from .geography.target_area import target_area
 
 # io
@@ -108,12 +108,15 @@ from .io.io_utils import decrypt_string
 from .io.io_utils import encrypt_string
 from .io.io_utils import isinstance_partial
 from .io.io_utils import with_signature
-from .model_utils import clean_disconnected_elements_gas
-from .model_utils import clean_disconnected_elements_power
-from .model_utils import clean_up_data
-from .model_utils import clean_wrong_lines
-from .model_utils import clean_wrong_piplines
-from .model_utils import disconnected_nodes
+
+# plausibility
+from .plausibility.structural_check import clean_disconnected_elements_gas
+from .plausibility.structural_check import clean_disconnected_elements_power
+from .plausibility.structural_check import clean_up_data
+from .plausibility.structural_check import clean_wrong_lines
+from .plausibility.structural_check import clean_wrong_piplines
+from .plausibility.structural_check import disconnected_nodes
+from .plausibility.structural_check import find_open_ends
 
 # plotting
 from .plotting.plot import plot_geographical_data
@@ -207,7 +210,7 @@ __all__ = [
     "target_area",
     "get_osm_data",
     "from_osm",
-    "road_junctions",
+    "calculate_road_junctions",
     "nearest_road_points",
     # io
     "wkb_to_wkt",
@@ -235,6 +238,14 @@ __all__ = [
     "dave_hook",
     "DAVEJSONDecoder",
     "DAVEJSONEncoder",
+    # plausibility
+    "disconnected_nodes",
+    "clean_disconnected_elements_power",
+    "clean_disconnected_elements_gas",
+    "clean_wrong_piplines",
+    "clean_wrong_lines",
+    "clean_up_data",
+    "find_open_ends",
     # plotting
     "plot_land",
     "plot_geographical_data",
@@ -264,12 +275,6 @@ __all__ = [
     "save_dataset_to_user_folder",
     "create_grid",
     "create_empty_dataset",
-    "disconnected_nodes",
-    "clean_disconnected_elements_power",
-    "clean_disconnected_elements_gas",
-    "clean_wrong_piplines",
-    "clean_wrong_lines",
-    "clean_up_data",
     "create_tqdm",
     "set_dave_settings",
     "dave_settings",

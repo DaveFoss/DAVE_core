@@ -6,16 +6,16 @@
 
 
 from .geo_utils import nearest_road_points
+from .osm_data import calculate_road_junctions
 from .osm_data import from_osm
 from .osm_data import get_osm_data
-from .osm_data import road_junctions
 from .target_area import target_area
 
 __all__ = [
     # geography
     "get_osm_data",
     "from_osm",
-    "road_junctions",
+    "calculate_road_junctions",
     "target_area",
     "nearest_road_points",
 ]

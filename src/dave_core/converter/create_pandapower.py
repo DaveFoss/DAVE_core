@@ -28,7 +28,7 @@ from pandas import isna
 from shapely.geometry import MultiLineString
 
 from dave_core.io.file_io import pp_to_json
-from dave_core.model_utils import find_open_ends
+from dave_core.plausibility.structural_check import find_open_ends
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import multiline_coords

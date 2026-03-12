@@ -79,6 +79,7 @@ def create_empty_dataset():
                 {
                     "roads": GeoDataFrame([]),
                     "road_junctions": GeoDataFrame([]),
+                    "road_endings": GeoDataFrame([]),
                 }
             ),
             "landuse": GeoDataFrame([]),

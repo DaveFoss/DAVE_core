@@ -5,11 +5,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+import time
 from collections import namedtuple
 from time import sleep
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+import requests
 from defusedxml.ElementTree import fromstring
 from geopandas import GeoDataFrame
 from pandas import DataFrame
@@ -22,6 +24,30 @@ from six import string_types
 
 from dave_core.datapool.read_data import get_data_path
 from dave_core.settings import dave_settings
+
+
+def ping_server(server):
+    """
+    send ping to server and calculate latency
+    """
+    try:
+        start = time.time()
+        requests.post(server, data={"data": dave_settings["osm_ping_query"]}, timeout=5)
+        latency = time.time() - start
+        return latency
+    except Exception:
+        return float("inf")
+
+
+def sort_servers_by_latency():
+    """
+    Sort osm server by latency
+    """
+    # calculate latencies for servers, filter server with a too long latency and sort by latency
+    latencies = [(server, ping_server(server)) for server in dave_settings["osm_server"]]
+    latencies = [x for x in latencies if x[1] != float("inf")]
+    latencies.sort(key=lambda x: x[1])
+    return [server for server, _ in latencies]
 
 
 def osm_request(data_type, area):
@@ -147,26 +173,37 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
         df = df[df.type == 'LineString']
 
     """
-    url = _build_url(typ, bbox, recurse, tags, meta)
-    # add time delay because osm doesn't alowed more than 1 request per second.
-    time_delay = dave_settings["osm_time_delay"]
 
     # TODO: Raise on non-200 (or 400-599)
     # with urlopen(url) as response:
     #     content = response.read()
+    print(tags)
     while 1:
+        # check best server
+        # servers = sort_servers_by_latency()
+        servers = list(dave_settings["osm_server"])
         try:
-            if not url.startswith(("http:", "https:")):
-                raise ValueError("URL must start with 'http:' or 'https:'")
-            with urlopen(url) as response:  # noqa: S310
-                content = response.read()
-                if response.getcode() == 200:
-                    break
-        except Exception as inst:
+            while servers:
+                server = servers[0]
+                try:
+                    url = _build_url(server, typ, bbox, recurse, tags, meta)
+                    if not url.startswith(("http:", "https:")):
+                        raise ValueError("URL must start with 'http:' or 'https:'")
+                    with urlopen(url) as response:  # noqa: S310
+                        content = response.read()
+                        if response.getcode() == 200:
+                            print(server)
+                            break
+                except requests.exceptions.HTTPError:
+                    del servers[0]
+            if len(servers) == 0:
+                raise ValueError("Alle server ausgelastet")
+            else:
+                break
+        except ValueError as inst:
             print(f'\n Retry OSM query because of "{inst}"')
             # add time delay
-            sleep(time_delay)
-
+            sleep(dave_settings["osm_time_delay"])
     # get meta informations
     meta_data = read_excel(get_data_path("osm_meta.xlsx", "data"), sheet_name=None)
 
@@ -175,7 +212,7 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
     return read_osm(content, **kwargs), meta_data
 
 
-def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
+def _build_url(server, typ, bbox=None, recurse=None, tags="", meta=False):
     recurse_map = {
         "up": "<",
         "uprel": "<<",
@@ -212,9 +249,10 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
 
     query = f"({typ}{bboxstr}{queries};{recursestr};);out {metastr};"
 
+    # create url for query
     url = "".join(
         [
-            "http://www.overpass-api.de/api/interpreter?",
+            f"{server}?",
             urlencode({"data": query}),
         ]
     )

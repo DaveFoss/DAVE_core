@@ -40,8 +40,16 @@ def set_dave_settings():
             "ego_renewable_powerplant": ("supply", None, None),
             "ego_conventional_powerplant": ("supply", None, None),
         },
+        # osm server
+        "osm_server": [
+            "https://overpass-api.de/api/interpreter",
+            "https://lz4.overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+            "https://overpass.private.coffee/api/interpreter",
+        ],
+        "osm_ping_query": "[out:json];node(1);out;",
         # osm time delay (because osm doesn't alowed more than 1 request per second)
-        "osm_time_delay": 60,  # in seconds
+        "osm_time_delay": 45,  # in seconds
         # osm considered area (data for this area will be downloaded and impplemented in database)
         "osm_area": "germany",
         # osm buffer for geodata to add to area to get some informations around the area (not for buildings)

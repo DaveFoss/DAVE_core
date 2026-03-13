@@ -64,6 +64,7 @@ def add_dave_name(df, name):
     OUTPUT:
         **df** (DataFrame) - DataFrame including the new parameter for dave name \
     """
+    df.reset_index(drop=True, inplace=True)
     # delet existing dave name to avoid confusion with names
     if "dave_name" in df.keys():
         df.drop(columns=["dave_name"], inplace=True)

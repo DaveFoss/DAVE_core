@@ -11,7 +11,6 @@ from geopandas import GeoSeries
 from pandas import concat
 from shapely import union_all
 from shapely.geometry import LineString
-from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from dave_core.datapool.osm_request import osm_request
@@ -112,17 +111,13 @@ def road_processing(grid_data, roads):
 
 
 def landuse_processing(grid_data, landuse):
+    # filter landuses with geometry given as point or LineString with less than 3 coords
+    landuse = landuse[
+        landuse.geometry.apply(lambda x: isinstance(x, LineString) and len(x.coords[:]) >= 3)
+    ]
     # convert geometry to polygon
-    for _, land in landuse.iterrows():
-        if isinstance(land.geometry, LineString):
-            # A LinearRing must have at least 3 coordinate tuples
-            if len(land.geometry.coords[:]) >= 3:
-                landuse.at[land.name, "geometry"] = Polygon(land.geometry)
-            else:
-                landuse.drop([land.name], inplace=True)
-        elif isinstance(land.geometry, Point):
-            # delet landuse if geometry is a point
-            landuse.drop([land.name], inplace=True)
+    landuse["geometry"] = landuse.geometry.apply(lambda x: Polygon(x))
+
     # intersect landuses with the target area
     area = grid_data.area.rename(columns={"name": "bundesland"})
     # filter landuses which are within the grid area
@@ -135,6 +130,20 @@ def landuse_processing(grid_data, landuse):
     grid_data.landuse.set_crs(dave_settings["crs_main"], inplace=True)
 
 
+def improve_building_tag(
+    building_origin, building_geo, landuse_retail, landuse_industrial, landuse_commercial
+):
+    if landuse_retail is not None and building_geo.intersects(landuse_retail):
+        building_type = "retail"
+    elif landuse_industrial is not None and building_geo.intersects(landuse_industrial):
+        building_type = "industrial"
+    elif landuse_commercial is not None and building_geo.intersects(landuse_commercial):
+        building_type = "commercial"
+    else:
+        building_type = building_origin
+    return building_type
+
+
 def building_processing(grid_data, buildings, landuse):
     # create building categories
     residential = dave_settings["buildings_residential"]
@@ -144,18 +153,19 @@ def building_processing(grid_data, buildings, landuse):
         landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
         landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
         landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
-        for i, building in buildings.iterrows():
-            if building.building not in commercial:
-                if landuse_retail is not None and building.geometry.intersects(landuse_retail):
-                    buildings.at[i, "building"] = "retail"
-                elif landuse_industrial is not None and building.geometry.intersects(
-                    landuse_industrial
-                ):
-                    buildings.at[i, "building"] = "industrial"
-                elif landuse_commercial is not None and building.geometry.intersects(
-                    landuse_commercial
-                ):
-                    buildings.at[i, "building"] = "commercial"
+        buildings_dask = from_geopandas(buildings, npartitions=dave_settings["cpu_number"])
+        buildings["building"] = buildings_dask.apply(
+            lambda x: (
+                improve_building_tag(
+                    x.building, x.geometry, landuse_retail, landuse_industrial, landuse_commercial
+                )
+                if x.building not in commercial
+                else x.building
+            ),
+            axis=1,
+            meta=buildings_dask,
+        ).compute()
+
     # write buildings into grid_data
     grid_data.buildings.residential = concat(
         [

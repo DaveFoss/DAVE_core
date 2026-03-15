@@ -8,6 +8,7 @@
 import time
 from collections import namedtuple
 from time import sleep
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -18,7 +19,6 @@ from pandas import DataFrame
 from pandas import concat
 from pandas import read_excel
 from pandas import to_datetime
-from requests.exceptions import HTTPError
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from six import string_types

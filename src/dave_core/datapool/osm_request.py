@@ -18,6 +18,7 @@ from pandas import DataFrame
 from pandas import concat
 from pandas import read_excel
 from pandas import to_datetime
+from requests.exceptions import HTTPError
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from six import string_types
@@ -98,7 +99,7 @@ def osm_request(data_type, area):
 
 
 OSMData = namedtuple("OSMData", ("nodes", "waynodes", "waytags", "relmembers", "reltags"))
-_crs = "epsg:4326"
+
 
 # Tags to remove so we don't clobber the output. This list comes from
 # osmtogeojson's index.js (https://github.com/tyrasd/osmtogeojson)
@@ -177,7 +178,6 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
     # TODO: Raise on non-200 (or 400-599)
     # with urlopen(url) as response:
     #     content = response.read()
-    print(tags)
     while 1:
         # check best server
         # servers = sort_servers_by_latency()
@@ -192,9 +192,8 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
                     with urlopen(url) as response:  # noqa: S310
                         content = response.read()
                         if response.getcode() == 200:
-                            print(server)
                             break
-                except requests.exceptions.HTTPError:
+                except HTTPError:
                     del servers[0]
             if len(servers) == 0:
                 raise ValueError("Alle server ausgelastet")
@@ -294,7 +293,6 @@ def read_nodes(doc):
     if not nodes.empty:
         nodes["lon"] = nodes["lon"].astype(float)
         nodes["lat"] = nodes["lat"].astype(float)
-
     return nodes
 
 
@@ -304,7 +302,6 @@ def _element_to_dict(element):
         k = t.attrib["k"]
         if k not in uninteresting_tags:
             d[k] = t.attrib["v"]
-
     return d
 
 
@@ -312,7 +309,6 @@ def _dict_to_dataframe(d):
     df = DataFrame.from_dict(d)
     if "timestamp" in df:
         df["timestamp"] = to_datetime(df["timestamp"])
-
     return df
 
 
@@ -347,7 +343,6 @@ def read_ways(doc):
 
     waynodes = _dict_to_dataframe(waynodes)
     waytags = _dict_to_dataframe(waytags)
-
     return waynodes, waytags
 
 
@@ -391,19 +386,18 @@ def render_to_gdf(osmdata, drop_untagged=True):
 
     # set landuse tag from origin relation at relation members who has no landuse tag
     if (ways is not None) and ("landuse" in ways.keys()) and (not osmdata.relmembers.empty):
+        # get and add origin relation id
+        ways["relation_id"] = ways.id.apply(
+            lambda x: osmdata.relmembers[osmdata.relmembers.ref == x].iloc[0].id
+        )
         for i, way in ways.iterrows():
-            # get and add origin relation id
-            rel_id = osmdata.relmembers[osmdata.relmembers.ref == way.id].iloc[0].id
-            ways.at[i, "relation_id"] = rel_id
             # get and add origin relation landuse if needed
-            osm_reltag = osmdata.reltags[osmdata.reltags.id == rel_id].iloc[0]
+            osm_reltag = osmdata.reltags[osmdata.reltags.id == way.relation_id].iloc[0]
             if "landuse" in osm_reltag.keys() and str(way.landuse) == "nan":
                 ways.at[i, "landuse"] = osm_reltag.landuse
-
     if ways is not None:
         nodes = concat([nodes, ways], ignore_index=True)
-        nodes = nodes.set_geometry("geometry", crs=_crs)
-
+        nodes = nodes.set_geometry("geometry", crs=dave_settings["crs_main"])
     return nodes
 
 
@@ -413,10 +407,9 @@ def render_nodes(nodes, drop_untagged=True):
         # Drop nodes that have no tags, convert lon/lat to points
         if drop_untagged:
             nodes = nodes.dropna(subset=nodes.columns.drop(["id", "lon", "lat"]), how="all")
-        points = [Point(x["lon"], x["lat"]) for i, x in nodes.iterrows()]
+        points = nodes.apply(lambda x: Point(x["lon"], x["lat"]), axis=1)
         nodes = nodes.drop(["lon", "lat"], axis=1)
-        nodes = nodes.set_geometry(points, crs=_crs)
-
+        nodes = nodes.set_geometry(points, crs=dave_settings["crs_main"])
     return nodes
 
 
@@ -437,7 +430,7 @@ def render_ways(nodes, waynodes, waytags):
     # Merge it with the waytags to get a single GeoDataFrame of ways
     waynodes = waynodes.merge(node_points, left_on="ref", right_on="id", suffixes=("", "_nodes"))
     way_lines = waynodes.groupby("id").apply(wayline, include_groups=False)
-    ways = waytags.set_index("id").set_geometry(way_lines, crs=_crs)
+    ways = waytags.set_index("id").set_geometry(way_lines, crs=dave_settings["crs_main"])
     ways.reset_index(inplace=True)
 
     return ways

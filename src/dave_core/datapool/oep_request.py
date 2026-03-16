@@ -23,12 +23,38 @@ def request_to_df(request):
     if request.status_code == 200:  # 200 is the code of a successful request
         # if request is empty their will be an JSONDecodeError
         try:
-            request_data = DataFrame(request.json())
+            request_df = DataFrame(request.json())
         except Exception:
-            request_data = DataFrame()
+            request_df = DataFrame()
     else:
-        request_data = DataFrame()
-    return request_data
+        request_df = DataFrame()
+    return request_df
+
+
+def data_request(schema, table, where):
+    # request data from OEP
+    request = get(
+        "".join(
+            [
+                oep_url,
+                "/api/v0/schema/",
+                schema,
+                "/tables/",
+                table,
+                "/rows/?where=" if where is not None else "/rows/",
+                where if where is not None else "",
+            ]
+        ),
+        timeout=180,
+        verify=False,
+    )
+    # request meta information from OEP
+    meta_request = get(
+        "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
+        timeout=180,
+        verify=False,
+    )
+    return request, meta_request
 
 
 def oep_request(table, schema=None, where=None, geometry=None):
@@ -54,53 +80,10 @@ def oep_request(table, schema=None, where=None, geometry=None):
     if schema is None:
         schema = dave_settings["oep_tables"][table][0]
     # request data directly from oep
-    if where:
-        request = get(
-            "".join(
-                [
-                    oep_url,
-                    "/api/v0/schema/",
-                    schema,
-                    "/tables/",
-                    table,
-                    "/rows/?where=",
-                    where,
-                ]
-            ),
-            timeout=30,
-            verify=False,
-        )
-    elif dave_settings["oep_tables"][table][2] is not None:
-        request = get(
-            "".join(
-                [
-                    oep_url,
-                    "/api/v0/schema/",
-                    schema,
-                    "/tables/",
-                    table,
-                    "/rows/?where=",
-                    dave_settings["oep_tables"][table][2],
-                ]
-            ),
-            timeout=30,
-            verify=False,
-        )
+    if where is None and dave_settings["oep_tables"][table][2] is not None:
+        request, meta_request = data_request(schema, table, dave_settings["oep_tables"][table][2])
     else:
-        request = get(
-            "".join(
-                [
-                    oep_url,
-                    "/api/v0/schema/",
-                    schema,
-                    "/tables/",
-                    table,
-                    "/rows/",
-                ]
-            ),
-            timeout=30,
-            verify=False,
-        )
+        request, meta_request = data_request(schema, table, where)
     # convert data to dataframe
     request_data = request_to_df(request)
     # check for geometry parameter
@@ -127,16 +110,9 @@ def oep_request(table, schema=None, where=None, geometry=None):
         request_data.crs = dave_settings["crs_meter"]
         request_data = request_data.to_crs(dave_settings["crs_main"])
 
-    # --- request meta informations for a dataset
-    # !!! Todo: seperate option for getting data from DB. When there are no meta data in DB then check OEP Url
-    request = get(
-        "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
-        timeout=30,
-        verify=False,
-    )
-    # convert data to meta dict  # !!! When getting data from database the meta informations should also came from db
-    if request.status_code == 200:  # 200 is the code of a successful request
-        request_meta = request.json()
+    # convert meta data to meta dict
+    if meta_request.status_code == 200:  # 200 is the code of a successful request
+        request_meta = meta_request.json()
         # create dict
         meta_data = {
             "Main": DataFrame(

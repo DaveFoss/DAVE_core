@@ -5,6 +5,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from time import sleep
+
 from geopandas import GeoDataFrame
 from pandas import DataFrame
 from requests import get
@@ -33,21 +35,27 @@ def request_to_df(request):
 
 def data_request(schema, table, where):
     # request data from OEP
-    request = get(
-        "".join(
-            [
-                oep_url,
-                "/api/v0/schema/",
-                schema,
-                "/tables/",
-                table,
-                "/rows/?where=" if where is not None else "/rows/",
-                where if where is not None else "",
-            ]
-        ),
-        timeout=180,
-        verify=False,
-    )
+    while 1:
+        try:
+            request = get(
+                "".join(
+                    [
+                        oep_url,
+                        "/api/v0/schema/",
+                        schema,
+                        "/tables/",
+                        table,
+                        "/rows/?where=" if where is not None else "/rows/",
+                        where if where is not None else "",
+                    ]
+                ),
+                timeout=600,
+                verify=False,
+            )
+            break
+        except ConnectionError:
+            # add time delay
+            sleep(dave_settings["osm_time_delay"])
     # request meta information from OEP
     meta_request = get(
         "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),

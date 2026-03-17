@@ -323,23 +323,25 @@ def target_area(
     pbar = create_tqdm(desc="collect geographical data")
 
     # create target data based on input parameter
-    target = target_data(
-        grid_data,
-        postalcode,
-        town_name,
-        federal_state,
-        nuts_region,
-        own_area,
-        power_levels,
-        gas_levels,
-    )
-
-    # write area informations into grid_data
-    grid_data.area = concat([grid_data.area, target], ignore_index=True)
-    if grid_data.area.crs is None:
-        grid_data.area.set_crs(dave_settings["crs_main"], inplace=True)
-    elif grid_data.area.crs != dave_settings["crs_main"]:
-        grid_data.area.to_crs(dave_settings["crs_main"], inplace=True)
+    if grid_data.area.empty:
+        target = target_data(
+            grid_data,
+            postalcode,
+            town_name,
+            federal_state,
+            nuts_region,
+            own_area,
+            power_levels,
+            gas_levels,
+        )
+        # write area informations into grid_data
+        grid_data.area = concat([grid_data.area, target], ignore_index=True)
+        if grid_data.area.crs is None:
+            grid_data.area.set_crs(dave_settings["crs_main"], inplace=True)
+        elif grid_data.area.crs != dave_settings["crs_main"]:
+            grid_data.area.to_crs(dave_settings["crs_main"], inplace=True)
+    else:
+        target = grid_data.area.copy()
     # check if requested model is already in the archiv
     if not grid_data.target_input.iloc[0].typ == "own area":
         file_exists, file_name = archiv_inventory(grid_data, read_only=True)

@@ -159,6 +159,7 @@ def create_empty_dataset():
                 }
             ),
             # auxillary
+            "coordinate_system": "",
             "dave_version": __version__,
             "meta_data": {},
         }

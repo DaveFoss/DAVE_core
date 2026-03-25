@@ -23,8 +23,8 @@ def set_dave_settings():
         "bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
         "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
         # geographical defintions:
-        "crs_main": "EPSG:4326",  # crs which is based on the unit degree
-        "crs_meter": "EPSG:3035",  # crs which is based on the unit meter
+        "crs_degree": "EPSG:4326",  # crs which is based on the unit degree
+        "crs_main": "EPSG:3035",  # crs which is based on the unit meter
         # --- data request
         # fraunhofer ownCloud datapool
         "fhg_oc_url": "https://owncloud.fraunhofer.de/index.php/s/Y5J1lBxeau3N48p",

@@ -18,6 +18,7 @@ from shapely.ops import nearest_points
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 
 
@@ -185,15 +186,11 @@ def create_ehv_hv_trafos(grid_data, power_levels, pbar):
         pbar.update(10 / len(hv_trafos))
     # add dave name for nodes which are created for the transformers
     if "dave_name" not in grid_data.hv_data.hv_nodes.keys():
-        grid_data.hv_data.hv_nodes.reset_index(drop=True, inplace=True)
-        name = Series([f"node_3_{x}" for x in grid_data.hv_data.hv_nodes.index])
-        grid_data.hv_data.hv_nodes.insert(0, "dave_name", name)
+        grid_data.hv_data.hv_nodes = add_dave_name(grid_data.hv_data.hv_nodes, "node_3")
         if "geometry" in grid_data.hv_data.hv_nodes.keys():
             grid_data.hv_data.hv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
     if "dave_name" not in grid_data.ehv_data.ehv_nodes.keys():
-        grid_data.ehv_data.ehv_nodes.reset_index(drop=True, inplace=True)
-        name = Series([f"node_1_{x}" for x in grid_data.ehv_data.ehv_nodes.index])
-        grid_data.ehv_data.ehv_nodes.insert(0, "dave_name", name)
+        grid_data.ehv_data.ehv_nodes = add_dave_name(grid_data.ehv_data.ehv_nodes, "node_1")
         if "geometry" in grid_data.ehv_data.ehv_nodes.keys():
             grid_data.ehv_data.ehv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
     # write transformator data in grid data and decied the grid level depending on voltage level
@@ -360,11 +357,7 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         # filter nodes which are within a substation
         hv_nodes = intersection_with_area(hv_nodes, substations_reduced, remove_columns=False)
         # add dave name
-        hv_nodes.insert(
-            0,
-            "dave_name",
-            Series([f"node_3_{x}" for x in hv_nodes.index], dtype=str),
-        )
+        hv_nodes = add_dave_name(hv_nodes, "node_3")
         # set crs
         hv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -393,12 +386,8 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         # add oep as source
         mv_nodes["source"] = "OEP"
         # add dave name
-        mv_nodes.reset_index(drop=True, inplace=True)
-        mv_nodes.insert(
-            0,
-            "dave_name",
-            Series([f"node_5_{x}" for x in mv_nodes.index], dtype=str),
-        )
+        mv_nodes = add_dave_name(mv_nodes, "node_5")
+
         # set crs
         mv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
         # add mv nodes to grid data
@@ -454,13 +443,8 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
         # update progress
         pbar.update(9.98 / len(substations))
     # add dave name
-    grid_data.components_power.transformers.hv_mv.insert(
-        0,
-        "dave_name",
-        Series(
-            [f"trafo_4_{x}" for x in grid_data.components_power.transformers.hv_mv.index],
-            dtype=str,
-        ),
+    grid_data.components_power.transformers.hv_mv = add_dave_name(
+        grid_data.components_power.transformers.hv_mv, "trafo_4"
     )
 
 
@@ -640,13 +624,8 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
             # noch definieren
 
     # add dave name
-    grid_data.components_power.transformers.mv_lv.insert(
-        0,
-        "dave_name",
-        Series(
-            [f"trafo_6_{x}" for x in grid_data.components_power.transformers.mv_lv.index],
-            dtype=str,
-        ),
+    grid_data.components_power.transformers.mv_lv = add_dave_name(
+        grid_data.components_power.transformers.mv_lv, "trafo_6"
     )
     # update progress
     pbar.update(10)

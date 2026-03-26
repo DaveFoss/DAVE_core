@@ -397,7 +397,7 @@ def render_to_gdf(osmdata, drop_untagged=True):
                 ways.at[i, "landuse"] = osm_reltag.landuse
     if ways is not None:
         nodes = concat([nodes, ways], ignore_index=True)
-        nodes = nodes.set_geometry("geometry", crs=dave_settings["crs_main"])
+        nodes = nodes.set_geometry("geometry", crs=dave_settings["crs_degree"])
     return nodes
 
 
@@ -409,7 +409,7 @@ def render_nodes(nodes, drop_untagged=True):
             nodes = nodes.dropna(subset=nodes.columns.drop(["id", "lon", "lat"]), how="all")
         points = nodes.apply(lambda x: Point(x["lon"], x["lat"]), axis=1)
         nodes = nodes.drop(["lon", "lat"], axis=1)
-        nodes = nodes.set_geometry(points, crs=dave_settings["crs_main"])
+        nodes = nodes.set_geometry(points, crs=dave_settings["crs_degree"])
     return nodes
 
 
@@ -430,7 +430,7 @@ def render_ways(nodes, waynodes, waytags):
     # Merge it with the waytags to get a single GeoDataFrame of ways
     waynodes = waynodes.merge(node_points, left_on="ref", right_on="id", suffixes=("", "_nodes"))
     way_lines = waynodes.groupby("id").apply(wayline, include_groups=False)
-    ways = waytags.set_index("id").set_geometry(way_lines, crs=dave_settings["crs_main"])
+    ways = waytags.set_index("id").set_geometry(way_lines, crs=dave_settings["crs_degree"])
     ways.reset_index(inplace=True)
 
     return ways

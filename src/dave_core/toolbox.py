@@ -124,7 +124,8 @@ def voronoi(points, polygon_param=True):
     This function calculates the voronoi diagram for given points
 
     INPUT:
-        **points** (GeoDataFrame) - all nodes for voronoi analysis (centroids)
+        **points** (GeoDataFrame) - all nodes for voronoi analysis (centroids) \
+            given in crs 3035 (dave main)
         **polygon_param** (bool, default True) - if True the centroid and dave name for each \
             voronoi polygon will be searched
 
@@ -342,7 +343,7 @@ def related_sub(bus, substations):
     )
     sub_filtered = substations[
         substation_geom_dask.apply(
-            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05),
+            lambda x: (bus.within(x)) or (bus.distance(x) < 1.2),  # distance in meter
             meta=substation_geom_dask,
         ).compute()
     ]

@@ -8,7 +8,6 @@
 from math import pi
 
 from geopandas import GeoDataFrame
-from pandas import Series
 from pandas import concat
 from shapely import union_all
 
@@ -55,12 +54,7 @@ def create_ehv_topology(grid_data):
     if not ehv_substations.empty:
         ehv_substations["voltage_level"] = 2
         # add dave name
-        ehv_substations.reset_index(drop=True, inplace=True)
-        ehv_substations.insert(
-            0,
-            "dave_name",
-            Series([f"substation_2_{x}" for x in ehv_substations.index]),
-        )
+        ehv_substations = add_dave_name(ehv_substations, "substation_2")
         # set crs
         ehv_substations.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv substations to grid data
@@ -146,12 +140,7 @@ def create_ehv_topology(grid_data):
         # add voltage level
         ehv_buses["voltage_level"] = 1
         # add dave name
-        ehv_buses.reset_index(drop=True, inplace=True)
-        ehv_buses.insert(
-            0,
-            "dave_name",
-            Series([f"node_1_{x}" for x in ehv_buses.index]),
-        )
+        ehv_buses = add_dave_name(ehv_buses, "node_1")
         # set crs
         ehv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv nodes to grid data

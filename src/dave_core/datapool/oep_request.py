@@ -7,6 +7,7 @@
 
 from time import sleep
 
+import certifi
 from geopandas import GeoDataFrame
 from pandas import DataFrame
 from requests import get
@@ -51,7 +52,7 @@ def data_request(schema, table, where):
                     ]
                 ),
                 timeout=600,
-                verify=True,
+                verify=certifi.where(),
             )
             break
         except RequestException:
@@ -61,7 +62,7 @@ def data_request(schema, table, where):
     meta_request = get(
         "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
         timeout=180,
-        verify=True,
+        verify=certifi.where(),
     )
     return request, meta_request
 

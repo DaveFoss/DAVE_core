@@ -172,7 +172,6 @@ def create_power_plant_lines(grid_data):
     # check if there are nodes available to connect the power plants to the grid
     if not all_nodes.empty:
         all_nodes.set_geometry("geometry", inplace=True)
-        all_nodes_3035 = all_nodes.to_crs(dave_settings["crs_meter"])
         # select all power plants
         renewables = grid_data.components_power.renewable_powerplants
         conventionals = grid_data.components_power.conventional_powerplants
@@ -186,8 +185,7 @@ def create_power_plant_lines(grid_data):
                 if "aggregated" in all_plants.keys()
                 else all_plants
             )
-            plants_rel.crs = dave_settings["crs_main"]
-            plants_rel_3035 = plants_rel.to_crs(dave_settings["crs_meter"])
+            plants_rel.set_crs(dave_settings["crs_main"])
             # considered voltage level
             considered_levels = [
                 {"ehv": 1, "hv": 3, "mv": 5, "lv": 7}[x]
@@ -207,8 +205,8 @@ def create_power_plant_lines(grid_data):
                 5: grid_data.mv_data.mv_lines,
                 7: grid_data.lv_data.lv_lines,
             }
-            for _, plant in plants_rel_3035.iterrows():
-                plant_bus = all_nodes_3035[all_nodes_3035.dave_name == plant.bus].iloc[0]
+            for _, plant in plants_rel.iterrows():
+                plant_bus = all_nodes[all_nodes.dave_name == plant.bus].iloc[0]
                 distance = plant.geometry.distance(plant_bus.geometry)  # in meter
                 if (distance > 50) and (plant_bus.voltage_level in considered_levels):
                     # get plant coordinates in crs 4326
@@ -326,7 +324,7 @@ def create_power_plant_lines(grid_data):
                         elif voltage_level == 7:  # (LV)
                             grid_data.lv_data.lv_lines = line_new
                 # update progress
-                pbar.update(89.98 / len(plants_rel_3035))
+                pbar.update(89.98 / len(plants_rel))
         else:
             # update progress
             pbar.update(90)

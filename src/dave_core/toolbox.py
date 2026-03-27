@@ -241,7 +241,7 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area
     """
     # reduce grid area geometries to one polygon
-    if only_limit:
+    if only_limit and len(area) > 1:
         area = GeoDataFrame(
             geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"]
         )  # !!! Problem: this will delet area parameter and avoid remove_columns parameter

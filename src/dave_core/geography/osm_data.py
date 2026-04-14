@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -15,8 +15,10 @@ from shapely.geometry import Polygon
 
 from dave_core.datapool.osm_request import osm_request
 from dave_core.geography.geo_utils import generate_road_endings
+from dave_core.model_utils import filter_isolated_edges
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
+from dave_core.topology.topology_utils import add_nodes_to_lines
 
 
 def get_osm_data(grid_data, key, border, target_geom):
@@ -93,19 +95,28 @@ def road_processing(grid_data, roads):
         npartitions=dave_settings["cpu_number"],
     )
     roads_relevant = roads[roads_highway_dask.isin(dave_settings["roads_relevant"]).compute()]
-    grid_data.roads.roads = concat([grid_data.roads.roads, roads_relevant], ignore_index=True)
+
     # calculate road junctions for relevant roads
     road_junctions = calculate_road_junctions(roads_relevant)
     grid_data.roads.road_junctions = concat(
         [grid_data.roads.road_junctions, road_junctions], ignore_index=True
     )
     grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
+
     # calculate road endings wich are not coresspond to a rodad junction
     road_endings = generate_road_endings(roads_relevant, road_junctions)
     grid_data.roads.road_endings = concat(
         [grid_data.roads.road_endings, road_endings], ignore_index=True
     )
     grid_data.roads.road_endings.set_geometry("geometry", inplace=True)
+
+    # add road junctions and road endings to road network
+    nodes = concat([road_junctions, road_endings])
+    nodes.reset_index(drop=True, inplace=True)
+    roads_splited = add_nodes_to_lines(nodes, lines_existing=roads_relevant)
+    # search and filter isolated roads
+    roads_relevant = filter_isolated_edges(roads_splited, nodes)
+    grid_data.roads.roads = concat([grid_data.roads.roads, roads_relevant], ignore_index=True)
 
 
 def landuse_processing(grid_data, landuse):

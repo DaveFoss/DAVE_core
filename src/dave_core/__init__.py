@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -108,6 +108,7 @@ from .io.io_utils import decrypt_string
 from .io.io_utils import encrypt_string
 from .io.io_utils import isinstance_partial
 from .io.io_utils import with_signature
+from .model_utils import filter_isolated_edges
 
 # plausibility
 from .plausibility.structural_check import clean_disconnected_elements_gas
@@ -135,6 +136,8 @@ from .toolbox import intersection_with_area
 from .toolbox import multiline_coords
 from .toolbox import related_sub
 from .toolbox import voronoi
+
+# topology
 from .topology.extra_high_voltage import create_ehv_topology
 from .topology.high_pressure import create_hp_topology
 from .topology.high_pressure import gaslib_pipe_clustering
@@ -147,6 +150,10 @@ from .topology.medium_voltage import create_hv_mv_substations
 from .topology.medium_voltage import create_mv_lv_substations
 from .topology.medium_voltage import create_mv_topology
 from .topology.medium_voltage import search_connection_line
+from .topology.topology_utils import add_nodes_to_lines
+from .topology.topology_utils import search_end_point_id
+from .topology.topology_utils import split_line
+from .topology.topology_utils import split_lines
 
 __all__ = [
     # main
@@ -265,6 +272,10 @@ __all__ = [
     "create_mv_lv_substations",
     "search_connection_line",
     "create_mv_topology",
+    "split_line",
+    "split_lines",
+    "search_end_point_id",
+    "add_nodes_to_lines",
     # root
     "archiv_inventory",
     "from_archiv",
@@ -286,4 +297,5 @@ __all__ = [
     "get_data_path",
     "intersection_with_area",
     "related_sub",
+    "filter_isolated_edges",
 ]

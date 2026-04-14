@@ -116,8 +116,11 @@ def oep_request(table, schema=None, where=None, geometry=None):
             )
             request_data.to_crs(dave_settings["crs_main"], inplace=True)
         elif table == "ego_dp_mvlv_substation":
-            # change wrong crs from oep
-            request_data.set_crs(dave_settings["crs_main"], inplace=True)
+            request_data = GeoDataFrame(
+                request_data,
+                crs=dave_settings["crs_main"],
+                geometry=request_data.geometry,
+            )
         else:
             # create geoDataFrame
             request_data = GeoDataFrame(

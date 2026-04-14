@@ -279,7 +279,8 @@ def create_mv_nodes(substations, node_type):
         inplace=True,
     )
     # set points for geometry
-    mv_nodes["geometry"] = mv_nodes.point.apply(lambda x: wkb.loads(x, hex=True))
+    if "geometry" not in mv_nodes.keys():
+        mv_nodes["geometry"] = mv_nodes.point.apply(lambda x: wkb.loads(x, hex=True))
     mv_nodes["node_type"] = node_type
     mv_nodes["voltage_level"] = 5
     mv_nodes["voltage_kv"] = dave_settings["mv_voltage"]

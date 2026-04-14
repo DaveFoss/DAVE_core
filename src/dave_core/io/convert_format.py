@@ -122,3 +122,43 @@ def change_empty_gpd(grid_data):
             if dataset[key].empty:
                 dataset[key] = Series([], dtype="object")
     return dataset
+
+
+def change_crs(grid_data, target_crs):
+    """
+    This function transforms all geodata to anopther crs in a DAVE dataset
+
+    INPUT:
+        **grid_data** (attr Dict) - DAVE Dataset
+        **target_crs** (str) - Name of the target crs in format "EPSG:4326"
+
+    Output:
+        **dataset** (attr Dict) - DAVE Dataset with changed crs
+    """
+    dataset = deepcopy(grid_data)
+    for key in dataset.keys():
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
+            for key_sec in dataset[key].keys():
+                if str(type(dataset[key][key_sec])) == str(davestructure):
+                    for key_trd in dataset[key][key_sec].keys():
+                        if (
+                            isinstance(dataset[key][key_sec][key_trd], (GeoDataFrame, GeoSeries))
+                            and "geometry" in dataset[key][key_sec][key_trd].keys()
+                        ):
+                            if dataset[key][key_sec][key_trd].crs != target_crs:
+                                dataset[key][key_sec][key_trd].to_crs(target_crs, inplace=True)
+                elif (
+                    isinstance(dataset[key][key_sec], (GeoDataFrame, GeoSeries))
+                    and "geometry" in dataset[key][key_sec].keys()
+                ):
+                    if dataset[key][key_sec].crs != target_crs:
+                        dataset[key][key_sec].to_crs(target_crs, inplace=True)
+        elif (
+            isinstance(dataset[key], (GeoDataFrame, GeoSeries))
+            and "geometry" in dataset[key].keys()
+        ):
+            if dataset[key].crs != target_crs:
+                dataset[key].to_crs(target_crs, inplace=True)
+    return dataset

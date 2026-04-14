@@ -62,7 +62,9 @@ def read_postal():
     postalger = read_hdf(get_data_path(filename, "data"))
     # convert geometry
     postalger["geometry"] = postalger.geometry.apply(loads)
-    postalger = GeoDataFrame(postalger, crs=dave_settings["crs_main"])
+    postalger = GeoDataFrame(postalger, crs=dave_settings["crs_degree"])
+    # project to dave internal crs
+    postalger.to_crs(dave_settings["crs_main"], inplace=True)
     # read meta data
     filename = "postalcodesger_meta.xlsx"
     if not Path(get_data_path(filename, "data")).is_file():
@@ -92,7 +94,9 @@ def read_federal_states():
     federalstatesger = read_hdf(get_data_path(filename, "data"))
     # convert geometry
     federalstatesger["geometry"] = federalstatesger.geometry.apply(loads)
-    federalstatesger = GeoDataFrame(federalstatesger, crs=dave_settings["crs_main"])
+    federalstatesger = GeoDataFrame(federalstatesger, crs=dave_settings["crs_degree"])
+    # project to dave internal crs
+    federalstatesger.to_crs(dave_settings["crs_main"], inplace=True)
     # read meta data
     filename = "federalstatesger_meta.xlsx"
     if not Path(get_data_path(filename, "data")).is_file():
@@ -120,16 +124,14 @@ def read_nuts_regions(year):
     # get data from datapool
     if year == "2013":
         nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2013")
-        nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
     elif year == "2016":
         nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2016")
-        nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
     elif year == "2021":
         nuts_regions = read_hdf(get_data_path(filename, "data"), key="/nuts_2021")
-        nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
-        nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_main"])
+    nuts_regions["geometry"] = nuts_regions.geometry.apply(loads)
+    nuts_regions = GeoDataFrame(nuts_regions, crs=dave_settings["crs_degree"])
+    # project to dave internal crs
+    nuts_regions.to_crs(dave_settings["crs_main"], inplace=True)
     # read meta data
     filename = "nuts_regions_meta.xlsx"
     if not Path(get_data_path(filename, "data")).is_file():
@@ -204,58 +206,66 @@ def read_scigridgas_iggielgn():
     border_points = GeoDataFrame(
         border_points,
         geometry=points_from_xy(border_points.long, border_points.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    border_points.to_crs(dave_settings["crs_main"], inplace=True)
     # compressors
     compressors = iggielgn_data.get("/scigridgas_iggielgn_compressors")
     compressors = GeoDataFrame(
         compressors,
         geometry=points_from_xy(compressors.long, compressors.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    compressors.to_crs(dave_settings["crs_main"], inplace=True)
     # comsumer
     consumers = iggielgn_data.get("/scigridgas_iggielgn_consumers")
     consumers = GeoDataFrame(
         consumers,
         geometry=points_from_xy(consumers.long, consumers.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    consumers.to_crs(dave_settings["crs_main"], inplace=True)
     # lngss
     lngs = iggielgn_data.get("/scigridgas_iggielgn_lngs")
     lngs = GeoDataFrame(
         lngs,
         geometry=points_from_xy(lngs.long, lngs.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    lngs.to_crs(dave_settings["crs_main"], inplace=True)
     # nodes
     nodes = iggielgn_data.get("/scigridgas_iggielgn_nodes")
     nodes = GeoDataFrame(
         nodes,
         geometry=points_from_xy(nodes.long, nodes.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    nodes.to_crs(dave_settings["crs_main"], inplace=True)
     # pipe_segments
     pipe_segments = iggielgn_data.get("/scigridgas_iggielgn_pipe_segments")
     pipe_segments.lat = pipe_segments.lat.apply(eval)
     pipe_segments.long = pipe_segments.long.apply(eval)
     geometry = [LineString(pipe[["long", "lat"]].values) for _, pipe in pipe_segments.iterrows()]
     pipe_segments = GeoDataFrame(
-        pipe_segments, geometry=Series(geometry), crs=dave_settings["crs_main"]
+        pipe_segments, geometry=Series(geometry), crs=dave_settings["crs_degree"]
     )
+    pipe_segments.to_crs(dave_settings["crs_main"], inplace=True)
     # productions
     productions = iggielgn_data.get("/scigridgas_iggielgn_productions")
     productions = GeoDataFrame(
         productions,
         geometry=points_from_xy(productions.long, productions.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    productions.to_crs(dave_settings["crs_main"], inplace=True)
     # storages
     storages = iggielgn_data.get("/scigridgas_iggielgn_storages")
     storages = GeoDataFrame(
         storages,
         geometry=points_from_xy(storages.long, storages.lat),
-        crs=dave_settings["crs_main"],
+        crs=dave_settings["crs_degree"],
     )
+    storages.to_crs(dave_settings["crs_main"], inplace=True)
     # close file
     iggielgn_data.close()
     # create dictonary

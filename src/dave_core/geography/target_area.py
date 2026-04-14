@@ -59,13 +59,13 @@ def _target_by_own_area(grid_data, own_area):
     elif isinstance(own_area, Polygon):
         target = GeoDataFrame(
             {"name": ["own area"], "geometry": [own_area]},
-            crs=dave_settings["crs_main"],
+            crs=dave_settings["crs_degree"],
         )
     elif isinstance(own_area, MultiPolygon):
         own_area = unary_union(own_area)
         target = GeoDataFrame(
             {"name": ["own area"], "geometry": [own_area]},
-            crs=dave_settings["crs_main"],
+            crs=dave_settings["crs_degree"],
         )
     else:
         print("The given format is unknown")
@@ -350,6 +350,8 @@ def target_area(
     # update progress
     pbar.update(float(10))
     if not file_exists:
+        # change geometry to crs 4326 because it is necessary for the osm overpass api
+        target.to_crs(dave_settings["crs_degree"], inplace=True)
         # create borders for target area, load osm-data and write into grid data
         if town_name:
             diff_targets = target["town"].drop_duplicates()

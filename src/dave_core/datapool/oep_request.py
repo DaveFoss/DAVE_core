@@ -7,9 +7,11 @@
 
 from time import sleep
 
+import certifi
 from geopandas import GeoDataFrame
 from pandas import DataFrame
 from requests import get
+from requests.exceptions import RequestException
 from shapely.geometry import Point
 from shapely.wkb import loads
 
@@ -50,17 +52,17 @@ def data_request(schema, table, where):
                     ]
                 ),
                 timeout=600,
-                verify=False,
+                verify=certifi.where(),
             )
             break
-        except ConnectionError:
+        except RequestException:
             # add time delay
             sleep(dave_settings["osm_time_delay"])
     # request meta information from OEP
     meta_request = get(
         "".join([oep_url, "/api/v0/schema/", schema, "/tables/", table, "/meta/"]),
         timeout=180,
-        verify=False,
+        verify=certifi.where(),
     )
     return request, meta_request
 
@@ -101,22 +103,32 @@ def oep_request(table, schema=None, where=None, geometry=None):
         # --- convert into geopandas DataFrame with right crs
         # transform WKB to WKT / Geometry
         request_data["geometry"] = request_data[geometry].apply(lambda x: loads(x, hex=True))
-        # create geoDataFrame
-        request_data = GeoDataFrame(
-            request_data,
-            crs=dave_settings["crs_main"],
-            geometry=request_data.geometry,
-        )
-    # fix some mistakes in the oep data
-    if table == "ego_pf_hv_transformer":
-        # change geometry to point because in original data the geometry was lines with length 0
-        request_data["geometry"] = request_data.geometry.apply(
-            lambda x: Point(x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1])
-        )
-    if table == "ego_dp_mvlv_substation":
-        # change wrong crs from oep
-        request_data.crs = dave_settings["crs_meter"]
-        request_data = request_data.to_crs(dave_settings["crs_main"])
+        # fix some mistakes in the oep data
+        if table == "ego_pf_hv_transformer":
+            # change geometry to point because in original data the geometry was lines with length 0
+            request_data["geometry"] = request_data.geometry.apply(
+                lambda x: Point(x.geoms[0].coords[:][0][0], x.geoms[0].coords[:][0][1])
+            )
+            request_data = GeoDataFrame(
+                request_data,
+                crs=dave_settings["crs_degree"],
+                geometry=request_data.geometry,
+            )
+            request_data.to_crs(dave_settings["crs_main"], inplace=True)
+        elif table == "ego_dp_mvlv_substation":
+            request_data = GeoDataFrame(
+                request_data,
+                crs=dave_settings["crs_main"],
+                geometry=request_data.geometry,
+            )
+        else:
+            # create geoDataFrame
+            request_data = GeoDataFrame(
+                request_data,
+                crs=dave_settings["crs_degree"],
+                geometry=request_data.geometry,
+            )
+            request_data.to_crs(dave_settings["crs_main"], inplace=True)
 
     # convert meta data to meta dict
     if meta_request.status_code == 200:  # 200 is the code of a successful request

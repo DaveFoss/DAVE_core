@@ -45,7 +45,8 @@ def get_osm_data(grid_data, key, border, target_geom):
             (data_dask.apply(lambda x: isinstance(x, LineString), meta=data_dask).compute())
             & (data_dask.intersects(target_geom).compute())
         ]
-        data.set_crs(dave_settings["crs_main"], inplace=True)
+        data.set_crs(dave_settings["crs_degree"], inplace=True)
+        data.to_crs(dave_settings["crs_main"], inplace=True)
     return data
 
 
@@ -53,14 +54,13 @@ def calculate_road_junctions(roads):
     """
     This function searches junctions for the relevant roads in the target area
     """
-    roads_3035 = roads.to_crs(dave_settings["crs_meter"])
-    if not roads_3035.empty:
+    if not roads.empty:
         junction_points = []
-        while len(roads_3035) > 1:
+        while len(roads) > 1:
             # considered line
-            line_geometry = roads_3035.iloc[0].geometry
+            line_geometry = roads.iloc[0].geometry
             # check considered line surrounding for possible intersectionpoints with other lines
-            lines_cross = roads_3035[roads_3035.geometry.crosses(line_geometry.buffer(1))]
+            lines_cross = roads[roads.geometry.crosses(line_geometry.buffer(1))]
             if not lines_cross.empty:
                 # find line intersections between considered line and other lines
                 line_junctions = line_geometry.intersection(lines_cross.geometry.unary_union)
@@ -70,20 +70,18 @@ def calculate_road_junctions(roads):
                     for point in line_junctions.geoms:
                         junction_points.append(point)
             # set new roads quantity for the next iterationstep
-            roads_3035 = roads_3035.iloc[1:, :]
-            roads_3035.reset_index(drop=True, inplace=True)
+            roads = roads.iloc[1:, :]
+            roads.reset_index(drop=True, inplace=True)
         # delet duplicates
         junctions = GeoSeries(junction_points).drop_duplicates()
         # write road junctions into grid_data
-        junctions.set_crs(dave_settings["crs_meter"], inplace=True)
-        junctions = junctions.to_crs(dave_settings["crs_main"])
         road_junctions = GeoDataFrame(
             {
                 "node_type": "road_junction",
                 "source": "dave internal",
                 "geometry": junctions,
             },
-            crs="EPSG:4326",
+            crs=dave_settings["crs_main"],
         )
         return road_junctions
 
@@ -123,11 +121,9 @@ def landuse_processing(grid_data, landuse):
     # filter landuses which are within the grid area
     landuse = intersection_with_area(landuse, area)  # !!! duplicated with intersection before?
     # calculate polygon area in km²
-    landuse_3035 = landuse.to_crs(dave_settings["crs_meter"])
-    landuse["area_km2"] = landuse_3035.area / 1e06
+    landuse["area_km2"] = landuse.area / 1e06
     # write landuse into grid_data
     grid_data.landuse = concat([grid_data.landuse, landuse], ignore_index=True)
-    grid_data.landuse.set_crs(dave_settings["crs_main"], inplace=True)
 
 
 def improve_building_tag(
@@ -234,7 +230,7 @@ def from_osm(
         leisure = get_osm_data(grid_data, "leisure", border_buffer, target_geom_buff)
         # request some natural place information which are relevant as landuse area
         natural = get_osm_data(
-            grid_data, "natural", border.buffer(0.01), target_geom
+            grid_data, "natural", border.buffer(dave_settings["osm_area_buffer"]), target_geom
         )  # !!! Fehler landuse attribute
         # natural parameter in landuse umbenennen und zu landuse hinzufügen?
         landuse = concat([landuse, leisure, natural], ignore_index=True)

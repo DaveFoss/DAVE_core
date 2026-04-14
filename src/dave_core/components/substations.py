@@ -6,6 +6,8 @@
 
 
 from pandas import concat
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
@@ -37,8 +39,16 @@ def create_hv_mv_substations(grid_data):
             },
             inplace=True,
         )
+        # filter substations with point as geometry
+        drop_substations = [
+            sub.name
+            for i, sub in hvmv_substations.iterrows()
+            if isinstance(sub.geometry, (Point, LineString))
+        ]
+        hvmv_substations.drop(drop_substations, inplace=True)
         # filter substations which are within the grid area
         hvmv_substations = intersection_with_area(hvmv_substations, grid_data.area)
+
         if not hvmv_substations.empty:
             hvmv_substations["voltage_level"] = 4
             # add dave name
@@ -77,7 +87,7 @@ def create_mv_lv_substations(grid_data):
             },
             inplace=True,
         )
-        # change wrong crs from oep
+        # add crs
         mvlv_substations.crs = dave_settings["crs_main"]
         # filter trafos which are within the grid area
         mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)

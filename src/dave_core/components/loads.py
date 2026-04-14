@@ -226,7 +226,7 @@ def create_loads(grid_data):
                             lambda x,
                             building_centroid=building_centroid: building_centroid.distance(x)
                         )
-                        if centroid_distance.min() < 1e-04:
+                        if centroid_distance.min() < 11.2:
                             lv_node = building_nodes.loc[centroid_distance.idxmin()]
                     # create residential load
                     load_df = GeoDataFrame(
@@ -358,8 +358,7 @@ def create_loads(grid_data):
         )
         intersection.drop(columns=["area_km2"], inplace=True)
         # calculate area from intersected polygons
-        intersection_3035 = intersection.to_crs(dave_settings["crs_meter"])
-        intersection["area_km2"] = intersection_3035.area / 1e06
+        intersection["area_km2"] = intersection.area / 1e06
         # --- calculate consumption for the diffrent landuses in every single voronoi polygon
         # create list of all diffrent connection transformers
         trafo_names = list(set(intersection.dave_name))

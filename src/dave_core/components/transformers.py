@@ -352,8 +352,9 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
             )
             # check for hv nodes within hv/mv substations
             substations_keys = substations.keys().tolist()
-            substations_keys.remove("ego_subst_id")
-            substations_keys.remove("geometry")
+            substations_keys = [
+                x for x in substations_keys if x not in ["ego_subst_id", "geometry"]
+            ]
             substations_reduced = substations.drop(columns=(substations_keys))
             # filter nodes which are within a substation
             hv_nodes = intersection_with_area(hv_nodes, substations_reduced, remove_columns=False)

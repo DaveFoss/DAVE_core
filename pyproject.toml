@@ -123,6 +123,7 @@ ignore = [
     "PTH118",
     "RUF001", # ruff-specific rules ambiguous-unicode-character-string
     "S101", # flake8-bandit assert
+    "S301", # suspicious-pickle-usage
     "S308", # flake8-bandit suspicious-mark-safe-usage
     "S603", # flake8-bandit subprocess-without-shell-equals-true
     "S607", # flake8-bandit start-process-with-partial-path

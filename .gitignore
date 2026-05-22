@@ -1,5 +1,7 @@
 # DAVE_core files
 **/datapool/**/*.h5
+**/datapool/**/*.geojson
+**/datapool/**/*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

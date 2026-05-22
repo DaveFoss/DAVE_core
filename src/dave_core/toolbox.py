@@ -138,7 +138,7 @@ def voronoi(points, polygon_param=True):
     voronoi_centroids = [[point.x, point.y] for i, point in points.geometry.items()]
     voronoi_points = array(voronoi_centroids)
     # maximum points of the considered area define, which limit the voronoi polygons
-    bound_points = MultiPoint(points.geometry).convex_hull.buffer(1).bounds
+    bound_points = MultiPoint(points.geometry).convex_hull.buffer(1e05).bounds
     points_boundary = [
         [bound_points[0], bound_points[1]],
         [bound_points[0], bound_points[3]],

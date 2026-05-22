@@ -1,5 +1,6 @@
 # DAVE_core files
 **/datapool/**/*.h5
+**/datapool/**/*.json
 **/datapool/**/*.geojson
 **/datapool/**/*.pkl
 

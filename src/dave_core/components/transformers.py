@@ -10,6 +10,7 @@ from geopandas import GeoDataFrame
 from pandas import concat
 from shapely import wkb
 from shapely.geometry import MultiPoint
+from shapely.geometry import Polygon
 from shapely.ops import nearest_points
 
 from dave_core.components.substations import create_hv_mv_substations
@@ -279,7 +280,9 @@ def create_mv_nodes(substations, node_type):
         inplace=True,
     )
     # set points for geometry
-    if "geometry" not in mv_nodes.keys():
+    if "geometry" not in mv_nodes.keys() or any(
+        mv_nodes.geometry.apply(lambda x: isinstance(x, Polygon))
+    ):
         mv_nodes["geometry"] = mv_nodes.point.apply(lambda x: wkb.loads(x, hex=True))
     mv_nodes["node_type"] = node_type
     mv_nodes["voltage_level"] = 5

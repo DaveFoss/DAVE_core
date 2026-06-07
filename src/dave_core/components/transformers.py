@@ -284,6 +284,9 @@ def create_mv_nodes(substations, node_type):
         mv_nodes.geometry.apply(lambda x: isinstance(x, Polygon))
     ):
         mv_nodes["geometry"] = mv_nodes.point.apply(lambda x: wkb.loads(x, hex=True))
+        # set crs suitable to points and project to right one
+        mv_nodes.set_crs(dave_settings["crs_degree"], allow_override=True, inplace=True)
+        mv_nodes.to_crs(dave_settings["crs_main"], inplace=True)
     mv_nodes["node_type"] = node_type
     mv_nodes["voltage_level"] = 5
     mv_nodes["voltage_kv"] = dave_settings["mv_voltage"]

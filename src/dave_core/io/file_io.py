@@ -6,6 +6,7 @@
 
 
 import json
+from copy import deepcopy
 from functools import partial
 from json import dumps as json_dumps
 from json import loads as json_loads
@@ -54,7 +55,7 @@ def safe_to_json(net, filename, encryption_key=None, store_index_names=True):
             f.write(json_string)
 
 
-pp_io.to_json = safe_to_json
+# pp_io.to_json = safe_to_json
 
 
 # --- JSON
@@ -78,12 +79,19 @@ def from_json(file_path, encryption_key=None):
     else:
         with Path(file_path).open("r") as file:
             json_string = file.read()
-    # check if it is a json string in DAVE structure
+    # check if it is a json string in DAVE, pandapower or pandapipes structure
     json_type = json_loads(json_string)["_module"]
     if json_type in [
         "dave_core.dave_structure",
     ]:
-        return from_json_string(json_string, encryption_key=encryption_key)
+        # read data from json file
+        data = from_json_string(json_string, encryption_key=encryption_key)
+        # create empty dave datset
+        grid_data = create_empty_dataset()
+        # copy data into dave_datset to make sure to work not direktly on the attributes
+        for key in grid_data.keys():
+            grid_data[key] = deepcopy(data[key])
+        return grid_data
     elif json_type == "pandapower.auxiliary":
         print("A pandapower network is given as input and will be convertert in pandapower format")
         return from_json_pp(file_path)
@@ -131,10 +139,10 @@ def to_json(grid_data, file_path=None, encryption_key=None):
 
     """
     # convert all empty geopandas objects to empty pandas objects
-    grid_data = change_empty_gpd(grid_data)
+    data = change_empty_gpd(grid_data)
     # convert DaVe dataset into a json string with custom encoder
     json_string = json_dumps(
-        grid_data,
+        data,
         cls=DAVEJSONEncoder,
         indent="  ",  # TODO hand over a int will throw an issue
         isinstance_func=isinstance_partial,

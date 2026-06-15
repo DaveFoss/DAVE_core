@@ -93,7 +93,10 @@ def oep_request(table, schema=None, where=None, geometry=None):
     """
 
     # check if data allready exist
-    if not Path(get_data_path(f"{table}.geojson", "data")).is_file():
+    if (
+        not Path(get_data_path(f"{table}.geojson", "data")).is_file()
+        and not Path(get_data_path(f"{table}.json", "data")).is_file()
+    ):
         # get schema
         if schema is None:
             schema = dave_settings["oep_tables"][table][0]
@@ -162,12 +165,15 @@ def oep_request(table, schema=None, where=None, geometry=None):
             meta_data = {}
 
         # save downloaded data for the next request
-        if isinstance(request_data, GeoDataFrame):
-            request_data.to_file(get_data_path(f"{table}.geojson", "data"), driver="GeoJSON")
-        elif isinstance(request_data, DataFrame):
-            request_data.to_json(get_data_path(f"{table}.json", "data"), orient="records", indent=2)
-        with Path(get_data_path(f"{table}_meta.pkl", "data")).open("wb") as file:
-            dump(meta_data, file)
+        if not where:
+            if isinstance(request_data, GeoDataFrame):
+                request_data.to_file(get_data_path(f"{table}.geojson", "data"), driver="GeoJSON")
+            elif isinstance(request_data, DataFrame):
+                request_data.to_json(
+                    get_data_path(f"{table}.json", "data"), orient="records", indent=2
+                )
+            with Path(get_data_path(f"{table}_meta.pkl", "data")).open("wb") as file:
+                dump(meta_data, file)
     else:
         # get data from data folder
         if table == "ego_renewable_powerplant":

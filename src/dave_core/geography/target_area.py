@@ -9,9 +9,9 @@ from geopandas import GeoDataFrame
 from geopandas import read_file
 from pandas import DataFrame
 from pandas import concat
+from shapely import union_all
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
-from shapely.ops import unary_union
 
 from dave_core.archiv_io import archiv_inventory
 from dave_core.datapool.read_data import read_federal_states
@@ -62,7 +62,7 @@ def _target_by_own_area(grid_data, own_area):
             crs=dave_settings["crs_degree"],
         )
     elif isinstance(own_area, MultiPolygon):
-        own_area = unary_union(own_area)
+        own_area = union_all(own_area)
         target = GeoDataFrame(
             {"name": ["own area"], "geometry": [own_area]},
             crs=dave_settings["crs_degree"],
@@ -359,7 +359,7 @@ def target_area(
             progress_step = 80 / len(diff_targets)
             for diff_target in diff_targets:
                 town = target[target.town == diff_target]
-                target_geom = town.geometry.unary_union if len(town) > 1 else town.iloc[0].geometry
+                target_geom = union_all(town.geometry) if len(town) > 1 else town.iloc[0].geometry
                 # Obtain data from OSM
                 from_osm(
                     grid_data,

@@ -5,6 +5,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from copy import deepcopy
 from os import path
 from time import sleep
 
@@ -28,6 +29,7 @@ from shapely.geometry import Point
 from shapely.ops import linemerge
 from shapely.ops import polygonize
 
+from dave_core.dave_structure import davestructure
 from dave_core.settings import dave_settings
 
 
@@ -354,3 +356,28 @@ def related_sub(bus, substations):
     else:
         subst_name = "nan"
     return ego_subst_id, subst_dave_name, subst_name
+
+
+def check_types(grid_data):
+    """
+    This function overviews the diffrent types included in the dave dataset
+
+    INPUT:
+        **grid_data** (attr Dict) - DAVE Dataset with empty geopandas objects
+
+    Output:
+        **dataset** (attr Dict) - DAVE Dataset with empty pandas objects
+    """
+    types = {}
+    dataset = deepcopy(grid_data)
+    for key in dataset.keys():
+        types.update({key: type(dataset[key])})
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
+            for key_sec in dataset[key].keys():
+                types.update({key_sec: type(dataset[key][key_sec])})
+                if str(type(dataset[key][key_sec])) == str(davestructure):
+                    for key_trd in dataset[key][key_sec].keys():
+                        types.update({key_trd: type(dataset[key][key_sec][key_trd])})
+    return types

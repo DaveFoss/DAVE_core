@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -47,13 +47,12 @@ def create_transformer(
         nearest_point = nearest_points(substation.geometry, multipoints_lv)[1]
         bus_lv = lv_buses[lv_buses.geometry == nearest_point].iloc[0].dave_name
     # create transformer
-    # Info: [bus_hv, bus_lv, voltage_kv_hv, voltage_kv_lv, voltage_level, ego_version, ego_subst_id, geometry]
     return [
         bus_hv,
         bus_lv,
-        dave_settings["mv_voltage"],
-        0.4,
-        6,
+        dave_settings["mv_voltage"],  # voltage_kv_hv
+        0.4,  # voltage_kv_lv
+        6,  # voltage_level
         substation.ego_version,
         substation.ego_subst_id,
         substation.geometry,
@@ -300,7 +299,7 @@ def create_mv_nodes(substations, node_type):
     return mv_nodes
 
 
-def create_hv_mv_trafos(grid_data, power_levels, pbar):
+def create_hv_mv_trafos(grid_data, pbar):
     """
     This function generates hv/mv transformers
     """
@@ -361,7 +360,7 @@ def create_hv_mv_trafos(grid_data, power_levels, pbar):
             substations_keys = [
                 x for x in substations_keys if x not in ["ego_subst_id", "geometry"]
             ]
-            substations_reduced = substations.drop(columns=(substations_keys))
+            substations_reduced = substations.drop(columns=substations_keys)
             # filter nodes which are within a substation
             hv_nodes = intersection_with_area(hv_nodes, substations_reduced, remove_columns=False)
             # add dave name
@@ -559,6 +558,7 @@ def create_mv_lv_trafos(grid_data, power_levels, pbar):
                     [grid_data.mv_data.mv_nodes, mv_bus_df], ignore_index=True
                 )
                 bus_hv = dave_name
+            # !!! missing an else statement in case there are allready mv nodes (not empty)
             bus_lv = first_bus.dave_name
             # create transformer
             trafo_df = GeoDataFrame(
@@ -617,7 +617,7 @@ def create_transformers(grid_data):
         any(x in power_levels for x in ["hv", "mv"])
         and grid_data.components_power.transformers.hv_mv.empty
     ):
-        create_hv_mv_trafos(grid_data, power_levels, pbar)
+        create_hv_mv_trafos(grid_data, pbar)
     else:
         pbar.update(30)
 

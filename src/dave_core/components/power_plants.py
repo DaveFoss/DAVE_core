@@ -446,7 +446,7 @@ def create_renewable_powerplants(grid_data):
         # convert DataFrame into a GeoDataFrame
         renewables_geo = GeoDataFrame(
             renewables,
-            crs=dave_settings["crs_main"],
+            crs=dave_settings["crs_main"],  # !!! Falsch?
             geometry=points_from_xy(renewables.lon, renewables.lat),
         )
         # intersection of power plants with target_area when target is an own area

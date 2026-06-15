@@ -28,7 +28,7 @@ def split_line(line, nodes):
         **line_splited** (GeoDataFrame) - line splitted at given nodes
     """
     # check if road crosses network node => road need to split
-    points_split = nodes[nodes.geometry.within(line.buffer(1e-8))]
+    points_split = nodes[nodes.geometry.within(line.buffer(1e-3))]
     if not points_split.empty:
         # filter points which are endings of the line itself
         points_split = points_split[points_split.distance(Point(line.coords[:][0])) > 1e-3]
@@ -87,7 +87,7 @@ def search_end_point_id(line, nodes, considered_end):
     con_end = {"from": 0, "to": -1}
     line_endpoint = Point(line.coords[con_end[considered_end]])
     # search suitable node and extract id
-    nodes = nodes[nodes.geometry.within(line_endpoint.buffer(1e-8))]
+    nodes = nodes[nodes.geometry.within(line_endpoint.buffer(1e-3))]
     if len(nodes.index) > 0:
         line_endpoint_id = nodes.index[0]
     else:

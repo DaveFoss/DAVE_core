@@ -199,6 +199,8 @@ def adress_to_coords(adress, geolocator=None):
         for i in range(retries):
             try:
                 location = geolocator.geocode(adress)
+                if location is None:
+                    return (None, None)
                 return (location.longitude, location.latitude)
             except (GeocoderTimedOut, GeocoderUnavailable):
                 sleep(1)
@@ -208,9 +210,13 @@ def adress_to_coords(adress, geolocator=None):
                     try:
                         geolocator = Nominatim(user_agent="myGeocoder")
                         location = geolocator.geocode(adress)
+                        if location is None:
+                            return (None, None)
                         return (location.longitude, location.latitude)
                     except (GeocoderTimedOut, GeocoderUnavailable):
                         sleep(1)
+    else:
+        return (None, None)
 
 
 def get_data_path(filename=None, dirname=None):

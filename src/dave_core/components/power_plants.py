@@ -209,7 +209,7 @@ def create_power_plant_lines(grid_data):
                 plant_bus = all_nodes[all_nodes.dave_name == plant.bus].iloc[0]
                 distance = plant.geometry.distance(plant_bus.geometry)  # in meter
                 if (distance > 50) and (plant_bus.voltage_level in considered_levels):
-                    # get plant coordinates in crs 4326
+                    # get plant coordinates in crs 4326 !!! Das muss bestimmt noch geändert werden
                     plant_geometry = plants_rel.loc[plant.name].geometry
                     # create auillary node
                     voltage_level = plant_bus.voltage_level
@@ -413,31 +413,19 @@ def create_renewable_powerplants(grid_data):
         # find exact location by adress for renewable power plants which are on mv-level or lower
         if any(x in power_levels for x in ["mv", "lv"]):
             plant_georeference = renewables[renewables.voltage_level >= 5]
-            plant_georeference["full_adress"] = [
-                (
-                    "".join(
-                        [
-                            str(p.address),
-                            " ",
-                            str(p.postcode),
-                            " ",
-                            str(p.city),
-                        ]
-                    )
-                    if p.address is not None
-                    else None
-                )
-                for _, p in plant_georeference.iterrows()
-            ]
-            # run location request in multithreading
+            plant_georeference["full_adress"] = plant_georeference.apply(
+                lambda x: f"{x.address} {x.postcode} {x.city}" if x.address is not None else None,
+                axis=1,
+            )
+            # run location request in multithreading (hint: dask is much slower)
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = executor.map(adress_to_coords, plant_georeference.full_adress)
+                results = executor.map(
+                    adress_to_coords,
+                    plant_georeference.full_adress,
+                )
                 results = Series(list(results), index=plant_georeference.index)
-
-                for i, res in results.items():
-                    if res:
-                        renewables.at[i, "lon"] = res[0]
-                        renewables.at[i, "lat"] = res[1]
+            renewables["lon"] = results.apply(lambda x: x[0] if x[0] else None)
+            renewables["lat"] = results.apply(lambda x: x[1] if x[1] else None)
             # update progress
             pbar.update(20)
         else:

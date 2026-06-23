@@ -75,7 +75,7 @@ def create_empty_dataset():
                     "other": GeoDataFrame([]),
                 }
             ),
-            "roads": davestructure(
+            "road_data": davestructure(
                 {
                     "roads": GeoDataFrame([]),
                     "road_junctions": GeoDataFrame([]),

@@ -390,7 +390,7 @@ def target_area(
                     progress_step=progress_step,
                 )
         # reset index for all osm data
-        grid_data.roads.roads.reset_index(drop=True, inplace=True)
+        grid_data.road_data.roads.reset_index(drop=True, inplace=True)
         grid_data.landuse.reset_index(drop=True, inplace=True)
         grid_data.buildings.residential.reset_index(drop=True, inplace=True)
         grid_data.buildings.commercial.reset_index(drop=True, inplace=True)

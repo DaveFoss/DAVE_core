@@ -98,25 +98,26 @@ def road_processing(grid_data, roads):
 
     # calculate road junctions for relevant roads
     road_junctions = calculate_road_junctions(roads_relevant)
-    grid_data.roads.road_junctions = concat(
-        [grid_data.roads.road_junctions, road_junctions], ignore_index=True
+    grid_data.road_data.road_junctions = concat(
+        [grid_data.road_data.road_junctions, road_junctions], ignore_index=True
     )
-    grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)
+    grid_data.road_data.road_junctions.set_geometry("geometry", inplace=True)
 
     # calculate road endings wich are not coresspond to a rodad junction
     road_endings = generate_road_endings(roads_relevant, road_junctions)
-    grid_data.roads.road_endings = concat(
-        [grid_data.roads.road_endings, road_endings], ignore_index=True
+    grid_data.road_data.road_endings = concat(
+        [grid_data.road_data.road_endings, road_endings], ignore_index=True
     )
-    grid_data.roads.road_endings.set_geometry("geometry", inplace=True)
-
+    grid_data.road_data.road_endings.set_geometry("geometry", inplace=True)
     # add road junctions and road endings to road network
     nodes = concat([road_junctions, road_endings])
     nodes.reset_index(drop=True, inplace=True)
     roads_splited = add_nodes_to_lines(nodes, lines_existing=roads_relevant)
     # search and filter isolated roads
     roads_relevant = filter_isolated_edges(roads_splited, nodes)
-    grid_data.roads.roads = concat([grid_data.roads.roads, roads_relevant], ignore_index=True)
+    grid_data.road_data.roads = concat(
+        [grid_data.road_data.roads, roads_relevant], ignore_index=True
+    )
 
 
 def landuse_processing(grid_data, landuse):

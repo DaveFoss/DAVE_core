@@ -99,12 +99,14 @@ def line_connections(grid_data):
             grid_data.lv_data.lv_nodes.node_type == "grid_connection"
         ].geometry
     )
-    all_nodes = concat([nearest_building_point, grid_data.roads.road_junctions]).drop_duplicates()
+    all_nodes = concat(
+        [nearest_building_point, grid_data.road_data.road_junctions]
+    ).drop_duplicates()
     # search line connections
     line_connect = GeoSeries(
         functools.reduce(
             operator.iadd,
-            grid_data.roads.roads.geometry.apply(
+            grid_data.road_data.roads.geometry.apply(
                 lambda x: search_line_connections(x, all_nodes)
             ).to_list(),
             [],
@@ -190,10 +192,10 @@ def create_lv_topology(grid_data):
     centroids = buildings_rel.reset_index(drop=True).centroid
     centroids = centroids.to_crs(dave_settings["crs_main"])
     # filter roads which are not connected to other roads and roads which build small isolated road structures
-    roads = grid_data.roads.roads
+    roads = grid_data.road_data.roads
     roads_geom_dask = from_geopandas(roads.geometry, npartitions=dave_settings["cpu_number"])
     roads_filter = roads[
-        roads_geom_dask.distance(union_all(grid_data.roads.road_junctions.geometry)).compute()
+        roads_geom_dask.distance(union_all(grid_data.road_data.road_junctions.geometry)).compute()
         < 1.1e-3
     ]
     nearest_building_points = nearest_road_points(
@@ -292,7 +294,7 @@ def create_lv_topology(grid_data):
     # get line bus names for each line and add to line data
     lv_nodes = grid_data.lv_data.lv_nodes
     # get road junctions
-    road_junctions_origin = grid_data.roads.road_junctions
+    road_junctions_origin = grid_data.road_data.road_junctions
     for _, line in grid_data.lv_data.lv_lines.iterrows():
         road_junctions_grid = grid_data.lv_data.lv_nodes[
             grid_data.lv_data.lv_nodes.node_type == "road_junction"
@@ -362,6 +364,7 @@ def create_lv_topology(grid_data):
                 distance = road_junctions_origin.geometry.apply(
                     lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
                 )
+                print(distance)
                 if distance.min() < 11:
                     road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
                     # create lv_point for relevant road junction

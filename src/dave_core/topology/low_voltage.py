@@ -364,7 +364,6 @@ def create_lv_topology(grid_data):
                 distance = road_junctions_origin.geometry.apply(
                     lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
                 )
-                print(distance)
                 if distance.min() < 11:
                     road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
                     # create lv_point for relevant road junction

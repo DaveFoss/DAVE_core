@@ -10,6 +10,7 @@ from pandapower.auxiliary import ADict
 from pandas import DataFrame
 
 from dave_core import __version__
+from dave_core.settings import dave_settings
 
 
 class davestructure(ADict):
@@ -159,7 +160,7 @@ def create_empty_dataset():
                 }
             ),
             # auxillary
-            "coordinate_system": "",
+            "coordinate_system": dave_settings["crs_main"],
             "dave_version": __version__,
             "meta_data": {},
         }

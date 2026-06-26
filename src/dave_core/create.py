@@ -29,6 +29,8 @@ from dave_core.converter.create_pandapipes import create_pandapipes
 from dave_core.converter.create_pandapower import create_pandapower
 from dave_core.dave_structure import create_empty_dataset
 from dave_core.geography import target_area
+from dave_core.io.convert_format import change_crs
+from dave_core.io.convert_format import change_nan
 from dave_core.io.file_io import to_gpkg
 from dave_core.io.file_io import to_hdf
 from dave_core.io.file_io import to_json
@@ -118,9 +120,10 @@ def save_dataset_to_user_folder(grid_data, output_format, output_folder, filenam
     if save_data:
         # change crs to user definition
         if grid_data["coordinate_system"] != dave_settings["crs_main"]:
-            pass
-            # TODO: hier funktion um crs für gesamtes grid_data anzupassen
-
+            # change crs to the user specific ohne
+            grid_data = change_crs(grid_data, target_crs=grid_data["coordinate_system"])
+        # change nan values
+        grid_data = change_nan(grid_data)
         with catch_warnings():
             # filter warnings because of the PerformanceWarning from pytables at the geometry type
             simplefilter("ignore")

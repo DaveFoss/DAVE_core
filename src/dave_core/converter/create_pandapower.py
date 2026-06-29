@@ -107,6 +107,9 @@ def create_pp_mvlv_lines(net, lines):
             0, "name", Series([f"line_{x}" for x in lines.index])
         )  # TODO: hier fehlt noch das voltage level
     # create lines
+    lines["from_bus"] = lines.from_bus.apply(lambda x: x if isinstance(x, str) else f"node_7_{x}")
+    lines["to_bus"] = lines.to_bus.apply(lambda x: x if isinstance(x, str) else f"node_7_{x}")
+
     create_lines(
         net,
         from_buses=lines.from_bus.apply(
@@ -604,8 +607,8 @@ def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
             ]
         )
     )
-    net["roads"] = DataFrame(grid_data.roads.roads)
-    net["road_junctions"] = DataFrame(grid_data.roads.road_junctions)
+    net["roads"] = DataFrame(grid_data.road_data.roads)
+    net["road_junctions"] = DataFrame(grid_data.road_data.road_junctions)
     net["railways"] = DataFrame(grid_data.railways)
     net["waterways"] = DataFrame(grid_data.waterways)
     net["landuse"] = DataFrame(grid_data.landuse)

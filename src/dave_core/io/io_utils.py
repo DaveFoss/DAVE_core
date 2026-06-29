@@ -765,7 +765,9 @@ def to_serializable(obj):
 @to_serializable.register(davestructure)
 def json_dave(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
-    data = with_signature(obj, net_dict)
+    data = with_signature(
+        obj, net_dict, obj_module="dave_core.dave_structure", obj_class="davestructure"
+    )
     return data
 
 
@@ -926,9 +928,9 @@ def json_geodataframe(obj):
     d = with_signature(obj, obj.to_json())
     d.update(
         {
-            "dtype": obj.dtypes.astype("str").to_dict(),
-            "crs": obj.crs,
-            "columns": obj.columns,
+            "dtype": obj.dtypes.astype(str).to_dict(),
+            "crs": obj.crs.to_string() if obj.crs else None,
+            "columns": obj.columns.tolist(),
         }
     )
     return d

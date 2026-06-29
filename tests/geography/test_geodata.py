@@ -32,7 +32,7 @@ def test_geodata():
     assert not grid_data.area.empty, "No area was defined."
     assert not grid_data.buildings.commercial.empty, "No commercial building data were collected."
     assert not grid_data.buildings.residential.empty, "No residential building data were collected."
-    assert not grid_data.roads.roads.empty, "No road data data were collected."
+    assert not grid_data.road_data.roads.empty, "No road data data were collected."
     assert not grid_data.landuse.empty, "No landuse data data were collected."
 
 

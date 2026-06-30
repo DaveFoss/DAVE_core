@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -10,6 +10,7 @@ from pandapower.auxiliary import ADict
 from pandas import DataFrame
 
 from dave_core import __version__
+from dave_core.settings import dave_settings
 
 
 class davestructure(ADict):
@@ -75,10 +76,11 @@ def create_empty_dataset():
                     "other": GeoDataFrame([]),
                 }
             ),
-            "roads": davestructure(
+            "road_data": davestructure(
                 {
                     "roads": GeoDataFrame([]),
                     "road_junctions": GeoDataFrame([]),
+                    "road_endings": GeoDataFrame([]),
                 }
             ),
             "landuse": GeoDataFrame([]),
@@ -158,6 +160,7 @@ def create_empty_dataset():
                 }
             ),
             # auxillary
+            "coordinate_system": dave_settings["crs_main"],
             "dave_version": __version__,
             "meta_data": {},
         }

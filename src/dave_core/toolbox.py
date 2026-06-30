@@ -5,6 +5,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from copy import deepcopy
 from os import path
 from time import sleep
 
@@ -17,6 +18,7 @@ from geopy.geocoders import ArcGIS
 from geopy.geocoders import Nominatim
 from numpy import append
 from numpy import array
+from pandas import Series
 from pandas import concat
 from scipy.spatial import Voronoi
 from shapely import union_all
@@ -27,6 +29,7 @@ from shapely.geometry import Point
 from shapely.ops import linemerge
 from shapely.ops import polygonize
 
+from dave_core.dave_structure import davestructure
 from dave_core.settings import dave_settings
 
 
@@ -49,6 +52,30 @@ def multiline_coords(line_geometry):
     else:
         line_coords += merged_line.coords[:]
     return line_coords
+
+
+def add_dave_name(df, name):
+    """
+    This function creats a new column in a DataFrame to label the entries with \
+        an ongoing dave name
+
+    INPUT:
+        **df** (DataFrame) - DataFrame to which the name must be added
+        **name** (String) - Name of the element as part of the dave name
+
+    OUTPUT:
+        **df** (DataFrame) - DataFrame including the new parameter for dave name \
+    """
+    df.reset_index(drop=True, inplace=True)
+    # delet existing dave name to avoid confusion with names
+    if "dave_name" in df.keys():
+        df.drop(columns=["dave_name"], inplace=True)
+    df.insert(
+        0,
+        "dave_name",
+        Series([f"{name}_{x}" for x in df.index]),
+    )
+    return df
 
 
 def create_interim_area(areas):
@@ -99,7 +126,8 @@ def voronoi(points, polygon_param=True):
     This function calculates the voronoi diagram for given points
 
     INPUT:
-        **points** (GeoDataFrame) - all nodes for voronoi analysis (centroids)
+        **points** (GeoDataFrame) - all nodes for voronoi analysis (centroids) \
+            given in crs 3035 (dave main)
         **polygon_param** (bool, default True) - if True the centroid and dave name for each \
             voronoi polygon will be searched
 
@@ -112,7 +140,7 @@ def voronoi(points, polygon_param=True):
     voronoi_centroids = [[point.x, point.y] for i, point in points.geometry.items()]
     voronoi_points = array(voronoi_centroids)
     # maximum points of the considered area define, which limit the voronoi polygons
-    bound_points = MultiPoint(points.geometry).convex_hull.buffer(1).bounds
+    bound_points = MultiPoint(points.geometry).convex_hull.buffer(1e04).bounds
     points_boundary = [
         [bound_points[0], bound_points[1]],
         [bound_points[0], bound_points[3]],
@@ -171,6 +199,8 @@ def adress_to_coords(adress, geolocator=None):
         for i in range(retries):
             try:
                 location = geolocator.geocode(adress)
+                if location is None:
+                    return (None, None)
                 return (location.longitude, location.latitude)
             except (GeocoderTimedOut, GeocoderUnavailable):
                 sleep(1)
@@ -180,9 +210,13 @@ def adress_to_coords(adress, geolocator=None):
                     try:
                         geolocator = Nominatim(user_agent="myGeocoder")
                         location = geolocator.geocode(adress)
+                        if location is None:
+                            return (None, None)
                         return (location.longitude, location.latitude)
                     except (GeocoderTimedOut, GeocoderUnavailable):
                         sleep(1)
+    else:
+        return (None, None)
 
 
 def get_data_path(filename=None, dirname=None):
@@ -215,8 +249,10 @@ def intersection_with_area(gdf, area, remove_columns=True, only_limit=True):
         **gdf_over** (GeoDataFrame) - Data which intersetcs with considered area
     """
     # reduce grid area geometries to one polygon
-    if only_limit:
-        area = GeoDataFrame(geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"])
+    if only_limit and len(area) > 1:
+        area = GeoDataFrame(
+            geometry=[union_all(area.geometry)], crs=dave_settings["crs_main"]
+        )  # !!! Problem: this will delet area parameter and avoid remove_columns parameter
     # check if geodataframe has mixed geometries
     geom_types_gdf = set(map(type, gdf.geometry))
     geom_types_area = set(map(type, area.geometry))
@@ -315,7 +351,7 @@ def related_sub(bus, substations):
     )
     sub_filtered = substations[
         substation_geom_dask.apply(
-            lambda x: (bus.within(x)) or (bus.distance(x) < 1e-05),
+            lambda x: (bus.within(x)) or (bus.distance(x) < 1.2),  # distance in meter
             meta=substation_geom_dask,
         ).compute()
     ]
@@ -326,3 +362,28 @@ def related_sub(bus, substations):
     else:
         subst_name = "nan"
     return ego_subst_id, subst_dave_name, subst_name
+
+
+def check_types(grid_data):
+    """
+    This function overviews the diffrent types included in the dave dataset
+
+    INPUT:
+        **grid_data** (attr Dict) - DAVE Dataset with empty geopandas objects
+
+    Output:
+        **dataset** (attr Dict) - DAVE Dataset with empty pandas objects
+    """
+    types = {}
+    dataset = deepcopy(grid_data)
+    for key in dataset.keys():
+        types.update({key: type(dataset[key])})
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
+            for key_sec in dataset[key].keys():
+                types.update({key_sec: type(dataset[key][key_sec])})
+                if str(type(dataset[key][key_sec])) == str(davestructure):
+                    for key_trd in dataset[key][key_sec].keys():
+                        types.update({key_trd: type(dataset[key][key_sec][key_trd])})
+    return types

@@ -1,13 +1,13 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-__version__ = "1.3.3"
+__version__ = "1.3.4"
 
-# modules in src folder
+# root
 from .archiv_io import archiv_inventory
 from .archiv_io import from_archiv
 from .archiv_io import to_archiv
@@ -77,9 +77,9 @@ from .dave_structure import create_empty_dataset
 from .geography.geo_utils import nearest_road_points
 
 # geography
+from .geography.osm_data import calculate_road_junctions
 from .geography.osm_data import from_osm
 from .geography.osm_data import get_osm_data
-from .geography.osm_data import road_junctions
 from .geography.target_area import target_area
 
 # io
@@ -108,12 +108,16 @@ from .io.io_utils import decrypt_string
 from .io.io_utils import encrypt_string
 from .io.io_utils import isinstance_partial
 from .io.io_utils import with_signature
-from .model_utils import clean_disconnected_elements_gas
-from .model_utils import clean_disconnected_elements_power
-from .model_utils import clean_up_data
-from .model_utils import clean_wrong_lines
-from .model_utils import clean_wrong_piplines
-from .model_utils import disconnected_nodes
+from .model_utils import filter_isolated_edges
+
+# plausibility
+from .plausibility.structural_check import clean_disconnected_elements_gas
+from .plausibility.structural_check import clean_disconnected_elements_power
+from .plausibility.structural_check import clean_up_data
+from .plausibility.structural_check import clean_wrong_lines
+from .plausibility.structural_check import clean_wrong_piplines
+from .plausibility.structural_check import disconnected_nodes
+from .plausibility.structural_check import find_open_ends
 
 # plotting
 from .plotting.plot import plot_geographical_data
@@ -123,8 +127,8 @@ from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
 from .progressbar import create_tqdm
 from .progressbar import create_tqdm_dask
-from .settings import dave_settings
 from .settings import set_dave_settings
+from .toolbox import add_dave_name
 from .toolbox import adress_to_coords
 from .toolbox import create_interim_area
 from .toolbox import get_data_path
@@ -132,6 +136,8 @@ from .toolbox import intersection_with_area
 from .toolbox import multiline_coords
 from .toolbox import related_sub
 from .toolbox import voronoi
+
+# topology
 from .topology.extra_high_voltage import create_ehv_topology
 from .topology.high_pressure import create_hp_topology
 from .topology.high_pressure import gaslib_pipe_clustering
@@ -144,6 +150,10 @@ from .topology.medium_voltage import create_hv_mv_substations
 from .topology.medium_voltage import create_mv_lv_substations
 from .topology.medium_voltage import create_mv_topology
 from .topology.medium_voltage import search_connection_line
+from .topology.topology_utils import add_nodes_to_lines
+from .topology.topology_utils import search_end_point_id
+from .topology.topology_utils import split_line
+from .topology.topology_utils import split_lines
 
 __all__ = [
     # main
@@ -207,7 +217,7 @@ __all__ = [
     "target_area",
     "get_osm_data",
     "from_osm",
-    "road_junctions",
+    "calculate_road_junctions",
     "nearest_road_points",
     # io
     "wkb_to_wkt",
@@ -235,6 +245,14 @@ __all__ = [
     "dave_hook",
     "DAVEJSONDecoder",
     "DAVEJSONEncoder",
+    # plausibility
+    "disconnected_nodes",
+    "clean_disconnected_elements_power",
+    "clean_disconnected_elements_gas",
+    "clean_wrong_piplines",
+    "clean_wrong_lines",
+    "clean_up_data",
+    "find_open_ends",
     # plotting
     "plot_land",
     "plot_geographical_data",
@@ -254,7 +272,11 @@ __all__ = [
     "create_mv_lv_substations",
     "search_connection_line",
     "create_mv_topology",
-    # modules
+    "split_line",
+    "split_lines",
+    "search_end_point_id",
+    "add_nodes_to_lines",
+    # root
     "archiv_inventory",
     "from_archiv",
     "to_archiv",
@@ -264,20 +286,16 @@ __all__ = [
     "save_dataset_to_user_folder",
     "create_grid",
     "create_empty_dataset",
-    "disconnected_nodes",
-    "clean_disconnected_elements_power",
-    "clean_disconnected_elements_gas",
-    "clean_wrong_piplines",
-    "clean_wrong_lines",
-    "clean_up_data",
     "create_tqdm",
     "set_dave_settings",
     "dave_settings",
     "multiline_coords",
+    "add_dave_name",
     "create_interim_area",
     "voronoi",
     "adress_to_coords",
     "get_data_path",
     "intersection_with_area",
     "related_sub",
+    "filter_isolated_edges",
 ]

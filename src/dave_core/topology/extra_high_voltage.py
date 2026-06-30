@@ -8,13 +8,13 @@
 from math import pi
 
 from geopandas import GeoDataFrame
-from pandas import Series
 from pandas import concat
 from shapely import union_all
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 from dave_core.toolbox import related_sub
 
@@ -54,12 +54,7 @@ def create_ehv_topology(grid_data):
     if not ehv_substations.empty:
         ehv_substations["voltage_level"] = 2
         # add dave name
-        ehv_substations.reset_index(drop=True, inplace=True)
-        ehv_substations.insert(
-            0,
-            "dave_name",
-            Series([f"substation_2_{x}" for x in ehv_substations.index]),
-        )
+        ehv_substations = add_dave_name(ehv_substations, "substation_2")
         # set crs
         ehv_substations.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv substations to grid data
@@ -145,12 +140,7 @@ def create_ehv_topology(grid_data):
         # add voltage level
         ehv_buses["voltage_level"] = 1
         # add dave name
-        ehv_buses.reset_index(drop=True, inplace=True)
-        ehv_buses.insert(
-            0,
-            "dave_name",
-            Series([f"node_1_{x}" for x in ehv_buses.index]),
-        )
+        ehv_buses = add_dave_name(ehv_buses, "node_1")
         # set crs
         ehv_buses.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv nodes to grid data
@@ -205,12 +195,8 @@ def create_ehv_topology(grid_data):
         # update progress
         pbar.update(30)
         # add dave name
-        ehv_lines.reset_index(drop=True, inplace=True)
-        ehv_lines.insert(
-            0,
-            "dave_name",
-            Series([f"line_1_{x}" for x in ehv_lines.index]),
-        )
+        ehv_lines = add_dave_name(ehv_lines, "line_1")
+
         # set crs
         ehv_lines.set_crs(dave_settings["crs_main"], inplace=True)
         # add ehv lines to grid data

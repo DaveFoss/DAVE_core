@@ -172,7 +172,6 @@ def create_power_plant_lines(grid_data):
     # check if there are nodes available to connect the power plants to the grid
     if not all_nodes.empty:
         all_nodes.set_geometry("geometry", inplace=True)
-        all_nodes_3035 = all_nodes.to_crs(dave_settings["crs_meter"])
         # select all power plants
         renewables = grid_data.components_power.renewable_powerplants
         conventionals = grid_data.components_power.conventional_powerplants
@@ -186,8 +185,7 @@ def create_power_plant_lines(grid_data):
                 if "aggregated" in all_plants.keys()
                 else all_plants
             )
-            plants_rel.crs = dave_settings["crs_main"]
-            plants_rel_3035 = plants_rel.to_crs(dave_settings["crs_meter"])
+            plants_rel.set_crs(dave_settings["crs_main"])
             # considered voltage level
             considered_levels = [
                 {"ehv": 1, "hv": 3, "mv": 5, "lv": 7}[x]
@@ -207,11 +205,11 @@ def create_power_plant_lines(grid_data):
                 5: grid_data.mv_data.mv_lines,
                 7: grid_data.lv_data.lv_lines,
             }
-            for _, plant in plants_rel_3035.iterrows():
-                plant_bus = all_nodes_3035[all_nodes_3035.dave_name == plant.bus].iloc[0]
+            for _, plant in plants_rel.iterrows():
+                plant_bus = all_nodes[all_nodes.dave_name == plant.bus].iloc[0]
                 distance = plant.geometry.distance(plant_bus.geometry)  # in meter
                 if (distance > 50) and (plant_bus.voltage_level in considered_levels):
-                    # get plant coordinates in crs 4326
+                    # get plant coordinates in crs 4326 !!! Das muss bestimmt noch geändert werden
                     plant_geometry = plants_rel.loc[plant.name].geometry
                     # create auillary node
                     voltage_level = plant_bus.voltage_level
@@ -326,7 +324,7 @@ def create_power_plant_lines(grid_data):
                         elif voltage_level == 7:  # (LV)
                             grid_data.lv_data.lv_lines = line_new
                 # update progress
-                pbar.update(89.98 / len(plants_rel_3035))
+                pbar.update(89.98 / len(plants_rel))
         else:
             # update progress
             pbar.update(90)
@@ -349,6 +347,348 @@ def change_voltage_ren(plant):
     else:
         voltage_level = 5
     return voltage_level
+
+
+def renewables_lv_distribution(grid_data, power_levels, renewables_lv):
+    if "lv" in power_levels:
+        # In this case the Level 7 plants are assigned to the nearest lv node
+        voronoi_polygons = voronoi(grid_data.lv_data.lv_nodes[["dave_name", "geometry"]])
+        intersection = sjoin(renewables_lv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right", "centroid"], inplace=True)
+        intersection.rename(columns={"dave_name": "bus"}, inplace=True)
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+    # find next higher and considered voltage level to assigne the lv-plants
+    elif any(x in power_levels for x in ["ehv", "hv", "mv"]):
+        if "mv" in power_levels:
+            # In this case the Level 7 plants are assigned to the nearest mv/lv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.mv_lv[["dave_name", "geometry"]]
+            )
+            voltage_level = 6
+        elif "hv" in power_levels:
+            # In this case the Level 7 plants are assigned to the nearest hv/mv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
+            )
+            voltage_level = 4
+        elif "ehv" in power_levels:
+            # In this case the Level 7 plants are assigned to the nearest ehv/hv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+            )
+            voltage_level = 2
+        intersection = sjoin(renewables_lv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right"], inplace=True)
+        intersection.rename(
+            columns={
+                "centroid": "connection_node",
+                "dave_name": "connection_trafo_dave_name",
+            },
+            inplace=True,
+        )
+        # change voltage level to the new connection level
+        intersection.voltage_level = voltage_level
+        # select only data which is relevant after aggregation
+        intersection_rel = intersection[
+            [
+                "electrical_capacity_kw",
+                "generation_type",
+                "voltage_level",
+                "source",
+                "connection_node",
+                "connection_trafo_dave_name",
+            ]
+        ]
+        # aggregated power plants, set geometry and write them into grid data
+        aggregate_plants_ren(
+            grid_data,
+            intersection_rel,
+            aggregate_name="level 7 plants",
+        )
+
+
+def renewables_mv_lv_distribution(grid_data, power_levels, renewables_mv_lv):
+    if any(x in power_levels for x in ["mv", "lv"]):
+        # In this case the Level 6 plants are assigned to the nearest mv/lv-transformer
+        voronoi_polygons = voronoi(
+            grid_data.components_power.transformers.mv_lv[["dave_name", "geometry"]]
+        )
+        intersection = sjoin(renewables_mv_lv, voronoi_polygons, how="inner")
+        intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
+        # search transformer bus lv name
+        trafos = grid_data.components_power.transformers.mv_lv
+        intersection["bus"] = intersection.trafo_name.apply(
+            lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
+        )
+        intersection.drop(
+            columns=["index_right", "centroid", "trafo_name"],
+            inplace=True,
+        )
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+    # find next higher and considered voltage level to assigne the mvlv-plants
+    elif any(x in power_levels for x in ["ehv", "hv"]):
+        if "hv" in power_levels:
+            # In this case the Level 6 plants are assigned to the nearest hv/mv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
+            )
+            voltage_level = 4
+        elif "ehv" in power_levels:
+            # In this case the Level 6 plants are assigned to the nearest ehv/hv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+            )
+            voltage_level = 2
+        intersection = sjoin(renewables_mv_lv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right"], inplace=True)
+        intersection.rename(
+            columns={
+                "centroid": "connection_node",
+                "dave_name": "connection_trafo_dave_name",
+            },
+            inplace=True,
+        )
+        # change voltage level to the new connection level
+        intersection.voltage_level = voltage_level
+        # select only data which is relevant after aggregation
+        intersection_rel = intersection[
+            [
+                "electrical_capacity_kw",
+                "generation_type",
+                "voltage_level",
+                "source",
+                "connection_node",
+                "connection_trafo_dave_name",
+            ]
+        ]
+        # aggregated power plants, set geometry and write them into grid data
+        aggregate_plants_ren(
+            grid_data,
+            intersection_rel,
+            aggregate_name="level 6 plants",
+        )
+
+
+def renewables_mv_distribution(grid_data, power_levels, renewables_mv):
+    if "mv" in power_levels:
+        # In this case the Level 5 plants are assigned to the nearest mv node
+        voronoi_polygons = voronoi(grid_data.mv_data.mv_nodes[["dave_name", "geometry"]])
+        intersection = sjoin(renewables_mv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right", "centroid"], inplace=True)
+        intersection.rename(columns={"dave_name": "bus"}, inplace=True)
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+    # find next higher and considered voltage level to assigne the mv-plants
+    elif any(x in power_levels for x in ["ehv", "hv"]):
+        if "hv" in power_levels:
+            # In this case the Level 5 plants area assigned to the nearest hv/mv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
+            )
+            voltage_level = 4
+        elif "ehv" in power_levels:
+            # In this case the Level 5 plants are assigned to the nearest ehv/hv-transformer
+            voronoi_polygons = voronoi(
+                grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+            )
+            voltage_level = 2
+        intersection = sjoin(renewables_mv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right"], inplace=True)
+        intersection.rename(
+            columns={
+                "centroid": "connection_node",
+                "dave_name": "connection_trafo_dave_name",
+            },
+            inplace=True,
+        )
+        # change voltage level to the new connection level
+        intersection.voltage_level = voltage_level
+        # select only data which is relevant after aggregation
+        intersection_rel = intersection[
+            [
+                "electrical_capacity_kw",
+                "generation_type",
+                "voltage_level",
+                "source",
+                "connection_node",
+                "connection_trafo_dave_name",
+            ]
+        ]
+        # aggregated power plants, set geometry and write them into grid data
+        aggregate_plants_ren(
+            grid_data,
+            intersection_rel,
+            aggregate_name="level 5 plants",
+        )
+
+
+def renewables_hv_mv_distribution(grid_data, power_levels, renewables_hv_mv):
+    if any(x in power_levels for x in ["hv", "mv"]):
+        # In this case the Level 4 plants are assigned to the nearest hv/mv-transformer
+        voronoi_polygons = voronoi(
+            grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
+        )
+        intersection = sjoin(renewables_hv_mv, voronoi_polygons, how="inner")
+        intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
+        # search transformer bus lv name
+        trafos = grid_data.components_power.transformers.hv_mv
+        intersection["bus"] = intersection.trafo_name.apply(
+            lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
+        )
+        intersection.drop(
+            columns=["index_right", "centroid", "trafo_name"],
+            inplace=True,
+        )
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+    # find next higher and considered voltage level to assigne the hvmv-plants
+    elif "ehv" in power_levels:
+        # In this case the Level 4 plants assigned to the nearest ehv/hv-transformer
+        voronoi_polygons = voronoi(
+            grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+        )
+        intersection = sjoin(renewables_hv_mv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right"], inplace=True)
+        intersection.rename(
+            columns={
+                "centroid": "connection_node",
+                "dave_name": "connection_trafo_dave_name",
+            },
+            inplace=True,
+        )
+        # change voltage level to the new connection level
+        intersection.voltage_level = 2
+        # select only data which is relevant after aggregation
+        intersection_rel = intersection[
+            [
+                "electrical_capacity_kw",
+                "generation_type",
+                "voltage_level",
+                "source",
+                "connection_node",
+                "connection_trafo_dave_name",
+            ]
+        ]
+        # aggregated power plants, set geometry and write them into grid data
+        aggregate_plants_ren(
+            grid_data,
+            intersection_rel,
+            aggregate_name="level 4 plants",
+        )
+
+
+def renewables_hv_distribution(grid_data, power_levels, renewables_hv):
+    if "hv" in power_levels:
+        # In this case the Level 3 plants are assigned to the nearest hv node
+        voronoi_polygons = voronoi(grid_data.hv_data.hv_nodes[["dave_name", "geometry"]])
+        intersection = sjoin(renewables_hv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right", "centroid"], inplace=True)
+        intersection.rename(columns={"dave_name": "bus"}, inplace=True)
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+    # find next higher and considered voltage level to assigne the hv-plants
+    elif "ehv" in power_levels:
+        # In this case the Level 3 plants are assigned to the nearest ehv/hv-transformer
+        voronoi_polygons = voronoi(
+            grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+        )
+        intersection = sjoin(renewables_hv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right"], inplace=True)
+        intersection.rename(
+            columns={
+                "centroid": "connection_node",
+                "dave_name": "connection_trafo_dave_name",
+            },
+            inplace=True,
+        )
+        # change voltage level to the new connection level
+        intersection.voltage_level = 2
+        # select only data which is relevant after aggregation
+        intersection_rel = intersection[
+            [
+                "electrical_capacity_kw",
+                "generation_type",
+                "voltage_level",
+                "source",
+                "connection_node",
+                "connection_trafo_dave_name",
+            ]
+        ]
+        # aggregated power plants, set geometry and write them into grid data
+        aggregate_plants_ren(
+            grid_data,
+            intersection_rel,
+            aggregate_name="level 3 plants",
+        )
+
+
+def renewables_ehv_hv_distribution(grid_data, power_levels, renewables_ehv_hv):
+    if any(x in power_levels for x in ["ehv", "hv"]):
+        # In this case the Level 2 plants are assigned to the nearest ehv/hv-transformer
+        voronoi_polygons = voronoi(
+            grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
+        )
+        intersection = sjoin(renewables_ehv_hv, voronoi_polygons, how="inner")
+        intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
+        # search transformer bus lv name
+        trafos = grid_data.components_power.transformers.ehv_hv
+        intersection["bus"] = intersection.trafo_name.apply(
+            lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
+        )
+        intersection.drop(
+            columns=["index_right", "centroid", "trafo_name"],
+            inplace=True,
+        )
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
+
+
+def renewables_ehv_distribution(grid_data, power_levels, renewables_ehv):
+    if "ehv" in power_levels:
+        # In this case the Level 1 plants are assigned to the nearest ehv node
+        voronoi_polygons = voronoi(grid_data.ehv_data.ehv_nodes[["dave_name", "geometry"]])
+        intersection = sjoin(renewables_ehv, voronoi_polygons, how="inner")
+        intersection.drop(columns=["index_right", "centroid"], inplace=True)
+        intersection.rename(columns={"dave_name": "bus"}, inplace=True)
+        grid_data.components_power.renewable_powerplants = concat(
+            [
+                grid_data.components_power.renewable_powerplants,
+                intersection,
+            ],
+            ignore_index=True,
+        )
 
 
 def create_renewable_powerplants(grid_data):
@@ -415,31 +755,19 @@ def create_renewable_powerplants(grid_data):
         # find exact location by adress for renewable power plants which are on mv-level or lower
         if any(x in power_levels for x in ["mv", "lv"]):
             plant_georeference = renewables[renewables.voltage_level >= 5]
-            plant_georeference["full_adress"] = [
-                (
-                    "".join(
-                        [
-                            str(p.address),
-                            " ",
-                            str(p.postcode),
-                            " ",
-                            str(p.city),
-                        ]
-                    )
-                    if p.address is not None
-                    else None
-                )
-                for _, p in plant_georeference.iterrows()
-            ]
-            # run location request in multithreading
+            plant_georeference["full_adress"] = plant_georeference.apply(
+                lambda x: f"{x.address} {x.postcode} {x.city}" if x.address is not None else None,
+                axis=1,
+            )
+            # run location request in multithreading (hint: dask is much slower)
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = executor.map(adress_to_coords, plant_georeference.full_adress)
+                results = executor.map(
+                    adress_to_coords,
+                    plant_georeference.full_adress,
+                )
                 results = Series(list(results), index=plant_georeference.index)
-
-                for i, res in results.items():
-                    if res:
-                        renewables.at[i, "lon"] = res[0]
-                        renewables.at[i, "lat"] = res[1]
+            renewables["lon"] = results.apply(lambda x: x[0] if x and x[0] else None)
+            renewables["lat"] = results.apply(lambda x: x[1] if x and x[1] else None)
             # update progress
             pbar.update(20)
         else:
@@ -448,9 +776,10 @@ def create_renewable_powerplants(grid_data):
         # convert DataFrame into a GeoDataFrame
         renewables_geo = GeoDataFrame(
             renewables,
-            crs=dave_settings["crs_main"],
+            crs=dave_settings["crs_degree"],
             geometry=points_from_xy(renewables.lon, renewables.lat),
         )
+        renewables_geo.to_crs(dave_settings["crs_main"], inplace=True)
         # intersection of power plants with target_area when target is an own area
         if typ == "own area":
             renewables_geo = intersection_with_area(
@@ -468,357 +797,44 @@ def create_renewable_powerplants(grid_data):
 
         # --- nodes for level 7 plants (LV)
         if not renewables_lv.empty:
-            if "lv" in power_levels:
-                # In this case the Level 7 plants are assigned to the nearest lv node
-                voronoi_polygons = voronoi(grid_data.lv_data.lv_nodes[["dave_name", "geometry"]])
-                intersection = sjoin(renewables_lv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right", "centroid"], inplace=True)
-                intersection.rename(columns={"dave_name": "bus"}, inplace=True)
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
-            # find next higher and considered voltage level to assigne the lv-plants
-            elif any(x in power_levels for x in ["ehv", "hv", "mv"]):
-                if "mv" in power_levels:
-                    # In this case the Level 7 plants are assigned to the nearest mv/lv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.mv_lv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 6
-                elif "hv" in power_levels:
-                    # In this case the Level 7 plants are assigned to the nearest hv/mv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 4
-                elif "ehv" in power_levels:
-                    # In this case the Level 7 plants are assigned to the nearest ehv/hv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 2
-                intersection = sjoin(renewables_lv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right"], inplace=True)
-                intersection.rename(
-                    columns={
-                        "centroid": "connection_node",
-                        "dave_name": "connection_trafo_dave_name",
-                    },
-                    inplace=True,
-                )
-                # change voltage level to the new connection level
-                intersection.voltage_level = voltage_level
-                # select only data which is relevant after aggregation
-                intersection_rel = intersection[
-                    [
-                        "electrical_capacity_kw",
-                        "generation_type",
-                        "voltage_level",
-                        "source",
-                        "connection_node",
-                        "connection_trafo_dave_name",
-                    ]
-                ]
-                # aggregated power plants, set geometry and write them into grid data
-                aggregate_plants_ren(
-                    grid_data,
-                    intersection_rel,
-                    aggregate_name="level 7 plants",
-                )
+            renewables_lv_distribution(grid_data, power_levels, renewables_lv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 6 plants (MV/LV)
         if not renewables_mv_lv.empty:
-            if any(x in power_levels for x in ["mv", "lv"]):
-                # In this case the Level 6 plants are assigned to the nearest mv/lv-transformer
-                voronoi_polygons = voronoi(
-                    grid_data.components_power.transformers.mv_lv[["dave_name", "geometry"]]
-                )
-                intersection = sjoin(renewables_mv_lv, voronoi_polygons, how="inner")
-                intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
-                # search transformer bus lv name
-                trafos = grid_data.components_power.transformers.mv_lv
-                intersection["bus"] = intersection.trafo_name.apply(
-                    lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
-                )
-                intersection.drop(
-                    columns=["index_right", "centroid", "trafo_name"],
-                    inplace=True,
-                )
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
-            # find next higher and considered voltage level to assigne the mvlv-plants
-            elif any(x in power_levels for x in ["ehv", "hv"]):
-                if "hv" in power_levels:
-                    # In this case the Level 6 plants are assigned to the nearest hv/mv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 4
-                elif "ehv" in power_levels:
-                    # In this case the Level 6 plants are assigned to the nearest ehv/hv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 2
-                intersection = sjoin(renewables_mv_lv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right"], inplace=True)
-                intersection.rename(
-                    columns={
-                        "centroid": "connection_node",
-                        "dave_name": "connection_trafo_dave_name",
-                    },
-                    inplace=True,
-                )
-                # change voltage level to the new connection level
-                intersection.voltage_level = voltage_level
-                # select only data which is relevant after aggregation
-                intersection_rel = intersection[
-                    [
-                        "electrical_capacity_kw",
-                        "generation_type",
-                        "voltage_level",
-                        "source",
-                        "connection_node",
-                        "connection_trafo_dave_name",
-                    ]
-                ]
-                # aggregated power plants, set geometry and write them into grid data
-                aggregate_plants_ren(
-                    grid_data,
-                    intersection_rel,
-                    aggregate_name="level 6 plants",
-                )
+            renewables_mv_lv_distribution(grid_data, power_levels, renewables_mv_lv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 5 plants (MV)
         if not renewables_mv.empty:
-            if "mv" in power_levels:
-                # In this case the Level 5 plants are assigned to the nearest mv node
-                voronoi_polygons = voronoi(grid_data.mv_data.mv_nodes[["dave_name", "geometry"]])
-                intersection = sjoin(renewables_mv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right", "centroid"], inplace=True)
-                intersection.rename(columns={"dave_name": "bus"}, inplace=True)
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
-            # find next higher and considered voltage level to assigne the mv-plants
-            elif any(x in power_levels for x in ["ehv", "hv"]):
-                if "hv" in power_levels:
-                    # In this case the Level 5 plants area assigned to the nearest hv/mv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 4
-                elif "ehv" in power_levels:
-                    # In this case the Level 5 plants are assigned to the nearest ehv/hv-transformer
-                    voronoi_polygons = voronoi(
-                        grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                    )
-                    voltage_level = 2
-                intersection = sjoin(renewables_mv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right"], inplace=True)
-                intersection.rename(
-                    columns={
-                        "centroid": "connection_node",
-                        "dave_name": "connection_trafo_dave_name",
-                    },
-                    inplace=True,
-                )
-                # change voltage level to the new connection level
-                intersection.voltage_level = voltage_level
-                # select only data which is relevant after aggregation
-                intersection_rel = intersection[
-                    [
-                        "electrical_capacity_kw",
-                        "generation_type",
-                        "voltage_level",
-                        "source",
-                        "connection_node",
-                        "connection_trafo_dave_name",
-                    ]
-                ]
-                # aggregated power plants, set geometry and write them into grid data
-                aggregate_plants_ren(
-                    grid_data,
-                    intersection_rel,
-                    aggregate_name="level 5 plants",
-                )
+            renewables_mv_distribution(grid_data, power_levels, renewables_mv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 4 plants (HV/MV)
         if not renewables_hv_mv.empty:
-            if any(x in power_levels for x in ["hv", "mv"]):
-                # In this case the Level 4 plants are assigned to the nearest hv/mv-transformer
-                voronoi_polygons = voronoi(
-                    grid_data.components_power.transformers.hv_mv[["dave_name", "geometry"]]
-                )
-                intersection = sjoin(renewables_hv_mv, voronoi_polygons, how="inner")
-                intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
-                # search transformer bus lv name
-                trafos = grid_data.components_power.transformers.hv_mv
-                intersection["bus"] = intersection.trafo_name.apply(
-                    lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
-                )
-                intersection.drop(
-                    columns=["index_right", "centroid", "trafo_name"],
-                    inplace=True,
-                )
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
-            # find next higher and considered voltage level to assigne the hvmv-plants
-            elif "ehv" in power_levels:
-                # In this case the Level 4 plants assigned to the nearest ehv/hv-transformer
-                voronoi_polygons = voronoi(
-                    grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                )
-                intersection = sjoin(renewables_hv_mv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right"], inplace=True)
-                intersection.rename(
-                    columns={
-                        "centroid": "connection_node",
-                        "dave_name": "connection_trafo_dave_name",
-                    },
-                    inplace=True,
-                )
-                # change voltage level to the new connection level
-                intersection.voltage_level = 2
-                # select only data which is relevant after aggregation
-                intersection_rel = intersection[
-                    [
-                        "electrical_capacity_kw",
-                        "generation_type",
-                        "voltage_level",
-                        "source",
-                        "connection_node",
-                        "connection_trafo_dave_name",
-                    ]
-                ]
-                # aggregated power plants, set geometry and write them into grid data
-                aggregate_plants_ren(
-                    grid_data,
-                    intersection_rel,
-                    aggregate_name="level 4 plants",
-                )
+            renewables_hv_mv_distribution(grid_data, power_levels, renewables_hv_mv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 3 plants (HV)
         if not renewables_hv.empty:
-            if "hv" in power_levels:
-                # In this case the Level 3 plants are assigned to the nearest hv node
-                voronoi_polygons = voronoi(grid_data.hv_data.hv_nodes[["dave_name", "geometry"]])
-                intersection = sjoin(renewables_hv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right", "centroid"], inplace=True)
-                intersection.rename(columns={"dave_name": "bus"}, inplace=True)
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
-            # find next higher and considered voltage level to assigne the hv-plants
-            elif "ehv" in power_levels:
-                # In this case the Level 3 plants are assigned to the nearest ehv/hv-transformer
-                voronoi_polygons = voronoi(
-                    grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                )
-                intersection = sjoin(renewables_hv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right"], inplace=True)
-                intersection.rename(
-                    columns={
-                        "centroid": "connection_node",
-                        "dave_name": "connection_trafo_dave_name",
-                    },
-                    inplace=True,
-                )
-                # change voltage level to the new connection level
-                intersection.voltage_level = 2
-                # select only data which is relevant after aggregation
-                intersection_rel = intersection[
-                    [
-                        "electrical_capacity_kw",
-                        "generation_type",
-                        "voltage_level",
-                        "source",
-                        "connection_node",
-                        "connection_trafo_dave_name",
-                    ]
-                ]
-                # aggregated power plants, set geometry and write them into grid data
-                aggregate_plants_ren(
-                    grid_data,
-                    intersection_rel,
-                    aggregate_name="level 3 plants",
-                )
+            renewables_hv_distribution(grid_data, power_levels, renewables_hv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 2 plants (EHV/HV)
         if not renewables_ehv_hv.empty:
-            if any(x in power_levels for x in ["ehv", "hv"]):
-                # In this case the Level 2 plants are assigned to the nearest ehv/hv-transformer
-                voronoi_polygons = voronoi(
-                    grid_data.components_power.transformers.ehv_hv[["dave_name", "geometry"]]
-                )
-                intersection = sjoin(renewables_ehv_hv, voronoi_polygons, how="inner")
-                intersection.rename(columns={"dave_name": "trafo_name"}, inplace=True)
-                # search transformer bus lv name
-                trafos = grid_data.components_power.transformers.ehv_hv
-                intersection["bus"] = intersection.trafo_name.apply(
-                    lambda x: trafos[trafos.dave_name == x].iloc[0].bus_lv
-                )
-                intersection.drop(
-                    columns=["index_right", "centroid", "trafo_name"],
-                    inplace=True,
-                )
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
+            renewables_ehv_hv_distribution(grid_data, power_levels, renewables_ehv_hv)
         # update progress
         pbar.update(10)
 
         # --- nodes for level 1 plants (EHV)
         if not renewables_ehv.empty:
-            if "ehv" in power_levels:
-                # In this case the Level 1 plants are assigned to the nearest ehv node
-                voronoi_polygons = voronoi(grid_data.ehv_data.ehv_nodes[["dave_name", "geometry"]])
-                intersection = sjoin(renewables_ehv, voronoi_polygons, how="inner")
-                intersection.drop(columns=["index_right", "centroid"], inplace=True)
-                intersection.rename(columns={"dave_name": "bus"}, inplace=True)
-                grid_data.components_power.renewable_powerplants = concat(
-                    [
-                        grid_data.components_power.renewable_powerplants,
-                        intersection,
-                    ],
-                    ignore_index=True,
-                )
+            renewables_ehv_distribution(grid_data, power_levels, renewables_ehv)
+
         # --- add general informations
         if not grid_data.components_power.renewable_powerplants.empty:
             # add dave name

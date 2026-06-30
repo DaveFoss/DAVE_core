@@ -8,8 +8,8 @@ from pathlib import Path
 
 import geopandas as gpd
 
-from dave_core import dave_settings
 from dave_core.create import create_grid
+from dave_core.settings import dave_settings
 
 """
 This is a example file for testing dave

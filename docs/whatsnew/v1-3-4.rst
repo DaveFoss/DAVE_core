@@ -1,0 +1,25 @@
+1.3.4 (June 30, 2026)
+==========================
+
+Added
+-----
+
+* structure for new plausibility module
+* function for adding dave name to dataframe
+* add fallback server for osm
+* retry oep request when time out
+
+Changed
+-------
+
+* moved calculation of road junctions and road endings directly into collection of road data
+* speed up landuse and building proccessing
+* base crs from 4326 to 3035
+* save oep data locally
+* dict name roads to road_data
+
+
+Fixed
+-----
+
+* json export issues with nan values

@@ -15,6 +15,7 @@ from dave_core.datapool.read_data import read_gaslib
 from dave_core.datapool.read_data import read_scigridgas_iggielgn
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 
 
@@ -209,12 +210,7 @@ def create_hp_topology(grid_data):
             lambda x: gaslib_pipe_data[x]["roughness"]
         )
         # add pipes to grid data
-        hp_pipes.reset_index(drop=True, inplace=True)
-        hp_pipes.insert(
-            0,
-            "dave_name",
-            Series([f"pipe_1_{x}" for x in hp_pipes.index]),
-        )
+        hp_pipes = add_dave_name(hp_pipes, "pipe_1")
         hp_pipes.set_crs(dave_settings["crs_main"], inplace=True)
         grid_data.hp_data.hp_pipes = concat(
             [grid_data.hp_data.hp_pipes, hp_pipes], ignore_index=True

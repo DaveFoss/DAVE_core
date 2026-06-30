@@ -5,11 +5,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+import time
 from collections import namedtuple
 from time import sleep
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+import requests
 from defusedxml.ElementTree import fromstring
 from geopandas import GeoDataFrame
 from pandas import DataFrame
@@ -22,6 +25,30 @@ from six import string_types
 
 from dave_core.datapool.read_data import get_data_path
 from dave_core.settings import dave_settings
+
+
+def ping_server(server):
+    """
+    send ping to server and calculate latency
+    """
+    try:
+        start = time.time()
+        requests.post(server, data={"data": dave_settings["osm_ping_query"]}, timeout=5)
+        latency = time.time() - start
+        return latency
+    except Exception:
+        return float("inf")
+
+
+def sort_servers_by_latency():
+    """
+    Sort osm server by latency
+    """
+    # calculate latencies for servers, filter server with a too long latency and sort by latency
+    latencies = [(server, ping_server(server)) for server in dave_settings["osm_server"]]
+    latencies = [x for x in latencies if x[1] != float("inf")]
+    latencies.sort(key=lambda x: x[1])
+    return [server for server, _ in latencies]
 
 
 def osm_request(data_type, area):
@@ -72,7 +99,7 @@ def osm_request(data_type, area):
 
 
 OSMData = namedtuple("OSMData", ("nodes", "waynodes", "waytags", "relmembers", "reltags"))
-_crs = "epsg:4326"
+
 
 # Tags to remove so we don't clobber the output. This list comes from
 # osmtogeojson's index.js (https://github.com/tyrasd/osmtogeojson)
@@ -147,26 +174,35 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
         df = df[df.type == 'LineString']
 
     """
-    url = _build_url(typ, bbox, recurse, tags, meta)
-    # add time delay because osm doesn't alowed more than 1 request per second.
-    time_delay = dave_settings["osm_time_delay"]
 
     # TODO: Raise on non-200 (or 400-599)
     # with urlopen(url) as response:
     #     content = response.read()
     while 1:
+        # check best server
+        # servers = sort_servers_by_latency()
+        servers = list(dave_settings["osm_server"])
         try:
-            if not url.startswith(("http:", "https:")):
-                raise ValueError("URL must start with 'http:' or 'https:'")
-            with urlopen(url) as response:  # noqa: S310
-                content = response.read()
-                if response.getcode() == 200:
-                    break
-        except Exception as inst:
+            while servers:
+                server = servers[0]
+                try:
+                    url = _build_url(server, typ, bbox, recurse, tags, meta)
+                    if not url.startswith(("http:", "https:")):
+                        raise ValueError("URL must start with 'http:' or 'https:'")
+                    with urlopen(url) as response:  # noqa: S310
+                        content = response.read()
+                        if response.getcode() == 200:
+                            break
+                except HTTPError:
+                    del servers[0]
+            if len(servers) == 0:
+                raise ValueError("Alle server ausgelastet")
+            else:
+                break
+        except ValueError as inst:
             print(f'\n Retry OSM query because of "{inst}"')
             # add time delay
-            sleep(time_delay)
-
+            sleep(dave_settings["osm_time_delay"])
     # get meta informations
     meta_data = read_excel(get_data_path("osm_meta.xlsx", "data"), sheet_name=None)
 
@@ -175,7 +211,7 @@ def query_osm(typ, bbox=None, recurse=None, tags="", raw=False, meta=False, **kw
     return read_osm(content, **kwargs), meta_data
 
 
-def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
+def _build_url(server, typ, bbox=None, recurse=None, tags="", meta=False):
     recurse_map = {
         "up": "<",
         "uprel": "<<",
@@ -212,9 +248,10 @@ def _build_url(typ, bbox=None, recurse=None, tags="", meta=False):
 
     query = f"({typ}{bboxstr}{queries};{recursestr};);out {metastr};"
 
+    # create url for query
     url = "".join(
         [
-            "http://www.overpass-api.de/api/interpreter?",
+            f"{server}?",
             urlencode({"data": query}),
         ]
     )
@@ -256,7 +293,6 @@ def read_nodes(doc):
     if not nodes.empty:
         nodes["lon"] = nodes["lon"].astype(float)
         nodes["lat"] = nodes["lat"].astype(float)
-
     return nodes
 
 
@@ -266,7 +302,6 @@ def _element_to_dict(element):
         k = t.attrib["k"]
         if k not in uninteresting_tags:
             d[k] = t.attrib["v"]
-
     return d
 
 
@@ -274,7 +309,6 @@ def _dict_to_dataframe(d):
     df = DataFrame.from_dict(d)
     if "timestamp" in df:
         df["timestamp"] = to_datetime(df["timestamp"])
-
     return df
 
 
@@ -309,7 +343,6 @@ def read_ways(doc):
 
     waynodes = _dict_to_dataframe(waynodes)
     waytags = _dict_to_dataframe(waytags)
-
     return waynodes, waytags
 
 
@@ -353,19 +386,18 @@ def render_to_gdf(osmdata, drop_untagged=True):
 
     # set landuse tag from origin relation at relation members who has no landuse tag
     if (ways is not None) and ("landuse" in ways.keys()) and (not osmdata.relmembers.empty):
+        # get and add origin relation id
+        ways["relation_id"] = ways.id.apply(
+            lambda x: osmdata.relmembers[osmdata.relmembers.ref == x].iloc[0].id
+        )
         for i, way in ways.iterrows():
-            # get and add origin relation id
-            rel_id = osmdata.relmembers[osmdata.relmembers.ref == way.id].iloc[0].id
-            ways.at[i, "relation_id"] = rel_id
             # get and add origin relation landuse if needed
-            osm_reltag = osmdata.reltags[osmdata.reltags.id == rel_id].iloc[0]
+            osm_reltag = osmdata.reltags[osmdata.reltags.id == way.relation_id].iloc[0]
             if "landuse" in osm_reltag.keys() and str(way.landuse) == "nan":
                 ways.at[i, "landuse"] = osm_reltag.landuse
-
     if ways is not None:
         nodes = concat([nodes, ways], ignore_index=True)
-        nodes = nodes.set_geometry("geometry", crs=_crs)
-
+        nodes = nodes.set_geometry("geometry", crs=dave_settings["crs_degree"])
     return nodes
 
 
@@ -375,10 +407,9 @@ def render_nodes(nodes, drop_untagged=True):
         # Drop nodes that have no tags, convert lon/lat to points
         if drop_untagged:
             nodes = nodes.dropna(subset=nodes.columns.drop(["id", "lon", "lat"]), how="all")
-        points = [Point(x["lon"], x["lat"]) for i, x in nodes.iterrows()]
+        points = nodes.apply(lambda x: Point(x["lon"], x["lat"]), axis=1)
         nodes = nodes.drop(["lon", "lat"], axis=1)
-        nodes = nodes.set_geometry(points, crs=_crs)
-
+        nodes = nodes.set_geometry(points, crs=dave_settings["crs_degree"])
     return nodes
 
 
@@ -399,7 +430,7 @@ def render_ways(nodes, waynodes, waytags):
     # Merge it with the waytags to get a single GeoDataFrame of ways
     waynodes = waynodes.merge(node_points, left_on="ref", right_on="id", suffixes=("", "_nodes"))
     way_lines = waynodes.groupby("id").apply(wayline, include_groups=False)
-    ways = waytags.set_index("id").set_geometry(way_lines, crs=_crs)
+    ways = waytags.set_index("id").set_geometry(way_lines, crs=dave_settings["crs_degree"])
     ways.reset_index(inplace=True)
 
     return ways

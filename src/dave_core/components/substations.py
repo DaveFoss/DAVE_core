@@ -5,11 +5,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from pandas import Series
 from pandas import concat
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
 from dave_core.datapool.oep_request import oep_request
 from dave_core.settings import dave_settings
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import intersection_with_area
 
 
@@ -37,17 +39,20 @@ def create_hv_mv_substations(grid_data):
             },
             inplace=True,
         )
+        # filter substations with point as geometry
+        drop_substations = [
+            sub.name
+            for i, sub in hvmv_substations.iterrows()
+            if isinstance(sub.geometry, (Point, LineString))
+        ]
+        hvmv_substations.drop(drop_substations, inplace=True)
         # filter substations which are within the grid area
         hvmv_substations = intersection_with_area(hvmv_substations, grid_data.area)
+
         if not hvmv_substations.empty:
             hvmv_substations["voltage_level"] = 4
             # add dave name
-            hvmv_substations.reset_index(drop=True, inplace=True)
-            hvmv_substations.insert(
-                0,
-                "dave_name",
-                Series([f"substation_4_{x}" for x in hvmv_substations.index]),
-            )
+            hvmv_substations = add_dave_name(hvmv_substations, "substation_4")
             # set crs
             hvmv_substations.set_crs(dave_settings["crs_main"], inplace=True)
             # add ehv substations to grid data
@@ -82,19 +87,14 @@ def create_mv_lv_substations(grid_data):
             },
             inplace=True,
         )
-        # change wrong crs from oep
+        # add crs
         mvlv_substations.crs = dave_settings["crs_main"]
         # filter trafos which are within the grid area
         mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)
         if not mvlv_substations.empty:
             mvlv_substations["voltage_level"] = 6
             # add dave name
-            mvlv_substations.reset_index(drop=True, inplace=True)
-            mvlv_substations.insert(
-                0,
-                "dave_name",
-                Series([f"substation_6_{x}" for x in mvlv_substations.index]),
-            )
+            mvlv_substations = add_dave_name(mvlv_substations, "substation_6")
             # add ehv substations to grid data
             grid_data.components_power.substations.mv_lv = concat(
                 [

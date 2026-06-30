@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -11,12 +11,14 @@ from geopandas import GeoSeries
 from pandas import concat
 from shapely import union_all
 from shapely.geometry import LineString
-from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from dave_core.datapool.osm_request import osm_request
+from dave_core.geography.geo_utils import generate_road_endings
+from dave_core.model_utils import filter_isolated_edges
 from dave_core.settings import dave_settings
 from dave_core.toolbox import intersection_with_area
+from dave_core.topology.topology_utils import add_nodes_to_lines
 
 
 def get_osm_data(grid_data, key, border, target_geom):
@@ -45,8 +47,155 @@ def get_osm_data(grid_data, key, border, target_geom):
             (data_dask.apply(lambda x: isinstance(x, LineString), meta=data_dask).compute())
             & (data_dask.intersects(target_geom).compute())
         ]
-        data.set_crs(dave_settings["crs_main"], inplace=True)
+        data.set_crs(dave_settings["crs_degree"], inplace=True)
+        data.to_crs(dave_settings["crs_main"], inplace=True)
     return data
+
+
+def calculate_road_junctions(roads):
+    """
+    This function searches junctions for the relevant roads in the target area
+    """
+    if not roads.empty:
+        junction_points = []
+        while len(roads) > 1:
+            # considered line
+            line_geometry = roads.iloc[0].geometry
+            # check considered line surrounding for possible intersectionpoints with other lines
+            lines_cross = roads[roads.geometry.crosses(line_geometry.buffer(1))]
+            if not lines_cross.empty:
+                # find line intersections between considered line and other lines
+                line_junctions = line_geometry.intersection(lines_cross.geometry.unary_union)
+                if line_junctions.geom_type == "Point":
+                    junction_points.append(line_junctions)
+                elif line_junctions.geom_type == "MultiPoint":
+                    for point in line_junctions.geoms:
+                        junction_points.append(point)
+            # set new roads quantity for the next iterationstep
+            roads = roads.iloc[1:, :]
+            roads.reset_index(drop=True, inplace=True)
+        # delet duplicates
+        junctions = GeoSeries(junction_points).drop_duplicates()
+        # write road junctions into grid_data
+        road_junctions = GeoDataFrame(
+            {
+                "node_type": "road_junction",
+                "source": "dave internal",
+                "geometry": junctions,
+            },
+            crs=dave_settings["crs_main"],
+        )
+        return road_junctions
+
+
+def road_processing(grid_data, roads):
+    # filter relevant roads
+    roads_highway_dask = from_geopandas(
+        roads.highway,
+        npartitions=dave_settings["cpu_number"],
+    )
+    roads_relevant = roads[roads_highway_dask.isin(dave_settings["roads_relevant"]).compute()]
+
+    # calculate road junctions for relevant roads
+    road_junctions = calculate_road_junctions(roads_relevant)
+    grid_data.road_data.road_junctions = concat(
+        [grid_data.road_data.road_junctions, road_junctions], ignore_index=True
+    )
+    grid_data.road_data.road_junctions.set_geometry("geometry", inplace=True)
+
+    # calculate road endings wich are not coresspond to a rodad junction
+    road_endings = generate_road_endings(roads_relevant, road_junctions)
+    grid_data.road_data.road_endings = concat(
+        [grid_data.road_data.road_endings, road_endings], ignore_index=True
+    )
+    grid_data.road_data.road_endings.set_geometry("geometry", inplace=True)
+    # add road junctions and road endings to road network
+    nodes = concat([road_junctions, road_endings])
+    nodes.reset_index(drop=True, inplace=True)
+    roads_splited = add_nodes_to_lines(nodes, lines_existing=roads_relevant)
+    # search and filter isolated roads
+    roads_relevant = filter_isolated_edges(roads_splited, nodes)
+    grid_data.road_data.roads = concat(
+        [grid_data.road_data.roads, roads_relevant], ignore_index=True
+    )
+
+
+def landuse_processing(grid_data, landuse):
+    # filter landuses with geometry given as point or LineString with less than 3 coords
+    landuse = landuse[
+        landuse.geometry.apply(lambda x: isinstance(x, LineString) and len(x.coords[:]) >= 3)
+    ]
+    # convert geometry to polygon
+    landuse["geometry"] = landuse.geometry.apply(lambda x: Polygon(x))
+
+    # intersect landuses with the target area
+    area = grid_data.area.rename(columns={"name": "bundesland"})
+    # filter landuses which are within the grid area
+    landuse = intersection_with_area(landuse, area)  # !!! duplicated with intersection before?
+    # calculate polygon area in km²
+    landuse["area_km2"] = landuse.area / 1e06
+    # write landuse into grid_data
+    grid_data.landuse = concat([grid_data.landuse, landuse], ignore_index=True)
+
+
+def improve_building_tag(
+    building_origin, building_geo, landuse_retail, landuse_industrial, landuse_commercial
+):
+    if landuse_retail is not None and building_geo.intersects(landuse_retail):
+        building_type = "retail"
+    elif landuse_industrial is not None and building_geo.intersects(landuse_industrial):
+        building_type = "industrial"
+    elif landuse_commercial is not None and building_geo.intersects(landuse_commercial):
+        building_type = "commercial"
+    else:
+        building_type = building_origin
+    return building_type
+
+
+def building_processing(grid_data, buildings, landuse):
+    # create building categories
+    residential = dave_settings["buildings_residential"]
+    commercial = dave_settings["buildings_commercial"]
+    # improve building tag with landuse parameter
+    if landuse if isinstance(landuse, bool) else not landuse.empty:
+        landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
+        landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
+        landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
+        buildings_dask = from_geopandas(buildings, npartitions=dave_settings["cpu_number"])
+        buildings["building"] = buildings_dask.apply(
+            lambda x: (
+                improve_building_tag(
+                    x.building, x.geometry, landuse_retail, landuse_industrial, landuse_commercial
+                )
+                if x.building not in commercial
+                else x.building
+            ),
+            axis=1,
+            meta=buildings_dask,
+        ).compute()
+
+    # write buildings into grid_data
+    grid_data.buildings.residential = concat(
+        [
+            grid_data.buildings.residential,
+            buildings[buildings.building.isin(residential)],
+        ],
+        ignore_index=True,
+    )
+    grid_data.buildings.commercial = concat(
+        [
+            grid_data.buildings.commercial,
+            buildings[buildings.building.isin(commercial)],
+        ],
+        ignore_index=True,
+    )
+    grid_data.buildings.other = concat(
+        [
+            grid_data.buildings.other,
+            buildings[~buildings.building.isin(residential + commercial)],
+        ],
+        ignore_index=True,
+    )
 
 
 def from_osm(
@@ -79,8 +228,10 @@ def from_osm(
     border_buffer = target_geom_buff.convex_hull
     # search relevant road informations in the target area
     if roads:
+        # collect road data from osm
         roads = get_osm_data(grid_data, "road", border_buffer, target_geom_buff)
-        grid_data.roads.roads = concat([grid_data.roads.roads, roads], ignore_index=True)
+        if not roads.empty:
+            road_processing(grid_data, roads)
         # update progress
         pbar.update(progress_step / objects_con)
     # search landuse informations in the target area
@@ -91,35 +242,13 @@ def from_osm(
         leisure = get_osm_data(grid_data, "leisure", border_buffer, target_geom_buff)
         # request some natural place information which are relevant as landuse area
         natural = get_osm_data(
-            grid_data, "natural", border.buffer(0.01), target_geom
+            grid_data, "natural", border.buffer(dave_settings["osm_area_buffer"]), target_geom
         )  # !!! Fehler landuse attribute
         # natural parameter in landuse umbenennen und zu landuse hinzufügen?
         landuse = concat([landuse, leisure, natural], ignore_index=True)
         # check if there are data for landuse
         if not landuse.empty:
-            # convert geometry to polygon
-            for _, land in landuse.iterrows():
-                if isinstance(land.geometry, LineString):
-                    # A LinearRing must have at least 3 coordinate tuples
-                    if len(land.geometry.coords[:]) >= 3:
-                        landuse.at[land.name, "geometry"] = Polygon(land.geometry)
-                    else:
-                        landuse.drop([land.name], inplace=True)
-                elif isinstance(land.geometry, Point):
-                    # delet landuse if geometry is a point
-                    landuse.drop([land.name], inplace=True)
-            # intersect landuses with the target area
-            area = grid_data.area.rename(columns={"name": "bundesland"})
-            # filter landuses which are within the grid area
-            landuse = intersection_with_area(
-                landuse, area
-            )  # !!! duplicated with intersection before?
-            # calculate polygon area in km²
-            landuse_3035 = landuse.to_crs(dave_settings["crs_meter"])
-            landuse["area_km2"] = landuse_3035.area / 1e06
-            # write landuse into grid_data
-            grid_data.landuse = concat([grid_data.landuse, landuse], ignore_index=True)
-            grid_data.landuse.set_crs(dave_settings["crs_main"], inplace=True)
+            landuse_processing(grid_data, landuse)
         # update progress
         pbar.update(progress_step / objects_con)
     # search building informations in the target area
@@ -127,50 +256,7 @@ def from_osm(
         buildings = get_osm_data(grid_data, "building", border, target_geom)
         # check if there are data for buildings
         if not buildings.empty:
-            # create building categories
-            residential = dave_settings["buildings_residential"]
-            commercial = dave_settings["buildings_commercial"]
-            # improve building tag with landuse parameter
-            if landuse if isinstance(landuse, bool) else not landuse.empty:
-                landuse_retail = union_all(landuse[landuse.landuse == "retail"].geometry)
-                landuse_industrial = union_all(landuse[landuse.landuse == "industrial"].geometry)
-                landuse_commercial = union_all(landuse[landuse.landuse == "commercial"].geometry)
-                for i, building in buildings.iterrows():
-                    if building.building not in commercial:
-                        if landuse_retail is not None and building.geometry.intersects(
-                            landuse_retail
-                        ):
-                            buildings.at[i, "building"] = "retail"
-                        elif landuse_industrial is not None and building.geometry.intersects(
-                            landuse_industrial
-                        ):
-                            buildings.at[i, "building"] = "industrial"
-                        elif landuse_commercial is not None and building.geometry.intersects(
-                            landuse_commercial
-                        ):
-                            buildings.at[i, "building"] = "commercial"
-            # write buildings into grid_data
-            grid_data.buildings.residential = concat(
-                [
-                    grid_data.buildings.residential,
-                    buildings[buildings.building.isin(residential)],
-                ],
-                ignore_index=True,
-            )
-            grid_data.buildings.commercial = concat(
-                [
-                    grid_data.buildings.commercial,
-                    buildings[buildings.building.isin(commercial)],
-                ],
-                ignore_index=True,
-            )
-            grid_data.buildings.other = concat(
-                [
-                    grid_data.buildings.other,
-                    buildings[~buildings.building.isin(residential + commercial)],
-                ],
-                ignore_index=True,
-            )
+            building_processing(grid_data, buildings, landuse)
         # update progress
         pbar.update(progress_step / objects_con)
     # search railway informations in the target area
@@ -185,45 +271,3 @@ def from_osm(
         grid_data.waterways = concat([grid_data.waterways, waterways], ignore_index=True)
         # update progress
         pbar.update(progress_step / objects_con)
-
-
-def road_junctions(roads, grid_data):
-    """
-    This function searches junctions for the relevant roads in the target area
-    """
-    roads_3035 = roads.to_crs(dave_settings["crs_meter"])
-    if not roads_3035.empty:
-        junction_points = []
-        while len(roads_3035) > 1:
-            # considered line
-            line_geometry = roads_3035.iloc[0].geometry
-            # check considered line surrounding for possible intersectionpoints with other lines
-            lines_cross = roads_3035[roads_3035.geometry.crosses(line_geometry.buffer(1))]
-            if not lines_cross.empty:
-                # find line intersections between considered line and other lines
-                line_junctions = line_geometry.intersection(lines_cross.geometry.unary_union)
-                if line_junctions.geom_type == "Point":
-                    junction_points.append(line_junctions)
-                elif line_junctions.geom_type == "MultiPoint":
-                    for point in line_junctions.geoms:
-                        junction_points.append(point)
-            # set new roads quantity for the next iterationstep
-            roads_3035 = roads_3035.iloc[1:, :]
-            roads_3035.reset_index(drop=True, inplace=True)
-        # delet duplicates
-        junctions = GeoSeries(junction_points).drop_duplicates()
-        # write road junctions into grid_data
-        junctions.set_crs(dave_settings["crs_meter"], inplace=True)
-        junctions = junctions.to_crs(dave_settings["crs_main"])
-        road_junctions = GeoDataFrame(
-            {
-                "node_type": "road_junction",
-                "source": "dave internal",
-                "geometry": junctions,
-            },
-            crs="EPSG:4326",
-        )
-        grid_data.roads.road_junctions = concat(
-            [grid_data.roads.road_junctions, road_junctions], ignore_index=True
-        )
-        grid_data.roads.road_junctions.set_geometry("geometry", inplace=True)

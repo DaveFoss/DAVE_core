@@ -11,6 +11,7 @@ from geopandas import GeoDataFrame
 from geopandas import GeoSeries
 from pandas import DataFrame
 from pandas import Series
+from pandas import notna
 from shapely.wkb import dumps
 from shapely.wkb import loads
 
@@ -121,4 +122,80 @@ def change_empty_gpd(grid_data):
         elif isinstance(dataset[key], GeoSeries):
             if dataset[key].empty:
                 dataset[key] = Series([], dtype="object")
+    return dataset
+
+
+def change_nan(grid_data):
+    """
+    This function replaces all nan entries with None in a DAVE dataset
+
+    INPUT:
+        **grid_data** (attr Dict) - DAVE Dataset with nan entries
+
+    Output:
+        **dataset** (attr Dict) - DAVE Dataset with None entries
+    """
+    dataset = deepcopy(grid_data)
+    for key in dataset.keys():
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
+            for key_sec in dataset[key].keys():
+                if str(type(dataset[key][key_sec])) == str(davestructure):
+                    for key_trd in dataset[key][key_sec].keys():
+                        if isinstance(
+                            dataset[key][key_sec][key_trd],
+                            (GeoDataFrame, DataFrame, GeoSeries, Series),
+                        ):
+                            dataset[key][key_sec][key_trd] = dataset[key][key_sec][key_trd].where(
+                                notna(dataset[key][key_sec][key_trd]), None
+                            )
+                elif isinstance(
+                    dataset[key][key_sec], (GeoDataFrame, DataFrame, GeoSeries, Series)
+                ):
+                    dataset[key][key_sec] = dataset[key][key_sec].where(
+                        notna(dataset[key][key_sec]), None
+                    )
+        elif isinstance(dataset[key], (GeoDataFrame, DataFrame, GeoSeries, Series)):
+            dataset[key] = dataset[key].where(notna(dataset[key]), None)
+    return dataset
+
+
+def change_crs(grid_data, target_crs):
+    """
+    This function transforms all geodata to anopther crs in a DAVE dataset
+
+    INPUT:
+        **grid_data** (attr Dict) - DAVE Dataset
+        **target_crs** (str) - Name of the target crs in format "EPSG:4326"
+
+    Output:
+        **dataset** (attr Dict) - DAVE Dataset with changed crs
+    """
+    dataset = deepcopy(grid_data)
+    for key in dataset.keys():
+        if (
+            str(type(dataset[key])) == str(davestructure)
+        ):  # use a str comparison because isinstance function is not working with davestructure is a abstract class
+            for key_sec in dataset[key].keys():
+                if str(type(dataset[key][key_sec])) == str(davestructure):
+                    for key_trd in dataset[key][key_sec].keys():
+                        if (
+                            isinstance(dataset[key][key_sec][key_trd], (GeoDataFrame, GeoSeries))
+                            and "geometry" in dataset[key][key_sec][key_trd].keys()
+                        ):
+                            if dataset[key][key_sec][key_trd].crs != target_crs:
+                                dataset[key][key_sec][key_trd].to_crs(target_crs, inplace=True)
+                elif (
+                    isinstance(dataset[key][key_sec], (GeoDataFrame, GeoSeries))
+                    and "geometry" in dataset[key][key_sec].keys()
+                ):
+                    if dataset[key][key_sec].crs != target_crs:
+                        dataset[key][key_sec].to_crs(target_crs, inplace=True)
+        elif (
+            isinstance(dataset[key], (GeoDataFrame, GeoSeries))
+            and "geometry" in dataset[key].keys()
+        ):
+            if dataset[key].crs != target_crs:
+                dataset[key].to_crs(target_crs, inplace=True)
     return dataset

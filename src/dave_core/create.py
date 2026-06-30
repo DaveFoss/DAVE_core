@@ -29,10 +29,12 @@ from dave_core.converter.create_pandapipes import create_pandapipes
 from dave_core.converter.create_pandapower import create_pandapower
 from dave_core.dave_structure import create_empty_dataset
 from dave_core.geography import target_area
+from dave_core.io.convert_format import change_crs
+from dave_core.io.convert_format import change_nan
 from dave_core.io.file_io import to_gpkg
 from dave_core.io.file_io import to_hdf
 from dave_core.io.file_io import to_json
-from dave_core.model_utils import clean_up_data
+from dave_core.plausibility.structural_check import clean_up_data
 from dave_core.settings import dave_settings
 from dave_core.toolbox import create_interim_area
 from dave_core.topology.extra_high_voltage import create_ehv_topology
@@ -73,7 +75,7 @@ def geo_info_needs(power_levels, gas_levels, loads):
     if ("lv" in power_levels) or ("lp" in gas_levels):
         roads, buildings, landuse = True, True, True
     elif ("mv" in power_levels) or ("mp" in gas_levels):
-        roads, buildings = False, False
+        roads, buildings = True, False
         landuse = bool(loads)  # landuse is needed for load calculation
     else:  # for ehv, hv and hp
         roads, buildings = False, False
@@ -116,6 +118,12 @@ def save_dataset_to_user_folder(grid_data, output_format, output_folder, filenam
         **grid_data** (attrdict) - grid_data as a attrdict in dave structure \n
     """
     if save_data:
+        # change crs to user definition
+        if grid_data["coordinate_system"] != dave_settings["crs_main"]:
+            # change crs to the user specific ohne
+            grid_data = change_crs(grid_data, target_crs=grid_data["coordinate_system"])
+        # change nan values
+        grid_data = change_nan(grid_data)
         with catch_warnings():
             # filter warnings because of the PerformanceWarning from pytables at the geometry type
             simplefilter("ignore")
@@ -168,6 +176,7 @@ def create_grid(
     filename="dave_dataset",
     output_format="json",
     save_data=True,
+    crs="EPSG:3035",
 ):
     """
     This is the main function of dave. This function generates automaticly grid models for power
@@ -231,6 +240,8 @@ def create_grid(
             output file
         **save_data** (boolean, default True) - if true, the resulting data will stored in a \
             local folder
+        **crs** (str, 'EPSG:3035') - this parameter defines the coordinate reference system of the \
+            data output. DAVE internally calculates in the meter based crs 'EPSG:3035'
 
     OUTPUT:
         **grid_data** (attrdict) - grid_data as a attrdict in dave structure \n
@@ -254,6 +265,7 @@ def create_grid(
 
     # create empty datastructure
     grid_data = create_empty_dataset()
+    grid_data["coordinate_system"] = crs
 
     # format level inputs
     if power_levels is None:

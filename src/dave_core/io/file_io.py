@@ -1,13 +1,15 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
 import json
+from copy import deepcopy
 from functools import partial
 from json import dumps as json_dumps
+from json import load as json_load
 from json import loads as json_loads
 from pathlib import Path
 
@@ -58,6 +60,32 @@ pp_io.to_json = safe_to_json
 
 
 # --- JSON
+def find_empty_strings(obj, path="root"):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if value == "":
+                print(f"Leerer String: {path}.{key}")
+
+            find_empty_strings(value, f"{path}.{key}")
+
+    elif isinstance(obj, list):
+        for i, value in enumerate(obj):
+            find_empty_strings(value, f"{path}[{i}]")
+
+
+def check_json_readability(file_path):
+    """
+    This function checks the json file
+
+    """
+    # check general readability of the file
+    with Path(file_path).open() as f:
+        data = json_load(f)
+
+    # find empty string
+    find_empty_strings(data)
+
+
 def from_json(file_path, encryption_key=None):
     """
     Load a dave dataset from a JSON file.
@@ -71,6 +99,9 @@ def from_json(file_path, encryption_key=None):
         **file** (json) - the DAVE dataset in JSON format
 
     """
+    # check general readability:
+    check_json_readability(file_path)
+    # read file
     if hasattr(file_path, "read"):
         json_string = file_path.read()
     elif not Path(file_path).is_file():
@@ -78,16 +109,32 @@ def from_json(file_path, encryption_key=None):
     else:
         with Path(file_path).open("r") as file:
             json_string = file.read()
-    # check if it is a json string in DAVE structure
-    json_type = json_loads(json_string)["_module"]
-    if json_type in [
+    # check if it is a json string in DAVE, pandapower or pandapipes structure
+    json_type = json_loads(json_string)
+    # fix missing dave structure
+    if "_module" not in json_type.keys():
+        # create dave structure dict
+        json_type = {
+            "_module": "dave_core.dave_structure",
+            "_class": "davestructure",
+            "_object": json_type,
+        }
+        # Problem: die darunter liegenden daten sind nicht im DAVE-Structure ( bsp. Buildings)
+    if json_type["_module"] in [
         "dave_core.dave_structure",
     ]:
-        return from_json_string(json_string, encryption_key=encryption_key)
-    elif json_type == "pandapower.auxiliary":
+        # read data from json file
+        data = from_json_string(json_string, encryption_key=encryption_key)
+        # create empty dave datset
+        grid_data = create_empty_dataset()
+        # copy data into dave_datset to make sure to work not direktly on the attributes
+        for key in grid_data.keys():
+            grid_data[key] = deepcopy(data[key])
+        return grid_data
+    elif json_type["_module"] == "pandapower.auxiliary":
         print("A pandapower network is given as input and will be convertert in pandapower format")
         return from_json_pp(file_path)
-    elif json_type == "ppi":
+    elif json_type["_module"] == "ppi":
         print("A pandapipes network is given as input and will be convertert in pandapipes format")
         return from_json_ppi(file_path)
     else:
@@ -103,7 +150,7 @@ def from_json_string(json_string, encryption_key=None):
         **encrytion_key** (string, None) - If given, the DAVE dataset is stored as an encrypted \
             json string
     OUTPUT:
-        **test** (json) - the DAVE dataset in JSON format
+        **dataset** (json) - the DAVE dataset in JSON format
     """
     if encryption_key is not None:
         json_string = decrypt_string(json_string, encryption_key)
@@ -131,10 +178,10 @@ def to_json(grid_data, file_path=None, encryption_key=None):
 
     """
     # convert all empty geopandas objects to empty pandas objects
-    grid_data = change_empty_gpd(grid_data)
+    data = change_empty_gpd(grid_data)
     # convert DaVe dataset into a json string with custom encoder
     json_string = json_dumps(
-        grid_data,
+        data,
         cls=DAVEJSONEncoder,
         indent="  ",  # TODO hand over a int will throw an issue
         isinstance_func=isinstance_partial,
@@ -291,6 +338,8 @@ def to_gpkg(grid_data, file_path):
                             and not grid_data[key][key_sec][key_trd].empty
                         ):
                             data = df_lists_to_str(grid_data[key][key_sec][key_trd])
+                            if "geom" in data.keys():
+                                data.drop(columns=["geom"], inplace=True)
                             data.to_file(
                                 file_path,
                                 layer=f"{key}/{key_sec}/{key_trd}",
@@ -302,6 +351,9 @@ def to_gpkg(grid_data, file_path):
                     and not grid_data[key][key_sec].empty
                 ):
                     data = df_lists_to_str(grid_data[key][key_sec])
+                    # delete duplicated geometry information
+                    if "geom" in data.keys():
+                        data.drop(columns=["geom"], inplace=True)
                     data.to_file(file_path, layer=f"{key}/{key_sec}", driver="GPKG")
                 # case GeoSeries
                 elif (

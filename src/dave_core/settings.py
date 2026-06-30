@@ -23,8 +23,8 @@ def set_dave_settings():
         "bar_format": "{desc:<10}|{bar:30}| {percentage:5.0f}% completed",  # format progress bar
         "sub_bar_format": "{desc:<10} |{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
         # geographical defintions:
-        "crs_main": "EPSG:4326",  # crs which is based on the unit degree
-        "crs_meter": "EPSG:3035",  # crs which is based on the unit meter
+        "crs_degree": "EPSG:4326",  # crs which is based on the unit degree
+        "crs_main": "EPSG:3035",  # crs which is based on the unit meter
         # --- data request
         # fraunhofer ownCloud datapool
         "fhg_oc_url": "https://owncloud.fraunhofer.de/index.php/s/Y5J1lBxeau3N48p",
@@ -40,8 +40,16 @@ def set_dave_settings():
             "ego_renewable_powerplant": ("supply", None, None),
             "ego_conventional_powerplant": ("supply", None, None),
         },
+        # osm server
+        "osm_server": [
+            "https://overpass-api.de/api/interpreter",
+            "https://lz4.overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+            "https://overpass.private.coffee/api/interpreter",
+        ],
+        "osm_ping_query": "[out:json];node(1);out;",
         # osm time delay (because osm doesn't alowed more than 1 request per second)
-        "osm_time_delay": 60,  # in seconds
+        "osm_time_delay": 45,  # in seconds
         # osm considered area (data for this area will be downloaded and impplemented in database)
         "osm_area": "germany",
         # osm buffer for geodata to add to area to get some informations around the area (not for buildings)
@@ -171,7 +179,7 @@ def set_dave_settings():
             "warehouse",
         ],
         # roads relevant for power grids
-        "roads_lv": [
+        "roads_relevant": [
             "primary",
             "secondary",
             "tertiary",
@@ -179,18 +187,7 @@ def set_dave_settings():
             "residential",
             "living_street",
             "footway",
-            "track",
-            "path",
-            "service",
-        ],
-        "roads_mv": [
-            "primary",
-            "secondary",
-            "tertiary",
-            "unclassified",
-            "residential",
-            "living_street",
-            "footway",
+            "steps",
             "track",
             "path",
             "service",

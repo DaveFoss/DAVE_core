@@ -4,9 +4,14 @@
 Added
 -----
 
-* functions for aggregating generation and consumption by node
-* function for calculating the descendant generation and consumption power for a line
-* function for finding the appropriate cable and transformer standard type based on the required power
+* aggregating generation and consumption by node
+* calculating the descendant generation and consumption power for a line
+* finding the appropriate cable and transformer standard type based on the required power
+* generating and plot graphs
+* changing the direction of edges away from node
+* checks for nodes in graphs
+* cleaning of disconnected and wrong elements in graphs
+
 
 Changed
 -------

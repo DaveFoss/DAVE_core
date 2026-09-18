@@ -16,7 +16,8 @@ Added
 Changed
 -------
 
-*
+* medium voltage topology generation to an approach based on steiner tree heuristic
+* low voltage topology generation to an approach based on steiner tree heuristic
 
 
 Fixed

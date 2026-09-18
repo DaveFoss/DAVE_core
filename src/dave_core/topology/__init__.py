@@ -13,10 +13,9 @@ from .low_voltage import connect_grid_nodes
 from .low_voltage import create_lv_topology
 from .low_voltage import line_connections
 from .low_voltage import search_line_connections
-from .medium_voltage import create_hv_mv_substations
-from .medium_voltage import create_mv_lv_substations
+from .medium_voltage import create_mv_lines_trafos
 from .medium_voltage import create_mv_topology
-from .medium_voltage import search_connection_line
+from .medium_voltage import create_nodes_hvmv_subs
 
 __all__ = [
     # topology
@@ -28,8 +27,7 @@ __all__ = [
     "search_line_connections",
     "line_connections",
     "create_lv_topology",
-    "create_hv_mv_substations",
-    "create_mv_lv_substations",
-    "search_connection_line",
+    "create_mv_lines_trafos",
+    "create_nodes_hvmv_subs",
     "create_mv_topology",
 ]

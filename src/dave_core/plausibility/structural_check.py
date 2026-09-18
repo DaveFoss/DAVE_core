@@ -1,69 +1,37 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
 from geopandas import GeoDataFrame
-from networkx import Graph
 from networkx import connected_components
+from networkx import node_connected_component
 from pandas import concat
 
+from dave_core.model_utils import create_graph
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 
 
-def correct_wrong_wording(edges):
+def check_terminal_subgraph(graph, terminal_nodes):
     """
-    In DAVE the naming of the nodes is incosistant. This function is for correcting the name if it is wrong
+    This function checks which terminal nodes are in a diffrent subgraph than the first terminal node
 
     INPUT:
-        **edges** (GeoDataFrame) - List of lines which should be connected via steiner tree
-
-    OUTPUT:
-        **edges** (GeoDataFrame) - List of lines with corrected names
+        **graph** (networkx graph) - Graph which defines the basis for the \n
+            network generation
+        **terminal_nodes** (list) - List of the terminal nodes in graph \n
     """
-    if "from_node" in edges.keys():
-        edges["from_bus"] = edges.apply(
-            lambda x: x.from_bus if isinstance(x.from_bus, str) else x.from_node, axis=1
-        )
-        edges["to_bus"] = edges.apply(
-            lambda x: x.to_bus if isinstance(x.to_bus, str) else x.to_node, axis=1
-        )
-    return edges
-
-
-def create_graph(nodes, edges, weight_parameter=None):
-    """
-    Create network x graph
-
-    INPUT:
-        **nodes** (GeoDataFrame) - all nodes which can be considered (including auxillary nodes like road junctions)
-        **edges** (GeoDataFrame) - List of lines which should be connected via steiner tree
-        **weight_parameter** (String) - Name of the parameter in edges which defines the weight factor
-
-    OUTPUT:
-        **graph** (networkx graph element) - resulting networkx graph
-    """
-    # create empty graph
-    graph = Graph()
-
-    # create nodes
-    graph.add_nodes_from(nodes.index.to_list())
-
-    # correct bus/node wording
-    edges = correct_wrong_wording(edges)
-    # create edges
-    if weight_parameter:
-        graph.add_weighted_edges_from(
-            edges.apply(
-                lambda x: (x["from_bus"], x["to_bus"], x[weight_parameter]), axis=1
-            ).to_list()
-        )
-    else:
-        graph.add_edges_from(edges.apply(lambda x: (x["from_bus"], x["to_bus"]), axis=1).to_list())
-    return graph
+    # switch graph to a undirected one
+    graph_und = graph.to_undirected()
+    if terminal_nodes:
+        # check components in the subgraph of the first terminal node
+        comp = node_connected_component(graph_und, terminal_nodes[0])
+        not_in_comp = [t for t in terminal_nodes if t not in comp]
+        if not_in_comp:
+            print("terminal nodes in another subgraph:", not_in_comp)
 
 
 def disconnected_nodes(nodes, edges, min_number_nodes):
@@ -79,7 +47,6 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
              number of nodes \n
 
     """
-
     # create graph
     graph = create_graph(nodes, edges)
 
@@ -91,6 +58,30 @@ def disconnected_nodes(nodes, edges, min_number_nodes):
 
     print(f"Disconnected nodes ({len(disconnected)}):", list(disconnected)[:10])
     return disconnected
+
+
+def disconnected_nodes_subgraph(nodes, edges, terminal_nodes):
+    """
+    converts nodes and lines to a networkX graph and checks all subgraphs if anyone contains all terminal nodes
+
+    INPUT:
+        **nodes** (DataFrame) - Dataset of nodes with DaVe name  \n
+        **edges** (DataFrame) - Dataset of edges (lines, pipelines) with DaVe name \n
+    OUTPUT:
+        **nodes** (set) - all dave names for nodes which are not connected to a grid with a minumum
+                          number of nodes \n
+    """
+    # create graph
+    graph = create_graph(nodes, edges)
+    # check for terminal nodes in diffrent subgraphs
+    check_terminal_subgraph(graph, terminal_nodes)
+    # check for disconnected nodes
+    nodes_disconnected = set()
+    connected_elements = list(connected_components(graph))
+    for subgraph in connected_elements:
+        if not all(x in subgraph for x in terminal_nodes):
+            nodes_disconnected.update(subgraph)
+    return nodes_disconnected
 
 
 def find_open_ends(nodes, edges):
@@ -358,3 +349,8 @@ def clean_up_data(grid_data, min_number_nodes=dave_settings["min_number_nodes"])
         pbar.update(50)
     # close progress bar
     pbar.close()
+
+
+# !!! Todo's clean up:
+# Leitungen mit Länge 0
+# pandapower diagnostic nochmal genauer anschauen

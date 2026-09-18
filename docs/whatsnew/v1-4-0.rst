@@ -1,0 +1,20 @@
+1.4.0 (September XX, 2026)
+==========================
+
+Added
+-----
+
+* functions for aggregating generation and consumption by node
+* function for calculating the descendant generation and consumption power for a line
+* function for finding the appropriate cable and transformer standard type based on the required power
+
+Changed
+-------
+
+*
+
+
+Fixed
+-----
+
+*

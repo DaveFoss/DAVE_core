@@ -168,10 +168,11 @@ from .topology.extra_high_voltage import create_ehv_topology
 from .topology.high_pressure import create_hp_topology
 from .topology.high_pressure import gaslib_pipe_clustering
 from .topology.high_voltage import create_hv_topology
-from .topology.low_voltage import connect_grid_nodes
+from .topology.low_voltage import create_building_nodes
+from .topology.low_voltage import create_lv_lines
 from .topology.low_voltage import create_lv_topology
-from .topology.low_voltage import line_connections
-from .topology.low_voltage import search_line_connections
+from .topology.low_voltage import create_trafo_nodes
+from .topology.low_voltage import reconnect_lines
 from .topology.medium_voltage import create_mv_lines_trafos
 from .topology.medium_voltage import create_mv_topology
 from .topology.medium_voltage import create_nodes_hvmv_subs
@@ -291,10 +292,11 @@ __all__ = [
     "gaslib_pipe_clustering",
     "create_hp_topology",
     "create_hv_topology",
-    "connect_grid_nodes",
-    "search_line_connections",
-    "line_connections",
     "create_lv_topology",
+    "reconnect_lines",
+    "create_building_nodes",
+    "create_trafo_nodes",
+    "create_lv_lines",
     "create_mv_lines_trafos",
     "create_nodes_hvmv_subs",
     "create_mv_topology",

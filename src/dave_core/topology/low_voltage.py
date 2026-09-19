@@ -1,131 +1,184 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-
-import functools
-import operator
 
 from dask_geopandas import from_geopandas
 from geopandas import GeoDataFrame
 from geopandas import GeoSeries
-from pandas import Series
+from geopandas import overlay
 from pandas import concat
-from shapely import union_all
 from shapely.geometry import LineString
-from shapely.geometry import MultiPoint
-from shapely.geometry import Point
-from shapely.ops import nearest_points
 
-from dave_core.datapool.oep_request import oep_request
+from dave_core.components.substations import create_mv_lv_substations
 from dave_core.geography.geo_utils import nearest_road_points
+from dave_core.plausibility.structural_check import disconnected_nodes
 from dave_core.progressbar import create_tqdm
+from dave_core.progressbar import create_tqdm_dask
 from dave_core.settings import dave_settings
-from dave_core.toolbox import intersection_with_area
+from dave_core.toolbox import add_dave_name
 from dave_core.toolbox import related_sub
+from dave_core.toolbox import voronoi
+from dave_core.topology.topology_utils import add_nodes_to_lines
+from dave_core.topology.topology_utils import run_steiner_tree_net_group
+from dave_core.topology.topology_utils import search_end_point_id
 
 
-def connect_grid_nodes(road_course, road_points, start_node, end_node):
+def create_lv_lines(nodes, node_pair, line_type):
     """
-    This function builds lines to connect grid nodes with each other along road courses
+    This function creates lv lines between two points
     """
-    # get considered grid node pair
-    start_point = Point(start_node)
-    end_point = Point(end_node)
-    # find nearest points to them
-    start_nearest = nearest_points(start_point, road_points)[1]
-    end_nearest = nearest_points(end_point, road_points)[1]
-    # find road index
-    start_index = road_course.index((start_nearest.x, start_nearest.y))
-    end_index = road_course.index((end_nearest.x, end_nearest.y))
-    # check if start_nearest between start and end point
-    if abs(end_point.distance(start_nearest)) > abs(end_point.distance(start_point)):
-        start_index += 1
-    # check if end_nearest is between start and end point
-    if abs(start_point.distance(end_nearest)) > abs(start_point.distance(end_point)):
-        end_index -= 1
-    # add points [start_point, points to follow the road course, end point]
-    line_points = (
-        [start_node] + [road_course[k] for k in range(start_index, end_index + 1)] + [end_node]
-    )
-    # create a lineString and return them
-    return LineString(line_points)
-
-
-def search_line_connections(road_geometry, all_nodes):
-    road_course = road_geometry.coords[:]
-    # change road direction to become a uniformly road style
-    if road_course[0] > road_course[len(road_course) - 1]:
-        road_course = road_course[::-1]
-    road_points = MultiPoint(road_course)
-    # find nodes on the considered road and sort them by their longitude to find start point
-    grid_nodes = sorted(
-        [node.coords[:][0] for node in all_nodes.geometry if road_geometry.distance(node) < 1e-10]
-    )
-    if grid_nodes:  # check if their are grid nodes on the considered road
-        # sort nodes by their nearest neighbor
-        grid_nodes_sort = [grid_nodes[0]]  # start node
-        node_index = 0
-        while len(grid_nodes) > 1:  # sort nodes by their sequenz along the road
-            start_node = Point(grid_nodes.pop(node_index))
-            grid_nodes_points = MultiPoint(grid_nodes)
-            next_node = nearest_points(start_node, grid_nodes_points)[1]
-            grid_nodes_sort.append(next_node.coords[:][0])
-            node_index = grid_nodes.index(next_node.coords[:][0])
-        # build lines to connect all grid nodes with each other
-        return [
-            connect_grid_nodes(
-                road_course,
-                road_points,
-                start_node=grid_nodes_sort[j],
-                end_node=grid_nodes_sort[j + 1],
-            )
-            for j in range(len(grid_nodes_sort) - 1)
-        ]
-    else:
-        return []
-
-
-def line_connections(grid_data):
-    """
-    This function creates the line connections between the building lines (Points on the roads)
-    and the road junctions
-    """
-    # define relevant nodes
-    nearest_building_point = GeoSeries(
-        grid_data.lv_data.lv_nodes[
-            grid_data.lv_data.lv_nodes.node_type == "grid_connection"
-        ].geometry
-    )
-    all_nodes = concat(
-        [nearest_building_point, grid_data.road_data.road_junctions]
-    ).drop_duplicates()
-    # search line connections
-    line_connect = GeoSeries(
-        functools.reduce(
-            operator.iadd,
-            grid_data.road_data.roads.geometry.apply(
-                lambda x: search_line_connections(x, all_nodes)
-            ).to_list(),
-            [],
-        ),
-        crs=dave_settings["crs_main"],
-    )
+    # create connections lines
+    node_pair_dask = from_geopandas(node_pair, npartitions=dave_settings["cpu_number"])
+    with create_tqdm_dask(desc="Create connection lines", bar_type="sub_bar"):
+        line_connection = node_pair_dask.apply(
+            lambda x: LineString([x[x.keys()[0]], x[x.keys()[1]]]),
+            axis=1,
+            meta=node_pair_dask,
+        ).compute()
     # calculate line length
-    lines_gdf = GeoDataFrame(
+    line_gdf = GeoDataFrame(
         {
-            "geometry": line_connect,
-            "line_type": "line_connections",
-            "length_km": line_connect.length / 1000,
+            "geometry": line_connection,
+            "line_type": line_type,
+            "length_km": line_connection.length / 1000,
             "voltage_kv": 0.4,
             "voltage_level": 7,
             "source": "dave internal",
         },
         crs=dave_settings["crs_main"],
     )
-    grid_data.lv_data.lv_lines = concat([grid_data.lv_data.lv_lines, lines_gdf], ignore_index=True)
+    # search node ids
+    lines_geom = from_geopandas(line_gdf.geometry, npartitions=dave_settings["cpu_number"])
+    with create_tqdm_dask(desc="Search lv from node ids", bar_type="sub_bar"):
+        line_gdf["from_node"] = lines_geom.apply(
+            lambda x: search_end_point_id(x, nodes, considered_end="from"), meta=lines_geom
+        ).compute()
+    with create_tqdm_dask(desc="Search lv to node ids", bar_type="sub_bar"):
+        line_gdf["to_node"] = lines_geom.apply(
+            lambda x: search_end_point_id(x, nodes, considered_end="to"), meta=lines_geom
+        ).compute()
+    return line_gdf
+
+
+def create_trafo_nodes(grid_data, nodes, node_type=None):
+    """
+    This function creates nodes for transformers by searching the suitable substation information
+    """
+    # create nodes
+    nodes_df = GeoDataFrame(
+        {
+            "geometry": nodes,
+            "node_type": node_type,
+            "voltage_level": 7,
+            "voltage_kv": 0.4,
+            "source": "dave internal",
+        }
+    )
+    nodes_geom_dask = from_geopandas(nodes_df.geometry, npartitions=dave_settings["cpu_number"])
+    # create mv/lv substations
+    if grid_data.components_power.substations.mv_lv.empty:
+        mvlv_substations = create_mv_lv_substations(grid_data)
+    else:
+        mvlv_substations = grid_data.components_power.substations.mv_lv
+    # search for the substations where the lv nodes are within
+    with create_tqdm_dask(desc="Search related substations", bar_type="sub_bar"):
+        sub_infos = nodes_geom_dask.apply(
+            lambda x: related_sub(x, mvlv_substations), meta=nodes_geom_dask
+        ).compute()
+    nodes_df["ego_subst_id"] = sub_infos.apply(lambda x: x[0])
+    nodes_df["subst_dave_name"] = sub_infos.apply(lambda x: x[1])
+    nodes_df["subst_name"] = sub_infos.apply(lambda x: x[2])
+    # add dave name
+    nodes_df.reset_index(drop=True, inplace=True)
+    return nodes_df
+
+
+def create_building_nodes(grid_data, roads):
+    """
+    This function creates node pairs including the building centroid and a \
+        point on the road which is the closest to them
+
+    INPUT:
+        **grid_data** (attrdict) - all Informations about the grid
+        **roads** (GeoDataFrame) - relevant roads to use for building connection
+    """
+    # shortest way between building centroid and road for relevant buildings (building connections)
+    buildings_rel = concat(
+        [grid_data.buildings.residential, grid_data.buildings.commercial], ignore_index=True
+    )
+    centroids = buildings_rel.reset_index(drop=True).centroid
+    nearest_building_points = nearest_road_points(
+        points=centroids,
+        roads=roads.geometry,
+    )
+    building_connections = concat([centroids, nearest_building_points], axis=1)
+    building_connections.columns = ["building_centroid", "nearest_point"]
+
+    # add lv nodes to grid data
+    building_nodes_df = concat(
+        [
+            GeoDataFrame(
+                {
+                    "geometry": building_connections.building_centroid,
+                    "node_type": "building_connection",
+                    "voltage_level": 7,
+                    "voltage_kv": 0.4,
+                    "source": "dave internal",
+                }
+            ),
+            GeoDataFrame(
+                {
+                    "geometry": GeoSeries(building_connections.nearest_point).drop_duplicates(),
+                    "node_type": "grid_connection",
+                    "voltage_level": 7,
+                    "voltage_kv": 0.4,
+                    "source": "dave internal",
+                }
+            ),
+        ],
+        ignore_index=True,
+    )
+    # create mv/lv substations
+    mvlv_substations = (
+        create_mv_lv_substations(grid_data)
+        if grid_data.components_power.substations.mv_lv.empty
+        else grid_data.components_power.substations.mv_lv
+    )
+
+    # search for the substations where the lv nodes are within
+    sub_infos = building_nodes_df.geometry.apply(lambda x: related_sub(x, mvlv_substations))
+    building_nodes_df["ego_subst_id"] = sub_infos.apply(lambda x: x[0])
+    building_nodes_df["subst_dave_name"] = sub_infos.apply(lambda x: x[1])
+    building_nodes_df["subst_name"] = sub_infos.apply(lambda x: x[2])
+    # add dave name
+    building_nodes_df.reset_index(drop=True, inplace=True)
+    return building_connections, building_nodes_df
+
+
+def reconnect_lines(line_connections, nodes, nodes_disconnected):
+    """
+    This function checks if a building or trafo connection line ist connected to an node in an
+    isolated area. These nodes will be deleted from the grid which makes it necessary to reconnect
+    the building and trafo lines to nodes which will be part of the resulting grid.
+
+    """
+    for i, line in line_connections.iterrows():
+        if line.to_node in nodes_disconnected:
+            # calculate new node
+            new_node_idx = (
+                nodes.drop([*list(nodes_disconnected), line.from_node])
+                .distance(nodes.loc[line.from_node].geometry)
+                .idxmin()
+            )
+            line_connections.at[i, "to_node"] = new_node_idx
+            # calculate new geometry
+            line_connections.at[i, "geometry"] = LineString(
+                [nodes.loc[line.from_node].geometry, nodes.loc[new_node_idx].geometry]
+            )
+    return line_connections
 
 
 def create_lv_topology(grid_data):
@@ -139,258 +192,220 @@ def create_lv_topology(grid_data):
     OUTPUT:
         Writes data in the DaVe dataset
     """
-    # set progress bar for lv topology
-    pbar = create_tqdm(desc="create low voltage topology")
-    # --- create substations
-    # create mv/lv substations
-    if grid_data.components_power.substations.mv_lv.empty:
-        mvlv_substations, meta_data = oep_request(table="ego_dp_mvlv_substation")
-        # add meta data
-        if (
-            bool(meta_data)
-            and f"{meta_data['Main'].Titel.loc[0]}" not in grid_data.meta_data.keys()
-        ):
-            grid_data.meta_data[f"{meta_data['Main'].Titel.loc[0]}"] = meta_data
-        mvlv_substations.rename(
-            columns={
-                "version": "ego_version",
-                "mvlv_subst_id": "ego_subst_id",
-            },
-            inplace=True,
-        )
-        # change wrong crs from oep
-        mvlv_substations.crs = dave_settings["crs_main"]
-        # filter trafos which are within the grid area
-        mvlv_substations = intersection_with_area(mvlv_substations, grid_data.area)
-        if not mvlv_substations.empty:
-            mvlv_substations["voltage_level"] = 6
-            # add dave name
-            mvlv_substations.reset_index(drop=True, inplace=True)
-            mvlv_substations.insert(
-                0,
-                "dave_name",
-                Series([f"substation_6_{x}" for x in mvlv_substations.index]),
-            )
-            # add ehv substations to grid data
-            grid_data.components_power.substations.mv_lv = concat(
-                [
-                    grid_data.components_power.substations.mv_lv,
-                    mvlv_substations,
-                ],
-                ignore_index=True,
-            )
-    else:
-        mvlv_substations = grid_data.components_power.substations.mv_lv.copy()
+    # set main progress bar for lv topology
+    pbar = create_tqdm(desc="create low voltage topology", bar_type="main_bar")
+    # --- prepare lv nodes for steiner tree
+    # prepare road junctions
+    road_junctions = GeoDataFrame(grid_data.road_data.road_junctions)
+    # get road endings as additional nodes to build lv topology
+    road_endings = grid_data.road_data.road_endings
+    # prepare nodes
+    nodes = concat([grid_data.lv_data.lv_nodes, road_junctions, road_endings])
+    nodes.reset_index(drop=True, inplace=True)
+    nodes["voltage_level"] = 7
+    nodes["voltage_kv"] = 0.4
+    # define relevant roads
+    relevant_roads = grid_data.road_data.roads.copy()
     # update progress
     pbar.update(5)
-    # --- create lv nodes
-    # shortest way between building centroid and road for relevant buildings (building connections)
-    buildings_rel = concat(
-        [grid_data.buildings.residential, grid_data.buildings.commercial],
-        ignore_index=True,
+    pbar.refresh()
+
+    # create lv nodes for building connection
+    building_connections, building_nodes_df = create_building_nodes(grid_data, relevant_roads)
+    nodes = concat([nodes, building_nodes_df])
+    nodes.reset_index(drop=True, inplace=True)
+    # create lines for building connections
+    line_buildings = create_lv_lines(nodes, building_connections, line_type="line_building")
+    # update progress
+    pbar.update(20)
+    pbar.refresh()
+
+    # Search mvlv trafo low voltage nodes and add create lv_lines
+    transformers = grid_data.components_power.transformers.mv_lv
+    transformer_connections = transformers.filter(items=["geometry"])
+    transformer_connections["nearest_points"] = nearest_road_points(
+        points=transformers.geometry,
+        roads=relevant_roads.geometry,
     )
-    centroids = buildings_rel.reset_index(drop=True).centroid
-    centroids = centroids.to_crs(dave_settings["crs_main"])
-    # filter roads which are not connected to other roads and roads which build small isolated road structures
-    roads = grid_data.road_data.roads
-    roads_geom_dask = from_geopandas(roads.geometry, npartitions=dave_settings["cpu_number"])
-    roads_filter = roads[
-        roads_geom_dask.distance(union_all(grid_data.road_data.road_junctions.geometry)).compute()
-        < 1.1e-3
-    ]
-    nearest_building_points = nearest_road_points(
-        points=centroids,
-        roads=roads_filter.geometry,
+    nodes_trafos = create_trafo_nodes(
+        grid_data, transformer_connections["nearest_points"], "trafo_grid_connection"
     )
-    building_connections = concat([centroids, nearest_building_points], axis=1)
-    building_connections.columns = ["building_centroid", "nearest_point"]
-    # delet duplicates in nearest road points
-    building_nearest = GeoSeries(building_connections.nearest_point)
-    building_nearest.drop_duplicates(inplace=True)
-    # add lv nodes to grid data
-    building_nodes_df = GeoDataFrame(
-        {
-            "geometry": building_connections.building_centroid,
-            "node_type": "building_connection",
-            "voltage_level": 7,
-            "voltage_kv": 0.4,
-            "source": "dave internal",
-        }
+
+    nodes = concat([nodes, nodes_trafos])
+    nodes = add_dave_name(nodes, "node_7")
+
+    # create lines for transformer connections
+    line_trafos = create_lv_lines(nodes, transformer_connections, line_type="line_mvlv_transformer")
+
+    # TODO. Alternative wäre das man die trafosstandorte aus dem steiner tree abgleiten kann (graphen partitionoierung)
+    # update progress
+    pbar.update(15)
+    pbar.refresh()
+
+    # --- prepare lv lines for steiner tree
+    # add new nodes to line network
+    roads_splited = add_nodes_to_lines(
+        nodes,
+        lines_existing=relevant_roads,
     )
-    building_nodes_df = concat(
-        [
-            building_nodes_df,
-            GeoDataFrame(
-                {
-                    "geometry": building_nearest,
-                    "node_type": "grid_connection",
-                    "voltage_level": 7,
-                    "voltage_kv": 0.4,
-                    "source": "dave internal",
-                }
+    roads_splited["voltage_kv"] = 0.4
+    roads_splited["voltage_level"] = 7
+    # update progress
+    pbar.update(10)
+    pbar.refresh()
+
+    # filter isolated road areas
+    nodes_disconnected = disconnected_nodes(nodes, roads_splited, 20)
+    roads_splited_dask = from_geopandas(roads_splited, npartitions=dave_settings["cpu_number"])
+    roads_relevant = roads_splited[
+        roads_splited_dask.apply(
+            lambda x: (
+                False
+                if x.from_bus in nodes_disconnected or x.to_bus in nodes_disconnected
+                else True
             ),
-        ],
-        ignore_index=True,
-    )
-    # search for the substations where the lv nodes are within
-    sub_infos = building_nodes_df.geometry.apply(lambda x: related_sub(x, mvlv_substations))
-    building_nodes_df["ego_subst_id"] = sub_infos.apply(lambda x: x[0])
-    building_nodes_df["subst_dave_name"] = sub_infos.apply(lambda x: x[1])
-    building_nodes_df["subst_name"] = sub_infos.apply(lambda x: x[2])
+            axis=1,
+            meta=roads_splited_dask,
+        ).compute()
+    ]
+    # reconnect terminal nodes which are connected to isolated roads
+    line_connections = concat([line_buildings, line_trafos])
+    line_connections = reconnect_lines(line_connections, nodes, nodes_disconnected)
     # update progress
-    pbar.update(5)
-    # add dave name
-    building_nodes_df.reset_index(drop=True, inplace=True)
-    building_nodes_df.insert(  # !!!
-        0,
-        "dave_name",
-        Series([f"node_7_{x}" for x in building_nodes_df.index]),
+    pbar.update(10)
+    pbar.refresh()
+
+    # --- run steiner tree to calculate lv topology
+    # define terminal nodes for steiner tree (nodes which should be connected)
+    # terminal_nodes = nodes[nodes.dave_name.str.startswith("node")].index.to_list()
+
+    # run voronoi analyses as steiner tree preprocessing to categorize nodes
+    net_group_poly = voronoi(nodes[nodes.node_type == "mvlv_substation"])
+    net_group_poly["net_group"] = net_group_poly.apply(lambda x: x.name, axis=1)
+
+    # filter building nodes
+    terminal_nodes = nodes[nodes.node_type.isin(["mvlv_substation", "building_connection"])]
+    if "net_group" in terminal_nodes.keys():
+        terminal_nodes.drop(columns=["net_group"], inplace=True)
+    terminal_nodes = overlay(
+        terminal_nodes,
+        net_group_poly.drop(columns=["centroid", "dave_name"]),
+        how="intersection",
     )
-    # add lv nodes to grid data
-    grid_data.lv_data.lv_nodes = concat(
-        [grid_data.lv_data.lv_nodes, building_nodes_df], ignore_index=True
-    )
-    grid_data.lv_data.lv_nodes.crs = dave_settings["crs_main"]
+
+    # add origin node idx to terminal nodes
+    dave_to_index = dict(zip(nodes["dave_name"], nodes.index, strict=False))
+    terminal_nodes["node_idx"] = terminal_nodes.dave_name.apply(lambda x: dave_to_index[x])
+
+    # define possible edges
+    edges = concat(
+        [
+            roads_relevant.rename(columns={"from_bus": "from_node", "to_bus": "to_node"}),
+            line_connections,
+        ]
+    )  # , edges_aux_substations
+    edges.reset_index(drop=True, inplace=True)
+
     # update progress
-    pbar.update(5)
-    # --- create lines for building connections
-    line_buildings = GeoSeries(
-        list(
-            map(
-                lambda x, y: LineString([x, y]),
-                building_connections["building_centroid"],
-                building_connections["nearest_point"],
-            )
-        ),
-        crs=dave_settings["crs_main"],
+    pbar.update(10)
+
+    # run steiner tree
+    grid_data.lv_data.lv_nodes = GeoDataFrame([])
+    grid_data.lv_data.lv_lines = GeoDataFrame([])
+    net_group_fail = net_group_poly.apply(
+        lambda x: run_steiner_tree_net_group(grid_data, x, terminal_nodes, nodes, edges),
+        axis=1,
     )
-    # calculate line length
-    line_gdf = GeoDataFrame(
-        {
-            "geometry": line_buildings,
-            "line_type": "line_buildings",
-            "length_km": line_buildings.length / 1000,
-            "voltage_kv": 0.4,
-            "voltage_level": 7,
-            "source": "dave internal",
-        }
+
+    # TODO: Dask ist etwas schneller, gibt aber weniger Knoten und Leitungen zurück, als es sein müssten
+    # start runtime
+    # _start_time = timeit.default_timer()
+    # net_group_poly_dask = from_geopandas(net_group_poly, npartitions=dave_settings["cpu_number"])
+    # net_group_poly_dask.apply(lambda x: run_steiner_tree_net_group(grid_data, x, nodes_buildings, nodes, edges, net_group_fail), axis=1, meta=net_group_poly_dask).compute()
+    # stop and show runtime
+    # _stop_time = timeit.default_timer()
+    # runtime_pd = round((_stop_time - _start_time), 5)
+    # print(f"runtime pd = {runtime_pd} sek")
+
+    # check for failed net groups
+    if not net_group_fail[net_group_fail.apply(lambda x: x != [])].empty:
+        print(
+            f"No LV structure could be found for the network groups {net_group_fail[net_group_fail.notna()].to_list()}"
+        )
+
+    # update progress
+    pbar.update(25)
+
+    # --- change duplicated nodes inidices
+    # (duplicates can apear because duplicated use of nodes in diffrent net groups)
+    nodes = grid_data.lv_data.lv_nodes
+
+    # check duplicate name
+    duplicate_names = nodes["dave_name"].value_counts()
+    duplicate_names = duplicate_names[duplicate_names > 1].index
+    duplicate_nodes = nodes[nodes.dave_name.isin(duplicate_names)]
+
+    # delete wrong duplicated nodes (same indice and net group)
+    nodes = nodes[~nodes.index.duplicated(keep="first")]
+
+    # change node indices and adjust node references at lines  # !!! braucht sehr lange
+    lines = grid_data.lv_data.lv_lines
+    for node_name in duplicate_names:
+        duplicated_node = duplicate_nodes[duplicate_nodes.dave_name == node_name]
+        # check if there are duplicated nodes in the same net_group
+        if not duplicated_node["net_group"].duplicated().any():
+            # keep the first node as it is
+            change_nodes = duplicated_node[1:]
+            for _, change_node in change_nodes.iterrows():
+                old_idx = change_node.name
+                new_idx = len(nodes)
+                # change node dave name
+                change_node.dave_name = f"node_7_{new_idx}"
+                # change index of the node
+                change_node.rename(index=new_idx, inplace=True)
+                # add duplicates node to nodes with new idx
+                nodes = concat([nodes, change_node.to_frame().T])
+                # change old node idx at lines
+                mask = lines["net_group"] == change_node.net_group
+                lines.loc[mask & (lines["from_node"] == old_idx), "from_node"] = new_idx
+                lines.loc[mask & (lines["to_node"] == old_idx), "to_node"] = new_idx
+
+    # fix data types
+    nodes["subst_dave_name"] = nodes["subst_dave_name"].apply(
+        lambda x: x if isinstance(x, str) else None
     )
-    # write line informations into grid data
-    grid_data.lv_data.lv_lines = concat([grid_data.lv_data.lv_lines, line_gdf], ignore_index=True)
-    # set crs
-    grid_data.lv_data.lv_lines.crs = dave_settings["crs_main"]
-    # create line connections to connect lines for buildings and road junctions with each other
-    line_connections(grid_data)
+    nodes["ego_version"] = nodes["ego_version"].apply(lambda x: x if isinstance(x, str) else None)
+    nodes["ego_subst_id"] = nodes["ego_subst_id"].apply(lambda x: x if isinstance(x, str) else None)
+    nodes["subst_name"] = nodes["subst_name"].apply(lambda x: x if isinstance(x, str) else None)
+    # change nodes in dave_dataset
+    grid_data.lv_data.lv_nodes = GeoDataFrame([])
+    grid_data.lv_data.lv_nodes = nodes
+    grid_data.lv_data.lv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
+
     # add dave name for lv_lines
-    grid_data.lv_data.lv_lines.reset_index(drop=True, inplace=True)
-    grid_data.lv_data.lv_lines.insert(
-        0,
-        "dave_name",
-        Series([f"line_7_{x}" for x in grid_data.lv_data.lv_lines.index]),
+    grid_data.lv_data.lv_lines = add_dave_name(grid_data.lv_data.lv_lines, "line_7")
+
+    # search for new node indices
+    grid_data.lv_data.lv_lines["from_node"] = grid_data.lv_data.lv_lines["from_node"].apply(
+        lambda x: grid_data.lv_data.lv_nodes.loc[x].dave_name
     )
+    grid_data.lv_data.lv_lines["to_node"] = grid_data.lv_data.lv_lines["to_node"].apply(
+        lambda x: grid_data.lv_data.lv_nodes.loc[x].dave_name
+    )
+    # reset node index
+    grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)
+
+    # TODO: quick fix of Series object in from_node / to_node
+    grid_data.lv_data.lv_lines.drop(columns=["from_node", "to_node"], inplace=True)
+    grid_data.lv_data.lv_lines["from_bus"] = grid_data.lv_data.lv_lines.from_bus.apply(
+        lambda x: x if isinstance(x, str) else f"node_7_{x}"
+    )
+    grid_data.lv_data.lv_lines["to_bus"] = grid_data.lv_data.lv_lines.to_bus.apply(
+        lambda x: x if isinstance(x, str) else f"node_7_{x}"
+    )
+
     # update progress
     pbar.update(5)
-    # --- create missing road junctions to connect the lines with each other
-    # get line bus names for each line and add to line data
-    lv_nodes = grid_data.lv_data.lv_nodes
-    # get road junctions
-    road_junctions_origin = grid_data.road_data.road_junctions
-    for _, line in grid_data.lv_data.lv_lines.iterrows():
-        road_junctions_grid = grid_data.lv_data.lv_nodes[
-            grid_data.lv_data.lv_nodes.node_type == "road_junction"
-        ]
-        line_coords_from = line.geometry.coords[:][0]
-        line_coords_to = line.geometry.coords[:][len(line.geometry.coords[:]) - 1]
-        from_bus = lv_nodes[lv_nodes.geometry.x == line_coords_from[0]]
-        if len(from_bus) > 1:
-            from_bus = from_bus[from_bus.geometry.y == line_coords_from[1]]
-        to_bus = lv_nodes[lv_nodes.geometry.x == line_coords_to[0]]
-        if len(to_bus) > 1:
-            to_bus = to_bus[to_bus.geometry.y == line_coords_to[1]]
-        if not from_bus.empty:
-            grid_data.lv_data.lv_lines.at[line.name, "from_bus"] = from_bus.iloc[0].dave_name
-        else:
-            # check if there is a suitable road junction in grid data
-            distance = road_junctions_grid.geometry.apply(
-                lambda x, line_coords_from=line_coords_from: Point(line_coords_from).distance(x)
-            )
-            if not distance.empty and distance.min() < 11:
-                # road junction node was found
-                dave_name = road_junctions_grid.loc[distance.idxmin()].dave_name
-            else:
-                # no road junction was found, create it from road junction data
-                distance = road_junctions_origin.geometry.apply(
-                    lambda x, line_coords_from=line_coords_from: Point(line_coords_from).distance(x)
-                )
-                if distance.min() < 11:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
-                    # create lv_point for relevant road junction
-                    dave_number = int(
-                        grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")
-                    )
-                    dave_name = "node_7_" + str(dave_number + 1)
-                    junction_point_gdf = GeoDataFrame(
-                        {
-                            "geometry": [road_junction_geom],
-                            "dave_name": dave_name,
-                            "node_type": "road_junction",
-                            "voltage_level": 7,
-                            "voltage_kv": 0.4,
-                            "source": "dave internal",
-                        },
-                        crs=dave_settings["crs_main"],
-                    )
-                    grid_data.lv_data.lv_nodes = concat(
-                        [grid_data.lv_data.lv_nodes, junction_point_gdf],
-                        ignore_index=True,
-                    )
-            grid_data.lv_data.lv_lines.at[line.name, "from_bus"] = dave_name
-        grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)
-        road_junctions_grid = grid_data.lv_data.lv_nodes[
-            grid_data.lv_data.lv_nodes.node_type == "road_junction"
-        ]
-        if not to_bus.empty:
-            grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = to_bus.iloc[0].dave_name
-        else:
-            # check if there is a suitable road junction in grid data
-            distance = road_junctions_grid.geometry.apply(
-                lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
-            )
-            if distance.min() < 11:
-                # road junction node was found
-                dave_name = road_junctions_grid.loc[distance.idxmin()].dave_name
-            else:
-                # no road junction was found, create it from road junction data
-                distance = road_junctions_origin.geometry.apply(
-                    lambda x, line_coords_to=line_coords_to: Point(line_coords_to).distance(x)
-                )
-                if distance.min() < 11:
-                    road_junction_geom = road_junctions_origin.loc[distance.idxmin()].geometry
-                    # create lv_point for relevant road junction
-                    dave_number = int(
-                        grid_data.lv_data.lv_nodes.dave_name.tail(1).iloc[0].replace("node_7_", "")
-                    )
-                    dave_name = "node_7_" + str(dave_number + 1)
-                    junction_point_gdf = GeoDataFrame(
-                        {
-                            "geometry": [road_junction_geom],
-                            "dave_name": dave_name,
-                            "node_type": "road_junction",
-                            "voltage_level": 7,
-                            "voltage_kv": 0.4,
-                            "source": "dave internal",
-                        },
-                        crs=dave_settings["crs_main"],
-                    )
-                    grid_data.lv_data.lv_nodes = concat(
-                        [grid_data.lv_data.lv_nodes, junction_point_gdf],
-                        ignore_index=True,
-                    )
-            grid_data.lv_data.lv_lines.at[line.name, "to_bus"] = dave_name
-        grid_data.lv_data.lv_nodes.reset_index(drop=True, inplace=True)
-        # set crs
-        grid_data.lv_data.lv_nodes.set_crs(dave_settings["crs_main"], inplace=True)
-        # update progress
-        pbar.update(80 / len(grid_data.lv_data.lv_lines))
+
     # close progress bar
     pbar.close()

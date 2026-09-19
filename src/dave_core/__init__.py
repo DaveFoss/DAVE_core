@@ -177,6 +177,10 @@ from .topology.medium_voltage import create_mv_lines_trafos
 from .topology.medium_voltage import create_mv_topology
 from .topology.medium_voltage import create_nodes_hvmv_subs
 from .topology.topology_utils import add_nodes_to_lines
+from .topology.topology_utils import build_steiner_tree
+from .topology.topology_utils import create_subgraphs
+from .topology.topology_utils import run_steiner_tree
+from .topology.topology_utils import run_steiner_tree_net_group
 from .topology.topology_utils import search_end_point_id
 from .topology.topology_utils import split_line
 from .topology.topology_utils import split_lines
@@ -304,6 +308,10 @@ __all__ = [
     "split_lines",
     "search_end_point_id",
     "add_nodes_to_lines",
+    "build_steiner_tree",
+    "run_steiner_tree",
+    "run_steiner_tree_net_group",
+    "create_subgraphs",
     # processing
     "node_gen_power",
     "node_consum_power",

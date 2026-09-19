@@ -11,6 +11,7 @@ Added
 * changing the direction of edges away from node
 * checks for nodes in graphs
 * cleaning of disconnected and wrong elements in graphs
+* steiner tree heuristik functions
 
 
 Changed

@@ -116,7 +116,6 @@ from .model_utils import correct_wrong_wording
 from .model_utils import create_directed_graph
 from .model_utils import create_graph
 from .model_utils import direction_away_from_node
-from .model_utils import disconnected_nodes
 from .model_utils import filter_isolated_edges
 from .model_utils import lv_net_by_net_group
 from .model_utils import plot_graph
@@ -128,6 +127,7 @@ from .plausibility.structural_check import clean_disconnected_elements_power
 from .plausibility.structural_check import clean_up_data
 from .plausibility.structural_check import clean_wrong_lines
 from .plausibility.structural_check import clean_wrong_piplines
+from .plausibility.structural_check import disconnected_nodes
 from .plausibility.structural_check import disconnected_nodes_subgraph
 from .plausibility.structural_check import find_open_ends
 

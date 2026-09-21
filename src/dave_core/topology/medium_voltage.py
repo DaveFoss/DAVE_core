@@ -18,7 +18,7 @@ from shapely.wkb import loads
 from dave_core.components.substations import create_hv_mv_substations
 from dave_core.components.substations import create_mv_lv_substations
 from dave_core.geography.geo_utils import nearest_road_points
-from dave_core.model_utils import disconnected_nodes
+from dave_core.plausibility.structural_check import disconnected_nodes
 from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import add_dave_name

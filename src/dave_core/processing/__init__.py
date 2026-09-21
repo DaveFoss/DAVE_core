@@ -5,6 +5,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from .clean_up import clean_disconnected_elements_gas
+from .clean_up import clean_disconnected_elements_power
+from .clean_up import clean_up_data
+from .clean_up import clean_wrong_lines
+from .clean_up import clean_wrong_piplines
 from .component_types import calculate_line_types_lv
 from .component_types import calculate_trafo_types_lv
 from .component_types import descendant_line_power
@@ -15,7 +20,7 @@ from .component_types import node_consum_power
 from .component_types import node_gen_power
 
 __all__ = [
-    # processing
+    # component_types
     "node_gen_power",
     "node_consum_power",
     "descendant_line_power",
@@ -24,4 +29,10 @@ __all__ = [
     "calculate_line_types_lv",
     "calculate_trafo_types_lv",
     "lv_processing_components",
+    # clean up
+    "clean_disconnected_elements_power",
+    "clean_disconnected_elements_gas",
+    "clean_wrong_piplines",
+    "clean_wrong_lines",
+    "clean_up_data",
 ]

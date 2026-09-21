@@ -119,14 +119,10 @@ from .model_utils import direction_away_from_node
 from .model_utils import filter_isolated_edges
 from .model_utils import lv_net_by_net_group
 from .model_utils import plot_graph
+from .plausibility.electrical_check import check_power_flow_lv_net_group
 
 # plausibility
 from .plausibility.structural_check import check_terminal_subgraph
-from .plausibility.structural_check import clean_disconnected_elements_gas
-from .plausibility.structural_check import clean_disconnected_elements_power
-from .plausibility.structural_check import clean_up_data
-from .plausibility.structural_check import clean_wrong_lines
-from .plausibility.structural_check import clean_wrong_piplines
 from .plausibility.structural_check import disconnected_nodes
 from .plausibility.structural_check import disconnected_nodes_subgraph
 from .plausibility.structural_check import find_open_ends
@@ -137,6 +133,11 @@ from .plotting.plot import plot_grid_data
 from .plotting.plot import plot_grid_data_osm
 from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
+from .processing.clean_up import clean_disconnected_elements_gas
+from .processing.clean_up import clean_disconnected_elements_power
+from .processing.clean_up import clean_up_data
+from .processing.clean_up import clean_wrong_lines
+from .processing.clean_up import clean_wrong_piplines
 
 # processing
 from .processing.component_types import calculate_line_types_lv
@@ -277,14 +278,10 @@ __all__ = [
     "DAVEJSONEncoder",
     # plausibility
     "disconnected_nodes",
-    "clean_disconnected_elements_power",
-    "clean_disconnected_elements_gas",
-    "clean_wrong_piplines",
-    "clean_wrong_lines",
-    "clean_up_data",
     "find_open_ends",
     "disconnected_nodes",
     "disconnected_nodes_subgraph",
+    "check_power_flow_lv_net_group",
     # plotting
     "plot_land",
     "plot_geographical_data",
@@ -321,6 +318,11 @@ __all__ = [
     "calculate_line_types_lv",
     "calculate_trafo_types_lv",
     "lv_processing_components",
+    "clean_disconnected_elements_power",
+    "clean_disconnected_elements_gas",
+    "clean_wrong_piplines",
+    "clean_wrong_lines",
+    "clean_up_data",
     # archiv io
     "archiv_inventory",
     "from_archiv",

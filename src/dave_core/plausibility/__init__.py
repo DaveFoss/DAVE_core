@@ -5,7 +5,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from .electrical_check import check_power_flow_lv_net_group
 from .structural_check import check_terminal_subgraph
 from .structural_check import disconnected_nodes
 from .structural_check import disconnected_nodes_subgraph
@@ -17,5 +16,4 @@ __all__ = [
     "disconnected_nodes",
     "disconnected_nodes_subgraph",
     "find_open_ends",
-    "check_power_flow_lv_net_group",
 ]

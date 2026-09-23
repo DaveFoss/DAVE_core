@@ -31,10 +31,12 @@ from dave_core.dave_structure import create_empty_dataset
 from dave_core.geography import target_area
 from dave_core.io.convert_format import change_crs
 from dave_core.io.convert_format import change_nan
+from dave_core.io.file_io import from_json
 from dave_core.io.file_io import to_gpkg
 from dave_core.io.file_io import to_hdf
 from dave_core.io.file_io import to_json
-from dave_core.plausibility.structural_check import clean_up_data
+from dave_core.processing.clean_up import clean_up_data
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import create_interim_area
 from dave_core.topology.extra_high_voltage import create_ehv_topology
@@ -156,6 +158,8 @@ def create_grid(
     federal_state=None,
     nuts_region=None,
     own_area=None,
+    # optional
+    dave_data=None,
     geodata=None,
     power_levels=None,
     gas_levels=None,
@@ -201,6 +205,9 @@ def create_grid(
             the area \n
 
     OPTIONAL:
+        **dave_data** (string, default None) - Path for hand over an existing \
+            dave dataset to use previously generated data as a basis and skip \
+            the process of creating it again
         **geodata** (list, default None) - this parameter defines which geodata should be considered.\
             options: 'roads','buildings','landuse', 'railways', 'waterways', []. \
                 there could be choose: one/multiple geoobjects or 'ALL' \n
@@ -264,8 +271,18 @@ def create_grid(
             Path(output_folder).mkdir(parents=True)
 
     # create empty datastructure
-    grid_data = create_empty_dataset()
-    grid_data["coordinate_system"] = crs
+    if dave_data:
+        # set progress bar
+        pbar = create_tqdm(desc="read existing dave dataset")
+        grid_data = from_json(dave_data)
+        grid_data = change_crs(grid_data, dave_settings["crs_main"])
+        # update progress
+        pbar.update(100)
+        # close progress bar
+        pbar.close()
+    else:
+        grid_data = create_empty_dataset()
+        grid_data["coordinate_system"] = crs
 
     # format level inputs
     if power_levels is None:

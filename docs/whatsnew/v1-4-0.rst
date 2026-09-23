@@ -12,6 +12,7 @@ Added
 * checks for nodes in graphs
 * cleaning of disconnected and wrong elements in graphs
 * steiner tree heuristik functions
+* usage of existing dave datasets (interim results) as basis for model generation
 
 
 Changed

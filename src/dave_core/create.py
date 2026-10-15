@@ -432,7 +432,7 @@ def create_grid(
                     save_data,
                 )
             # add renewable powerplants
-            if renewable_powerplants:
+            if renewable_powerplants and grid_data.components_power.renewable_powerplants.empty:
                 create_renewable_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
@@ -443,7 +443,10 @@ def create_grid(
                     save_data,
                 )
             # add conventional powerplants
-            if conventional_powerplants:
+            if (
+                conventional_powerplants
+                and grid_data.components_power.conventional_powerplants.empty
+            ):
                 create_conventional_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(

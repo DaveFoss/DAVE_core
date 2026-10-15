@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -31,10 +31,12 @@ from dave_core.dave_structure import create_empty_dataset
 from dave_core.geography import target_area
 from dave_core.io.convert_format import change_crs
 from dave_core.io.convert_format import change_nan
+from dave_core.io.file_io import from_json
 from dave_core.io.file_io import to_gpkg
 from dave_core.io.file_io import to_hdf
 from dave_core.io.file_io import to_json
-from dave_core.plausibility.structural_check import clean_up_data
+from dave_core.processing.clean_up import clean_up_data
+from dave_core.progressbar import create_tqdm
 from dave_core.settings import dave_settings
 from dave_core.toolbox import create_interim_area
 from dave_core.topology.extra_high_voltage import create_ehv_topology
@@ -156,6 +158,8 @@ def create_grid(
     federal_state=None,
     nuts_region=None,
     own_area=None,
+    # optional
+    dave_data=None,
     geodata=None,
     power_levels=None,
     gas_levels=None,
@@ -201,6 +205,9 @@ def create_grid(
             the area \n
 
     OPTIONAL:
+        **dave_data** (string, default None) - Path for hand over an existing \
+            dave dataset to use previously generated data as a basis and skip \
+            the process of creating it again
         **geodata** (list, default None) - this parameter defines which geodata should be considered.\
             options: 'roads','buildings','landuse', 'railways', 'waterways', []. \
                 there could be choose: one/multiple geoobjects or 'ALL' \n
@@ -264,8 +271,34 @@ def create_grid(
             Path(output_folder).mkdir(parents=True)
 
     # create empty datastructure
-    grid_data = create_empty_dataset()
-    grid_data["coordinate_system"] = crs
+    if dave_data:
+        # set progress bar
+        pbar = create_tqdm(desc="read existing dave dataset")
+        grid_data = from_json(dave_data)
+        grid_data = change_crs(grid_data, dave_settings["crs_main"])
+        # set target input parameters
+        power_levels = grid_data.target_input.power_levels.iloc[0]
+        gas_levels = grid_data.target_input.gas_levels.iloc[0]
+        if grid_data.target_input.typ.iloc[0] == "postalcode":
+            postalcode = ("postalcode",)
+        elif grid_data.target_input.typ.iloc[0] == "town_name":
+            town_name = "town_name"
+        elif grid_data.target_input.typ.iloc[0] == "federal_state":
+            federal_state = "federal_state"
+        elif grid_data.target_input.typ.iloc[0] == "nuts_region":
+            nuts_region = "nuts_region"
+        elif grid_data.target_input.typ.iloc[0] == "own area":
+            own_area = "own area"
+        else:
+            print(f"unknown target input typ: '{grid_data.target_input.typ.iloc[0]}' ")
+
+        # update progress
+        pbar.update(100)
+        # close progress bar
+        pbar.close()
+    else:
+        grid_data = create_empty_dataset()
+        grid_data["coordinate_system"] = crs
 
     # format level inputs
     if power_levels is None:
@@ -273,6 +306,8 @@ def create_grid(
     if gas_levels is None:
         gas_levels = []
     power_levels, gas_levels = format_input_levels(power_levels, gas_levels)
+
+    # combine areas
     if combine_areas is None:
         combine_areas = []
     else:
@@ -284,6 +319,8 @@ def create_grid(
     else:
         geodata = list(map(str.lower, geodata))
     roads_l, buildings_l, landuse_l = geo_info_needs(power_levels, gas_levels, loads)
+
+    # collect target area information and geodata
     file_exists, file_name = target_area(
         grid_data,
         power_levels=power_levels,
@@ -294,11 +331,27 @@ def create_grid(
         nuts_region=nuts_region,
         own_area=own_area,
         buffer=0,
-        roads=bool("roads" in geodata or "all" in geodata or roads_l),
-        buildings=bool("buildings" in geodata or "all" in geodata or buildings_l),
-        landuse=bool("landuse" in geodata or "all" in geodata or landuse_l),
-        railways=bool("railways" in geodata or "all" in geodata),
-        waterways=bool("waterways" in geodata or "all" in geodata),
+        roads=(
+            bool("roads" in geodata or "ALL" in geodata or roads_l)
+            if grid_data.road_data.roads.empty
+            else False
+        ),
+        buildings=(
+            bool("buildings" in geodata or "ALL" in geodata or buildings_l)
+            if grid_data.buildings.residential.empty and grid_data.buildings.commercial.empty
+            else False
+        ),
+        landuse=(
+            bool("landuse" in geodata or "ALL" in geodata or landuse_l)
+            if grid_data.landuse.empty
+            else False
+        ),
+        railways=(
+            bool("railways" in geodata or "ALL" in geodata) if grid_data.railways.empty else False
+        ),
+        waterways=(
+            bool("waterways" in geodata or "ALL" in geodata) if grid_data.waterways.empty else False
+        ),
     )
     # save interim status of the informations in user folder
     save_dataset_to_user_folder(grid_data, output_format, output_folder, filename, save_data)
@@ -311,44 +364,45 @@ def create_grid(
             origin_area = grid_data.area
             # hier dann die erstellung über funktion
             combined_area = create_interim_area(grid_data.area)
+        # create mvlv transformers (before topology to use them in generating of lv topology)
+        if transformers and "lv" in power_levels:
+            # add mvlv transformers
+            create_transformers(grid_data)
+            # save interim status of the informations in user folder
+            save_dataset_to_user_folder(
+                grid_data, output_format, output_folder, filename, save_data
+            )
         # --- create desired power grid levels
         for level in power_levels:
             # temporary extend grid area to combine not connected areas
             if level in combine_areas:
                 # temporary use of extended grid area
                 grid_data.area = combined_area
-            if level == "ehv":
-                create_ehv_topology(grid_data)
-                # save interim status of the informations in user folder
-                save_dataset_to_user_folder(
-                    grid_data,
-                    output_format,
-                    output_folder,
-                    filename,
-                    save_data,
-                )
-            elif level == "hv":
-                create_hv_topology(grid_data)
-                # save interim status of the informations in user folder
-                save_dataset_to_user_folder(
-                    grid_data,
-                    output_format,
-                    output_folder,
-                    filename,
-                    save_data,
-                )
-            elif level == "mv":
-                create_mv_topology(grid_data)
-                # save interim status of the informations in user folder
-                save_dataset_to_user_folder(
-                    grid_data,
-                    output_format,
-                    output_folder,
-                    filename,
-                    save_data,
-                )
-            elif level == "lv":
-                create_lv_topology(grid_data)
+            if level in ["ehv", "hv", "mv", "lv"]:
+                if (
+                    level == "ehv"
+                    and grid_data.ehvv_data.ehvv_nodes.empty
+                    and grid_data.ehv_data.ehv_lines.empty
+                ):
+                    create_ehv_topology(grid_data)
+                elif (
+                    level == "hv"
+                    and grid_data.hv_data.hv_nodes.empty
+                    and grid_data.hv_data.hv_lines.empty
+                ):
+                    create_hv_topology(grid_data)
+                elif (
+                    level == "mv"
+                    and grid_data.mv_data.mv_nodes.empty
+                    and grid_data.mv_data.mv_lines.empty
+                ):
+                    create_mv_topology(grid_data)
+                elif (
+                    level == "lv"
+                    and grid_data.lv_data.lv_nodes.empty
+                    and grid_data.lv_data.lv_lines.empty
+                ):
+                    create_lv_topology(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
                     grid_data,
@@ -367,7 +421,7 @@ def create_grid(
         # --- create power grid components
         if power_levels:
             # add transformers
-            if transformers:
+            if transformers and any(x in power_levels for x in ["ehv", "hv", "mv"]):
                 create_transformers(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
@@ -378,7 +432,7 @@ def create_grid(
                     save_data,
                 )
             # add renewable powerplants
-            if renewable_powerplants:
+            if renewable_powerplants and grid_data.components_power.renewable_powerplants.empty:
                 create_renewable_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
@@ -389,7 +443,10 @@ def create_grid(
                     save_data,
                 )
             # add conventional powerplants
-            if conventional_powerplants:
+            if (
+                conventional_powerplants
+                and grid_data.components_power.conventional_powerplants.empty
+            ):
                 create_conventional_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(

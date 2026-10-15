@@ -11,9 +11,9 @@ The following electrical network elements are covered from DAVE:
 .. toctree::
     :maxdepth: 1
 
-    topology/generators
-    topology/loads
-    topology/transformation
+    components/generators
+    components/loads
+    components/transformation
 
 
 

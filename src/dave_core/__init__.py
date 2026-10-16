@@ -4,8 +4,9 @@
 # Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+# ruff: noqa: RUF022
 
-__version__ = "1.3.4"
+__version__ = "1.4.0"
 
 # root
 from .archiv_io import archiv_inventory
@@ -186,7 +187,7 @@ from .topology.topology_utils import split_line
 from .topology.topology_utils import split_lines
 
 __all__ = [
-    # main
+    # progressbar
     "create_tqdm",
     "create_tqdm_dask",
     # components
@@ -278,7 +279,6 @@ __all__ = [
     # plausibility
     "disconnected_nodes",
     "find_open_ends",
-    "disconnected_nodes",
     "disconnected_nodes_subgraph",
     # plotting
     "plot_land",
@@ -332,7 +332,6 @@ __all__ = [
     "save_dataset_to_user_folder",
     "create_grid",
     "create_empty_dataset",
-    "create_tqdm",
     # settings
     "set_dave_settings",
     "dave_settings",

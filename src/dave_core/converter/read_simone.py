@@ -271,11 +271,11 @@ def simone_to_dave(data_simone):
         grid_data.components_gas.sources["junction"] = grid_data.components_gas.sources[
             "source_name"
         ].apply(
-            lambda x: grid_data.hp_data.hp_junctions[
-                grid_data.hp_data.hp_junctions.source_name == x
-            ]
-            .iloc[0]
-            .source_id
+            lambda x: (
+                grid_data.hp_data.hp_junctions[grid_data.hp_data.hp_junctions.source_name == x]
+                .iloc[0]
+                .source_id
+            )
         )
 
         # create sinks
@@ -289,11 +289,11 @@ def simone_to_dave(data_simone):
         grid_data.components_gas.sinks["junction"] = grid_data.components_gas.sinks[
             "source_name"
         ].apply(
-            lambda x: grid_data.hp_data.hp_junctions[
-                grid_data.hp_data.hp_junctions.source_name == x
-            ]
-            .iloc[0]
-            .source_id
+            lambda x: (
+                grid_data.hp_data.hp_junctions[grid_data.hp_data.hp_junctions.source_name == x]
+                .iloc[0]
+                .source_id
+            )
         )
 
         # adjust valve data

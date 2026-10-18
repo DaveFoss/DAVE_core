@@ -11,6 +11,7 @@ import json
 import sys
 import types
 import weakref
+import zlib
 from ast import literal_eval
 from functools import partial
 from functools import singledispatch
@@ -55,6 +56,7 @@ from shapely.geometry import shape
 
 from dave_core.dave_structure import create_empty_dataset
 from dave_core.dave_structure import davestructure
+from dave_core.io.file_io import from_json_string
 
 try:
     from pandas.testing import assert_frame_equal
@@ -139,8 +141,6 @@ def encrypt_string(s, key, compress=True):
 
     s = s.encode()
     if compress:
-        import zlib
-
         s = zlib.compress(s)
     s = cipher_suite.encrypt(s)
     s = s.decode()
@@ -425,8 +425,6 @@ class FromSerializableRegistry:
     @from_serializable.register(class_name="davestructure", module_name="dave_core.dave_structure")
     def davestructure(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from dave_core.io.file_io import from_json_string
-
             return from_json_string(self.obj)
         else:
             dave_dataset = create_empty_dataset()

@@ -120,7 +120,8 @@ target-version = "py312"
 
 [tool.ruff.lint]
 ignore = [
-    "PTH118",
+    "PTH118", # os-path-join
+    "RUF022", # unsorted-dunder-all
     "RUF001", # ruff-specific rules ambiguous-unicode-character-string
     "S101", # flake8-bandit assert
     "S301", # suspicious-pickle-usage

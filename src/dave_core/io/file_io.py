@@ -5,11 +5,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-import json
 from copy import deepcopy
-from functools import partial
 from json import dumps as json_dumps
-from json import load as json_load
 from json import loads as json_loads
 from pathlib import Path
 
@@ -32,19 +29,16 @@ from dave_core.dave_structure import davestructure
 from dave_core.io.convert_format import change_empty_gpd
 from dave_core.io.convert_format import wkb_to_wkt
 from dave_core.io.convert_format import wkt_to_wkb
-from dave_core.io.io_utils import DAVEJSONDecoder
 from dave_core.io.io_utils import DAVEJSONEncoder
-from dave_core.io.io_utils import FromSerializableRegistry
-from dave_core.io.io_utils import dave_hook
-from dave_core.io.io_utils import decrypt_string
 from dave_core.io.io_utils import encrypt_string
+from dave_core.io.io_utils import from_json_string
 from dave_core.io.io_utils import isinstance_partial
 from dave_core.settings import dave_settings
 
 
 def safe_to_json(net, filename, encryption_key=None, store_index_names=True):
     # identisch zu Original, aber indent als String
-    json_string = json.dumps(net, cls=pp_io.PPJSONEncoder, indent="  ")
+    json_string = json_dumps(net, cls=pp_io.PPJSONEncoder, indent="  ")
     if encryption_key is not None:
         json_string = pp_io.encrypt_string(json_string, encryption_key)
     if filename is None:
@@ -80,7 +74,7 @@ def check_json_readability(file_path):
     """
     # check general readability of the file
     with Path(file_path).open() as f:
-        data = json_load(f)
+        data = json_loads(f)
 
     # find empty string
     find_empty_strings(data)
@@ -139,28 +133,6 @@ def from_json(file_path, encryption_key=None):
         return from_json_ppi(file_path)
     else:
         raise UserWarning("The given json file is not a DAVE dataset")
-
-
-def from_json_string(json_string, encryption_key=None):
-    """
-    Load a dave dataset from a JSON string.
-
-    INPUT:
-        **json_string** (str ) - json string
-        **encrytion_key** (string, None) - If given, the DAVE dataset is stored as an encrypted \
-            json string
-    OUTPUT:
-        **dataset** (json) - the DAVE dataset in JSON format
-    """
-    if encryption_key is not None:
-        json_string = decrypt_string(json_string, encryption_key)
-
-    dataset = json_loads(
-        json_string,
-        cls=DAVEJSONDecoder,
-        object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),
-    )
-    return dataset
 
 
 def to_json(grid_data, file_path=None, encryption_key=None):

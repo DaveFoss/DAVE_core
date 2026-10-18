@@ -56,7 +56,6 @@ from shapely.geometry import shape
 
 from dave_core.dave_structure import create_empty_dataset
 from dave_core.dave_structure import davestructure
-from dave_core.io.file_io import from_json_string
 
 try:
     from pandas.testing import assert_frame_equal
@@ -963,3 +962,25 @@ def json_polygon(obj):
     json_string = mapping(obj)
     d = with_signature(obj, json_string, obj_module="shapely")
     return d
+
+
+def from_json_string(json_string, encryption_key=None):
+    """
+    Load a dave dataset from a JSON string.
+
+    INPUT:
+        **json_string** (str ) - json string
+        **encrytion_key** (string, None) - If given, the DAVE dataset is stored as an encrypted \
+            json string
+    OUTPUT:
+        **dataset** (json) - the DAVE dataset in JSON format
+    """
+    if encryption_key is not None:
+        json_string = decrypt_string(json_string, encryption_key)
+
+    dataset = json.load(
+        json_string,
+        cls=DAVEJSONDecoder,
+        object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),
+    )
+    return dataset

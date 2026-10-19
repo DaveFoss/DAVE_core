@@ -7,7 +7,6 @@
 
 from copy import deepcopy
 from json import dumps as json_dumps
-from json import load as json_load
 from json import loads as json_loads
 from pathlib import Path
 
@@ -105,7 +104,7 @@ def from_json(file_path, encryption_key=None):
         with Path(file_path).open("r") as file:
             json_string = file.read()
     # check if it is a json string in DAVE, pandapower or pandapipes structure
-    json_type = json_load(json_string)
+    json_type = json_loads(json_string)
     # fix missing dave structure
     if "_module" not in json_type.keys():
         # create dave structure dict

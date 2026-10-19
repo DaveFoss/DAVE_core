@@ -26,7 +26,7 @@ def gaslib_pipe_clustering():
     """
     pipe_data = {}
     # import gaslib data
-    gaslib_data, meta_data_gaslib = read_gaslib()  # !!! implement meta data
+    gaslib_data, _ = read_gaslib()  # !!! implement meta data
     for pipe in gaslib_data["connections"]["pipe"]:
         lengthrounded = round(pipe["length"]["@value"], 1)
         diameter = pipe["diameter"]["@value"]
@@ -61,7 +61,7 @@ def gaslib_pipe_clustering():
     # Hint: A modified kind of median is used. It differs from the original median function in that
     # if the number of data is even, the better of the two middle values is used instead of their
     # avarage
-    for key in pipe_data:
+    for key in pipe_data.items():
         if pipe_data[key]["pipesUsedForData"] > 1:
             pipe_data[key]["diameter"].sort()
             pipe_data[key]["diameter"] = pipe_data[key]["diameter"][

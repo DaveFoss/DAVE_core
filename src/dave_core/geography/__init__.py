@@ -12,10 +12,10 @@ from .osm_data import get_osm_data
 from .target_area import target_area
 
 __all__ = [
+    "calculate_road_junctions",
+    "from_osm",
     # geography
     "get_osm_data",
-    "from_osm",
-    "calculate_road_junctions",
-    "target_area",
     "nearest_road_points",
+    "target_area",
 ]

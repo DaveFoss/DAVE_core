@@ -45,7 +45,7 @@ def create_gaslib(grid_data, output_folder, save_data=True):
     connections = etree.Element("{http://gaslib.zib.de/Framework}connections")
 
     # import gaslib cs file for compressor station reference
-    gaslib_cs_data, gaslib_data_cs_xml = read_gaslib_cs()
+    _, gaslib_data_cs_xml = read_gaslib_cs()  # implement gaslib_cs_data?
 
     # define cs file
     nsm = {

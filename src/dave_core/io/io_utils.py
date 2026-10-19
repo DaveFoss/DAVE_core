@@ -978,7 +978,7 @@ def from_json_string(json_string, encryption_key=None):
     if encryption_key is not None:
         json_string = decrypt_string(json_string, encryption_key)
 
-    dataset = json.load(
+    dataset = json.loads(
         json_string,
         cls=DAVEJSONDecoder,
         object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),

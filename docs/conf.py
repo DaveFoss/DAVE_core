@@ -12,11 +12,11 @@ extensions = [
 source_suffix = ".rst"
 master_doc = "index"
 project = "DAVE_core"
-year = "2025"
+year = "2026"
 author = "DAVE_core Developers"
 copyright = f"{year}, {author}"
-release = "1.3.4"
-version = "1.3.4"
+release = "1.4.0"
+version = "1.4.0"
 
 
 pygments_style = "trac"

@@ -9,6 +9,7 @@ from os.path import join
 from os.path import realpath
 from pathlib import Path
 
+from lxml import etree as ET
 from xmlschema import XMLSchema
 
 
@@ -26,13 +27,11 @@ def read_gaslib_cs():
     # read meta data  # TODO: evt aus net nehmen
     # meta_data = gaslib_dict["framework:information"]
 
-    from lxml import etree as ET
-
     # gaslib_data_cs_xml = etree.iterparse(get_data_path("gaslib/GasLib-582-v2.cs", "data"))
     # root = etree.parse(get_data_path("gaslib/GasLib-582-v2.cs", "data"))
     # import xml.etree.ElementTree as ET
 
-    tree = ET.parse(join(filepath, "gaslib/GasLib-582-v2.cs"))  # noqa: S320
+    tree = ET.parse(join(filepath, "gaslib/GasLib-582-v2.cs"))
     gaslib_data_cs_xml = tree.getroot()
 
     return gaslib_data_cs, gaslib_data_cs_xml

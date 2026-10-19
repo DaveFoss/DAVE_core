@@ -11,6 +11,7 @@ import json
 import sys
 import types
 import weakref
+import zlib
 from ast import literal_eval
 from functools import partial
 from functools import singledispatch
@@ -139,8 +140,6 @@ def encrypt_string(s, key, compress=True):
 
     s = s.encode()
     if compress:
-        import zlib
-
         s = zlib.compress(s)
     s = cipher_suite.encrypt(s)
     s = s.decode()
@@ -425,8 +424,6 @@ class FromSerializableRegistry:
     @from_serializable.register(class_name="davestructure", module_name="dave_core.dave_structure")
     def davestructure(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from dave_core.io.file_io import from_json_string
-
             return from_json_string(self.obj)
         else:
             dave_dataset = create_empty_dataset()
@@ -965,3 +962,25 @@ def json_polygon(obj):
     json_string = mapping(obj)
     d = with_signature(obj, json_string, obj_module="shapely")
     return d
+
+
+def from_json_string(json_string, encryption_key=None):
+    """
+    Load a dave dataset from a JSON string.
+
+    INPUT:
+        **json_string** (str ) - json string
+        **encrytion_key** (string, None) - If given, the DAVE dataset is stored as an encrypted \
+            json string
+    OUTPUT:
+        **dataset** (json) - the DAVE dataset in JSON format
+    """
+    if encryption_key is not None:
+        json_string = decrypt_string(json_string, encryption_key)
+
+    dataset = json.loads(
+        json_string,
+        cls=DAVEJSONDecoder,
+        object_hook=partial(dave_hook, registry_class=FromSerializableRegistry),
+    )
+    return dataset

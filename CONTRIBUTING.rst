@@ -45,9 +45,9 @@ If you are proposing a feature:
 Development
 ===========
 
-To set up `DAVE_data` for local development:
+To set up `DAVE_core` for local development:
 
-1. Fork `DAVE_data <https://github.com/DaveFoss/DAVE_data>`_
+1. Fork `DAVE_core <https://github.com/DaveFoss/DAVE_core>`_
    (look for the "Fork" button).
 2. Clone your fork locally::
 

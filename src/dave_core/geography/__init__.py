@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
@@ -12,10 +12,10 @@ from .osm_data import get_osm_data
 from .target_area import target_area
 
 __all__ = [
+    "calculate_road_junctions",
+    "from_osm",
     # geography
     "get_osm_data",
-    "from_osm",
-    "calculate_road_junctions",
-    "target_area",
     "nearest_road_points",
+    "target_area",
 ]

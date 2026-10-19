@@ -4,8 +4,9 @@
 # Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+# ruff: noqa: RUF022
 
-__version__ = "1.3.4"
+__version__ = "1.4.0"
 
 # root
 from .archiv_io import archiv_inventory
@@ -56,6 +57,8 @@ from .converter.read_gaslib import read_gaslib_cs
 from .converter.read_simone import read_json
 from .converter.read_simone import read_simone_file
 from .converter.read_simone import simone_to_dave
+
+# create
 from .create import create_grid
 from .create import format_input_levels
 from .create import geo_info_needs
@@ -108,15 +111,20 @@ from .io.io_utils import decrypt_string
 from .io.io_utils import encrypt_string
 from .io.io_utils import isinstance_partial
 from .io.io_utils import with_signature
+
+# model utils
+from .model_utils import correct_wrong_wording
+from .model_utils import create_directed_graph
+from .model_utils import create_graph
+from .model_utils import direction_away_from_node
 from .model_utils import filter_isolated_edges
+from .model_utils import lv_net_by_net_group
+from .model_utils import plot_graph
 
 # plausibility
-from .plausibility.structural_check import clean_disconnected_elements_gas
-from .plausibility.structural_check import clean_disconnected_elements_power
-from .plausibility.structural_check import clean_up_data
-from .plausibility.structural_check import clean_wrong_lines
-from .plausibility.structural_check import clean_wrong_piplines
+from .plausibility.structural_check import check_terminal_subgraph
 from .plausibility.structural_check import disconnected_nodes
+from .plausibility.structural_check import disconnected_nodes_subgraph
 from .plausibility.structural_check import find_open_ends
 
 # plotting
@@ -125,9 +133,28 @@ from .plotting.plot import plot_grid_data
 from .plotting.plot import plot_grid_data_osm
 from .plotting.plot import plot_land
 from .plotting.plot import plot_landuse
+
+# processing
+from .processing.clean_up import clean_disconnected_elements_gas
+from .processing.clean_up import clean_disconnected_elements_power
+from .processing.clean_up import clean_up_data
+from .processing.clean_up import clean_wrong_lines
+from .processing.clean_up import clean_wrong_piplines
+from .processing.component_types import calculate_line_types_lv
+from .processing.component_types import calculate_trafo_types_lv
+from .processing.component_types import descendant_line_power
+from .processing.component_types import find_line_std_type
+from .processing.component_types import find_trafo_std_type
+from .processing.component_types import lv_processing_components
+from .processing.component_types import node_consum_power
+from .processing.component_types import node_gen_power
+
+# progress bar
 from .progressbar import create_tqdm
 from .progressbar import create_tqdm_dask
 from .settings import set_dave_settings
+
+# toolbox
 from .toolbox import add_dave_name
 from .toolbox import adress_to_coords
 from .toolbox import create_interim_area
@@ -142,21 +169,25 @@ from .topology.extra_high_voltage import create_ehv_topology
 from .topology.high_pressure import create_hp_topology
 from .topology.high_pressure import gaslib_pipe_clustering
 from .topology.high_voltage import create_hv_topology
-from .topology.low_voltage import connect_grid_nodes
+from .topology.low_voltage import create_building_nodes
+from .topology.low_voltage import create_lv_lines
 from .topology.low_voltage import create_lv_topology
-from .topology.low_voltage import line_connections
-from .topology.low_voltage import search_line_connections
-from .topology.medium_voltage import create_hv_mv_substations
-from .topology.medium_voltage import create_mv_lv_substations
+from .topology.low_voltage import create_trafo_nodes
+from .topology.low_voltage import reconnect_lines
+from .topology.medium_voltage import create_mv_lines_trafos
 from .topology.medium_voltage import create_mv_topology
-from .topology.medium_voltage import search_connection_line
+from .topology.medium_voltage import create_nodes_hvmv_subs
 from .topology.topology_utils import add_nodes_to_lines
+from .topology.topology_utils import build_steiner_tree
+from .topology.topology_utils import create_subgraphs
+from .topology.topology_utils import run_steiner_tree
+from .topology.topology_utils import run_steiner_tree_net_group
 from .topology.topology_utils import search_end_point_id
 from .topology.topology_utils import split_line
 from .topology.topology_utils import split_lines
 
 __all__ = [
-    # main
+    # progressbar
     "create_tqdm",
     "create_tqdm_dask",
     # components
@@ -247,12 +278,8 @@ __all__ = [
     "DAVEJSONEncoder",
     # plausibility
     "disconnected_nodes",
-    "clean_disconnected_elements_power",
-    "clean_disconnected_elements_gas",
-    "clean_wrong_piplines",
-    "clean_wrong_lines",
-    "clean_up_data",
     "find_open_ends",
+    "disconnected_nodes_subgraph",
     # plotting
     "plot_land",
     "plot_geographical_data",
@@ -264,31 +291,51 @@ __all__ = [
     "gaslib_pipe_clustering",
     "create_hp_topology",
     "create_hv_topology",
-    "connect_grid_nodes",
-    "search_line_connections",
-    "line_connections",
     "create_lv_topology",
-    "create_hv_mv_substations",
-    "create_mv_lv_substations",
-    "search_connection_line",
+    "reconnect_lines",
+    "create_building_nodes",
+    "create_trafo_nodes",
+    "create_lv_lines",
+    "create_mv_lines_trafos",
+    "create_nodes_hvmv_subs",
     "create_mv_topology",
     "split_line",
     "split_lines",
     "search_end_point_id",
     "add_nodes_to_lines",
-    # root
+    "build_steiner_tree",
+    "run_steiner_tree",
+    "run_steiner_tree_net_group",
+    "create_subgraphs",
+    # processing
+    "node_gen_power",
+    "node_consum_power",
+    "descendant_line_power",
+    "find_line_std_type",
+    "find_trafo_std_type",
+    "calculate_line_types_lv",
+    "calculate_trafo_types_lv",
+    "lv_processing_components",
+    "clean_disconnected_elements_power",
+    "clean_disconnected_elements_gas",
+    "clean_wrong_piplines",
+    "clean_wrong_lines",
+    "clean_up_data",
+    # archiv io
     "archiv_inventory",
     "from_archiv",
     "to_archiv",
+    # create
     "format_input_levels",
     "geo_info_needs",
     "save_dataset_to_archiv",
     "save_dataset_to_user_folder",
     "create_grid",
     "create_empty_dataset",
-    "create_tqdm",
+    # settings
     "set_dave_settings",
     "dave_settings",
+    # toolbox
     "multiline_coords",
     "add_dave_name",
     "create_interim_area",
@@ -297,5 +344,13 @@ __all__ = [
     "get_data_path",
     "intersection_with_area",
     "related_sub",
+    # model utils
     "filter_isolated_edges",
+    "create_directed_graph",
+    "plot_graph",
+    "direction_away_from_node",
+    "check_terminal_subgraph",
+    "lv_net_by_net_group",
+    "create_graph",
+    "correct_wrong_wording",
 ]

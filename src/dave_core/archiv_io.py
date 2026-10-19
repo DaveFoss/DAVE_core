@@ -1,11 +1,10 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from os import listdir
 from pathlib import Path
 
 from pandas import DataFrame
@@ -100,7 +99,7 @@ def from_archiv(dataset_name):
     This functions reads a dave dataset from the dave internal archiv
     """
     # check if file exist
-    files_in_archiv = listdir(get_data_path(dirname="dave_archiv"))
+    files_in_archiv = Path.iterdir(get_data_path(dirname="dave_archiv"))
     if dataset_name in files_in_archiv:
         grid_data = from_hdf(get_data_path(dataset_name, "dave_archiv"))
         return grid_data

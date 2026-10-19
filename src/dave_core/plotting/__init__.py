@@ -12,10 +12,10 @@ from .plot import plot_land
 from .plot import plot_landuse
 
 __all__ = [
-    # plotting
-    "plot_land",
     "plot_geographical_data",
     "plot_grid_data",
     "plot_grid_data_osm",
+    # plotting
+    "plot_land",
     "plot_landuse",
 ]

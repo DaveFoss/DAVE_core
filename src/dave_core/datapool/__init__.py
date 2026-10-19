@@ -17,15 +17,15 @@ from .read_data import read_postal
 from .read_data import read_scigridgas_iggielgn
 
 __all__ = [
-    # datapool
-    "request_to_df",
+    "download_data",
     "oep_request",
     "osm_request",
-    "download_data",
-    "read_postal",
     "read_federal_states",
-    "read_nuts_regions",
-    "read_household_consumption",
-    "read_scigridgas_iggielgn",
     "read_gaslib",
+    "read_household_consumption",
+    "read_nuts_regions",
+    "read_postal",
+    "read_scigridgas_iggielgn",
+    # datapool
+    "request_to_df",
 ]

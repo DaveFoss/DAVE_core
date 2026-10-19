@@ -55,15 +55,15 @@ def test_lv_topo():
     assert not grid_data.buildings.commercial.empty, "No commercial building data were collected."
     assert not grid_data.buildings.residential.empty, "No residential building data were collected."
     assert not grid_data.roads.roads.empty, "No road data data were collected."
-    assert (
-        not grid_data.roads.road_junctions.empty
-    ), "No road junctions was calculated and returned."
+    assert not grid_data.roads.road_junctions.empty, (
+        "No road junctions was calculated and returned."
+    )
     assert not grid_data.landuse.empty, "No landuse data data were collected."
     assert not grid_data.lv_data.lv_nodes.empty, "No low voltage nodes were generated."
     assert not grid_data.lv_data.lv_lines.empty, "No low voltage lines were generated."
-    assert (
-        not grid_data.components_power.substations.mv_lv.empty
-    ), "No mv/lv substation data were collected."
+    assert not grid_data.components_power.substations.mv_lv.empty, (
+        "No mv/lv substation data were collected."
+    )
 
 
 if __name__ == "__main__":

@@ -32,6 +32,9 @@ def test_oep_availability():
     assert response.status_code == 200, f"Data Repo is not available: {response.status_code}"
 
 
+@pytest.mark.xfail(
+    reason="OSM server is often overloaded. This is a known issue and will be fixed later."
+)
 def test_osm_request():
     grid_data = create_empty_dataset()
     # define example area

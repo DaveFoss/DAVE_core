@@ -12,11 +12,11 @@ extensions = [
 source_suffix = ".rst"
 master_doc = "index"
 project = "DAVE_core"
-year = "2025"
+year = "2026"
 author = "DAVE_core Developers"
 copyright = f"{year}, {author}"
-release = "1.3.4"
-version = "1.3.4"
+release = "1.4.0"
+version = "1.4.0"
 
 
 pygments_style = "trac"
@@ -36,3 +36,7 @@ html_short_title = f"{project}-{version}"
 napoleon_use_ivar = True
 napoleon_use_rtype = False
 napoleon_use_param = False
+
+linkcheck_ignore = [
+    r"https://coveralls\.io/github/DaveFoss/DAVE_core\?branch=main",  # link works but will wrongly detected from sphinx as broken
+]

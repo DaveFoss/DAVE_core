@@ -7,6 +7,7 @@
 
 from copy import deepcopy
 from json import dumps as json_dumps
+from json import load as json_load
 from json import loads as json_loads
 from pathlib import Path
 
@@ -74,7 +75,7 @@ def check_json_readability(file_path):
     """
     # check general readability of the file
     with Path(file_path).open() as f:
-        data = json_loads(f)
+        data = json_load(f)
 
     # find empty string
     find_empty_strings(data)

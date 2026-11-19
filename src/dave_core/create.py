@@ -5,6 +5,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
+from copy import deepcopy
 from os import environ
 from os import name as osname
 from pathlib import Path
@@ -274,24 +275,33 @@ def create_grid(
     if dave_data:
         # set progress bar
         pbar = create_tqdm(desc="read existing dave dataset")
-        grid_data = from_json(dave_data)
+        grid_data = from_json(dave_data)  # TODO: should also work with other format like .gpkg
         grid_data = change_crs(grid_data, dave_settings["crs_main"])
-        # set target input parameters
-        power_levels = grid_data.target_input.power_levels.iloc[0]
-        gas_levels = grid_data.target_input.gas_levels.iloc[0]
+        # Check if target input from request is suitable to the existing file
         if grid_data.target_input.typ.iloc[0] == "postalcode":
-            postalcode = ("postalcode",)
-        elif grid_data.target_input.typ.iloc[0] == "town_name":
-            town_name = "town_name"
+            assert postalcode == grid_data.target_input.iloc[0].data, (
+                "The area of interest specified in the query does not match the area in the existing dataset provided by dave_data."
+            )
+        elif grid_data.target_input.typ.iloc[0] == "town name":
+            assert town_name == grid_data.target_input.iloc[0].data, (
+                "The area of interest specified in the query does not match the area in the existing dataset provided by dave_data."
+            )
         elif grid_data.target_input.typ.iloc[0] == "federal_state":
-            federal_state = "federal_state"
+            assert federal_state == grid_data.target_input.iloc[0].data, (
+                "The area of interest specified in the query does not match the area in the existing dataset provided by dave_data."
+            )
         elif grid_data.target_input.typ.iloc[0] == "nuts_region":
-            nuts_region = "nuts_region"
+            assert nuts_region == grid_data.target_input.iloc[0].data, (
+                "The area of interest specified in the query does not match the area in the existing dataset provided by dave_data."
+            )
         elif grid_data.target_input.typ.iloc[0] == "own area":
-            own_area = "own area"
+            assert own_area == grid_data.target_input.iloc[0].data, (
+                "The area of interest specified in the query does not match the area in the existing dataset provided by dave_data."
+            )
         else:
             print(f"unknown target input typ: '{grid_data.target_input.typ.iloc[0]}' ")
-
+        # copy grid data to keep the original state of the basis dave grid model
+        grid_data_origin = deepcopy(grid_data)
         # update progress
         pbar.update(100)
         # close progress bar
@@ -299,6 +309,7 @@ def create_grid(
     else:
         grid_data = create_empty_dataset()
         grid_data["coordinate_system"] = crs
+        grid_data_origin = create_empty_dataset()
 
     # format level inputs
     if power_levels is None:
@@ -333,24 +344,28 @@ def create_grid(
         buffer=0,
         roads=(
             bool("roads" in geodata or "ALL" in geodata or roads_l)
-            if grid_data.road_data.roads.empty
+            if grid_data_origin.road_data.roads.empty
             else False
         ),
         buildings=(
             bool("buildings" in geodata or "ALL" in geodata or buildings_l)
-            if grid_data.buildings.residential.empty and grid_data.buildings.commercial.empty
+            if grid_data_origin.buildings.residential.empty and grid_data.buildings.commercial.empty
             else False
         ),
         landuse=(
             bool("landuse" in geodata or "ALL" in geodata or landuse_l)
-            if grid_data.landuse.empty
+            if grid_data_origin.landuse.empty
             else False
         ),
         railways=(
-            bool("railways" in geodata or "ALL" in geodata) if grid_data.railways.empty else False
+            bool("railways" in geodata or "ALL" in geodata)
+            if grid_data_origin.railways.empty
+            else False
         ),
         waterways=(
-            bool("waterways" in geodata or "ALL" in geodata) if grid_data.waterways.empty else False
+            bool("waterways" in geodata or "ALL" in geodata)
+            if grid_data_origin.waterways.empty
+            else False
         ),
     )
     # save interim status of the informations in user folder
@@ -381,26 +396,26 @@ def create_grid(
             if level in ["ehv", "hv", "mv", "lv"]:
                 if (
                     level == "ehv"
-                    and grid_data.ehvv_data.ehvv_nodes.empty
-                    and grid_data.ehv_data.ehv_lines.empty
+                    and grid_data_origin.ehvv_data.ehvv_nodes.empty
+                    and grid_data_origin.ehv_data.ehv_lines.empty
                 ):
                     create_ehv_topology(grid_data)
                 elif (
                     level == "hv"
-                    and grid_data.hv_data.hv_nodes.empty
-                    and grid_data.hv_data.hv_lines.empty
+                    and grid_data_origin.hv_data.hv_nodes.empty
+                    and grid_data_origin.hv_data.hv_lines.empty
                 ):
                     create_hv_topology(grid_data)
                 elif (
                     level == "mv"
-                    and grid_data.mv_data.mv_nodes.empty
-                    and grid_data.mv_data.mv_lines.empty
+                    and grid_data_origin.mv_data.mv_nodes.empt
+                    and grid_data_origin.mv_data.mv_lines.empty
                 ):
                     create_mv_topology(grid_data)
                 elif (
                     level == "lv"
-                    and grid_data.lv_data.lv_nodes.empty
-                    and grid_data.lv_data.lv_lines.empty
+                    and grid_data_origin.lv_data.lv_nodes.empty
+                    and grid_data_origin.lv_data.lv_lines.empty
                 ):
                     create_lv_topology(grid_data)
                 # save interim status of the informations in user folder
@@ -432,7 +447,11 @@ def create_grid(
                     save_data,
                 )
             # add renewable powerplants
-            if renewable_powerplants and grid_data.components_power.renewable_powerplants.empty:
+            powerplant_lines = False  # default
+            if (
+                renewable_powerplants
+                and grid_data_origin.components_power.renewable_powerplants.empty
+            ):
                 create_renewable_powerplants(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
@@ -442,10 +461,12 @@ def create_grid(
                     filename,
                     save_data,
                 )
+                if not grid_data_origin.components_power.renewable_powerplants.empty:
+                    powerplant_lines = True
             # add conventional powerplants
             if (
                 conventional_powerplants
-                and grid_data.components_power.conventional_powerplants.empty
+                and grid_data_origin.components_power.conventional_powerplants.empty
             ):
                 create_conventional_powerplants(grid_data)
                 # save interim status of the informations in user folder
@@ -456,8 +477,10 @@ def create_grid(
                     filename,
                     save_data,
                 )
+                if not grid_data.components_power.conventional_powerplants.empty:
+                    powerplant_lines = True
             # create lines for power plants with a grid node far away
-            if renewable_powerplants or conventional_powerplants:
+            if powerplant_lines:
                 create_power_plant_lines(grid_data)
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
@@ -469,7 +492,7 @@ def create_grid(
                 )
             # add loads
             if loads:
-                create_loads(grid_data)
+                create_loads(grid_data)  # TODO: Kernel stribt
                 # save interim status of the informations in user folder
                 save_dataset_to_user_folder(
                     grid_data,

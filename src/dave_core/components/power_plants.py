@@ -232,6 +232,7 @@ def create_power_plant_lines(grid_data):
                             "source": "dave internal",
                         }
                     )
+                    auxillary_bus.set_crs(dave_settings["crs_main"], inplace=True)
                     # concat buses with new auxillary bus
                     buses_new = concat([buses, auxillary_bus], ignore_index=True)
                     if voltage_level == 1:  # (EHV)

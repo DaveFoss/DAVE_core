@@ -62,7 +62,7 @@ def get_household_power(consumption_data, household_size):
     return p_mw, q_mvar
 
 
-def create_lv_loads_residential(grid_data, pbar, building_nodes):
+def create_lv_loads_residential(grid_data, pbar):
     """
     This function estimates the active and reactive power consumption for residential loads at /
     low voltage grids

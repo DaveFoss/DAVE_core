@@ -1,26 +1,26 @@
 # Copyright (c) 2022-2024 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)
 # Kassel and individual contributors (see AUTHORS file for details).
 # All rights reserved.
-# Copyright (c) 2024-2025 DAVE_core contributors
+# Copyright (c) 2024-2026 DAVE_core contributors
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
 from pandapower import __version__ as pp_version
 from pandapower import available_std_types
-from pandapower import create_buses
-from pandapower import create_empty_network
-from pandapower import create_ext_grid
-from pandapower import create_gens
-from pandapower import create_lines
-from pandapower import create_lines_from_parameters
-from pandapower import create_loads
-from pandapower import create_replacement_switch_for_branch
-from pandapower import create_sgens
-from pandapower import diagnostic
-from pandapower import drop_buses
-from pandapower import drop_lines
-from pandapower import runopp
-from pandapower import runpp
+from pandapower.create import create_buses
+from pandapower.create import create_empty_network
+from pandapower.create import create_ext_grid
+from pandapower.create import create_gens
+from pandapower.create import create_lines
+from pandapower.create import create_lines_from_parameters
+from pandapower.create import create_loads
+from pandapower.create import create_sgens
+from pandapower.diagnostic import diagnostic
+from pandapower.run import runopp
+from pandapower.run import runpp
+from pandapower.toolbox import create_replacement_switch_for_branch
+from pandapower.toolbox import drop_buses
+from pandapower.toolbox import drop_lines
 from pandas import DataFrame
 from pandas import Series
 from pandas import concat
@@ -36,13 +36,13 @@ from dave_core.toolbox import multiline_coords
 
 def create_pp_buses(net, buses):
     if "dave_name" in buses.keys():
-        buses.rename(columns={"dave_name": "name"}, inplace=True)
+        buses = buses.rename(columns={"dave_name": "name"})
     else:
         buses.insert(
             0, "name", Series([f"node_{x}" for x in buses.index])
         )  # TODO: hier fehlt noch das voltage level
     if "voltage_kv" in buses.keys():
-        buses.rename(columns={"voltage_kv": "vn_kv"}, inplace=True)
+        buses = buses.rename(columns={"voltage_kv": "vn_kv"})
     # create buses
     create_buses(
         net,
@@ -66,7 +66,7 @@ def create_pp_buses(net, buses):
 def create_pp_ehvhv_lines(net, lines):
     # create line names
     if "dave_name" in lines.keys():
-        lines.rename(columns={"dave_name": "name"}, inplace=True)
+        lines = lines.rename(columns={"dave_name": "name"})
     else:
         lines.insert(
             0, "name", Series([f"line_{x}" for x in lines.index])
@@ -101,7 +101,7 @@ def create_pp_ehvhv_lines(net, lines):
 def create_pp_mvlv_lines(net, lines):
     # create line names
     if "dave_name" in lines.keys():
-        lines.rename(columns={"dave_name": "name"}, inplace=True)
+        lines = lines.rename(columns={"dave_name": "name"})
     else:
         lines.insert(
             0, "name", Series([f"line_{x}" for x in lines.index])
@@ -162,7 +162,7 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
         ]
     )
     if not trafos_ehvhv.empty:
-        trafos_ehvhv.rename(
+        trafos_ehvhv = trafos_ehvhv.rename(
             columns={
                 "dave_name": "name",
                 "s_nom_mva": "sn_mva",
@@ -170,7 +170,6 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
                 "voltage_kv_lv": "vn_lv_kv",
                 "phase_shift": "shift_degree",
             },
-            inplace=True,
         )
         # trafo über parameter. Dafür müssen die Parameter noch berechnet werden
         # aber wie? wenn ich nur r,x,b, gegeben habe
@@ -196,7 +195,7 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
     )
     if not trafos_mvlv.empty:
         # TODO: Anpassung an create_transformer function from pandapower
-        trafos_mvlv.rename(columns={"dave_name": "name"}, inplace=True)
+        trafos_mvlv = trafos_mvlv.rename(columns={"dave_name": "name"})
         trafos_mvlv["hv_bus"] = trafos_mvlv.bus_hv.apply(
             lambda x: net.bus[net.bus["name"] == x].index[0]
         )
@@ -284,9 +283,9 @@ def create_pp_trafos(net, grid_data):  # TODO: Umschreiben auf pp.create_trafos
 
 def create_pp_sgens(net, sgens):
     if "name" in sgens.keys():
-        sgens.rename(columns={"name": "plant_name"}, inplace=True)
+        sgens = sgens.rename(columns={"name": "plant_name"})
     if "dave_name" in sgens.keys():
-        sgens.rename(columns={"dave_name": "name"}, inplace=True)
+        sgens = sgens.rename(columns={"dave_name": "name"})
     else:
         sgens.insert(
             0,
@@ -294,7 +293,7 @@ def create_pp_sgens(net, sgens):
             Series([f"ren_powerplants_{x}" for x in sgens.index]),
         )  # TODO: hier fehlt noch das voltage level
     if "generation_type" in sgens.keys():
-        sgens.rename(columns={"generation_type": "type"}, inplace=True)
+        sgens = sgens.rename(columns={"generation_type": "type"})
     # create sgens
     create_sgens(
         net,
@@ -331,9 +330,9 @@ def create_pp_sgens(net, sgens):
 
 def create_pp_gens(net, gens):
     if "name" in gens.keys():
-        gens.rename(columns={"name": "plant_name"}, inplace=True)
+        gens = gens.rename(columns={"name": "plant_name"})
     if "dave_name" in gens.keys():
-        gens.rename(columns={"dave_name": "name"}, inplace=True)
+        gens = gens.rename(columns={"dave_name": "name"})
     else:
         gens.insert(
             0,
@@ -341,11 +340,11 @@ def create_pp_gens(net, gens):
             Series([f"con_powerplants_{x}" for x in gens.index]),
         )  # TODO: hier fehlt noch das voltage level
     if "type" in gens.keys():
-        gens.rename(columns={"type": "type_2"}, inplace=True)
+        gens = gens.rename(columns={"type": "type_2"})
     if "fuel" in gens.keys():
-        gens.rename(columns={"fuel": "type"}, inplace=True)
+        gens = gens.rename(columns={"fuel": "type"})
     if "electrical_capacity_mw" in gens.keys():
-        gens.rename(columns={"electrical_capacity_mw": "p_mw"}, inplace=True)
+        gens = gens.rename(columns={"electrical_capacity_mw": "p_mw"})
 
     create_gens(
         net,
@@ -493,14 +492,18 @@ def create_pp_ext_grid(net, grid_data):
             net.ext_grid.at[ext_id, "voltage_level"] = 6
 
 
-def create_pandapower(grid_data, opt_model, output_folder, save_data=True):
+def create_pandapower(
+    grid_data, opt_model=False, output_folder=dave_settings["dave_output_dir"], save_data=True
+):
     """
     This function creates a pandapower network based an the DaVe dataset
 
     INPUT:
         **grid_data** (attrdict) - calculated grid data from dave \n
-        **opt_model** (bool) - optimize model during model processing \n
-        **output_folder** (str) - patht to the location where the results will be saved \n
+
+    OPTIONAL:
+        **opt_model** (bool, default False) - optimize model during model processing \n
+        **output_folder** (str, default user desktop) - patht to the location where the results will be saved \n
         **save_data** (boolean, default True) - if true, the resulting data will stored in a \
             local folder
 

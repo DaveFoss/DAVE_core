@@ -182,17 +182,21 @@ def lv_net_by_net_group(grid_data, net_group, keep_geo=True):
     # delet geographical data
     if keep_geo:
         pass
-        # TODO: Hier noch Geodata reduzieren mittels konvexer Hülle und intersection
+        # TODO: Hier noch Geodata reduzieren mittels konvexer Hülle und intersection (passend zu neuem reduzierten Netzgebiet)
     else:
         # delete all geodata
         grid_data_red.buildings.commercial = DataFrame([])
         grid_data_red.buildings.residential = DataFrame([])
         grid_data_red.buildings.other = DataFrame([])
-        grid_data_red.roads.roads = DataFrame([])
-        grid_data_red.roads.road_junctions = DataFrame([])
+        grid_data_red.road_data.roads = DataFrame([])
+        grid_data_red.road_data.road_junctions = DataFrame([])
+        grid_data_red.road_data.road_endings = DataFrame([])
         grid_data_red.landuse = DataFrame([])
         grid_data_red.waterways = DataFrame([])
         grid_data_red.railways = DataFrame([])
+
+    # adjust target input
+    grid_data_red.target_input.at[grid_data_red.target_input.index[0], "power_levels"] = ["lv"]
 
     # reduce lv topology
     if not grid_data_red.lv_data.lv_nodes.empty:
@@ -228,7 +232,14 @@ def lv_net_by_net_group(grid_data, net_group, keep_geo=True):
                 grid_data_red.components_power.transformers.mv_lv.bus_lv.isin(nodes_rel)
             ]
         )
-    # TODO: Substations müssen auch ncoh gefiltert werden
+    if not grid_data_red.components_power.substations.mv_lv.empty:
+        grid_data_red.components_power.substations.mv_lv = (
+            grid_data_red.components_power.substations.mv_lv[
+                grid_data_red.components_power.substations.mv_lv.ego_subst_id.isin(
+                    grid_data_red.components_power.transformers.mv_lv.ego_subst_id.to_list()
+                )
+            ]
+        )
 
     # delet other topologys
     grid_data_red.ehv_data.ehv_nodes = DataFrame([])
@@ -245,6 +256,8 @@ def lv_net_by_net_group(grid_data, net_group, keep_geo=True):
     # delet other components
     grid_data_red.components_power.transformers.hv_mv = DataFrame([])
     grid_data_red.components_power.transformers.ehv_hv = DataFrame([])
+    grid_data_red.components_power.substations.hv_mv = DataFrame([])
+    grid_data_red.components_power.substations.ehv_hv = DataFrame([])
 
     # reduce target_input
     grid_data_red.target_input.power_levels.iloc[0] = ["lv"]
